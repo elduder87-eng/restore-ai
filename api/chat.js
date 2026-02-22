@@ -4,7 +4,7 @@ export default async function handler(req, res) {
       return res.status(405).json({ error: "Method not allowed" });
     }
 
-    const { history } = req.body;
+    const { message, history, learnerProfile } = req.body;
 
     const response = await fetch(
       "https://api.openai.com/v1/chat/completions",
@@ -15,26 +15,47 @@ export default async function handler(req, res) {
           Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
         },
         body: JSON.stringify({
-          model: "gpt-4.1-mini",
+          model: "gpt-4o-mini",
           messages: [
             {
               role: "system",
-              content:
-                "You are Restore AI — a calm, encouraging Socratic teacher. You guide students using questions, step-by-step reasoning, and curiosity instead of giving immediate answers.",
+              content: `
+You are Restore AI — a curiosity-driven educational teacher.
+
+Your goals:
+- Teach through questions first.
+- Encourage thinking before explaining.
+- Adapt to the learner.
+
+Learner Profile:
+${JSON.stringify(learnerProfile)}
+
+Teaching Rules:
+1. Ask guiding questions.
+2. Build understanding step-by-step.
+3. Correct misconceptions gently.
+4. Encourage curiosity.
+5. Keep explanations clear and age-neutral.
+`
             },
-            ...history,
-          ],
-        }),
+
+            ...(history || []),
+
+            {
+              role: "user",
+              content: message
+            }
+          ]
+        })
       }
     );
 
     const data = await response.json();
 
-    const reply =
-      data.choices?.[0]?.message?.content ||
-      "Sorry, something went wrong.";
+    res.status(200).json({
+      reply: data.choices[0].message.content
+    });
 
-    res.status(200).json({ reply });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Server error" });
