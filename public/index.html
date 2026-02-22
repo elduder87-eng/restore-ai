@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Restore AI</title>
+</head>
+
+<body>
+  <h1>Restore AI</h1>
+
+  <input id="input" placeholder="Ask something..." />
+  <button onclick="send()">Send</button>
+
+  <pre id="response"></pre>
+
+  <script>
+    async function send() {
+      const message = document.getElementById("input").value;
+
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ message })
+      });
+
+      const data = await res.json();
+
+      document.getElementById("response").textContent =
+        data.reply || JSON.stringify(data);
+    }
+  </script>
+</body>
+</html>
