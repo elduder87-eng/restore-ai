@@ -1,55 +1,33 @@
-import fs from "fs";
-import path from "path";
-
-const STUDENT_FILE = path.join(process.cwd(), "data", "students.json");
-
-function loadStudents() {
-  try {
-    return JSON.parse(fs.readFileSync(STUDENT_FILE, "utf8"));
-  } catch {
-    return {};
-  }
-}
-
-function saveStudents(data) {
-  fs.writeFileSync(STUDENT_FILE, JSON.stringify(data, null, 2));
-}
-
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
-
   try {
-    const { message, history, studentId } = req.body;
-
-    // ===== LOAD STUDENT MEMORY =====
-    const students = loadStudents();
-
-    if (!students[studentId]) {
-      students[studentId] = {
-        curiosity: "unknown",
-        misconceptions: [],
-        interests: [],
-        summary: ""
-      };
+    if (req.method !== "POST") {
+      return res.status(405).json({ error: "Method not allowed" });
     }
 
-    const student = students[studentId];
+    const { message, history = [], studentId } = req.body;
 
-    // ===== SYSTEM PROMPT =====
     const systemPrompt = `
-You are Restore AI, a curiosity-driven teacher.
+You are Restore AI operating in Teacher Mode.
 
-Student Profile:
-${JSON.stringify(student)}
+Your purpose:
+- Teach through curiosity and guided discovery.
+- Ask questions before explaining.
+- Help students think, not just receive answers.
+- Encourage reasoning and reflection.
+- Be supportive, calm, and intellectually respectful.
 
-Goals:
-- Teach through questions.
-- Encourage thinking, not answers.
-- Detect misconceptions gently.
-- Update understanding over time.
+Rules:
+- Do NOT lecture immediately.
+- Ask guiding questions first.
+- Build understanding step-by-step.
+- Reference prior ideas when helpful.
 `;
+
+    const messages = [
+      { role: "system", content: systemPrompt },
+      ...history,
+      { role: "user", content: message }
+    ];
 
     const response = await fetch(
       "https://api.openai.com/v1/chat/completions",
@@ -61,34 +39,19 @@ Goals:
         },
         body: JSON.stringify({
           model: "gpt-4o-mini",
-          messages: [
-            { role: "system", content: systemPrompt },
-            ...history,
-            { role: "user", content: message }
-          ]
+          messages,
+          temperature: 0.7
         })
       }
     );
 
     const data = await response.json();
-    const reply = data.choices[0].message.content;
 
-    // ===== SIMPLE PROFILE UPDATE =====
-    if (message.toLowerCase().includes("why")) {
-      student.curiosity = "high";
-    }
+    const reply =
+      data.choices?.[0]?.message?.content ||
+      "I'm thinking — could you rephrase that?";
 
-    if (message.toLowerCase().includes("fall faster")) {
-      student.misconceptions.push("gravity_speed_confusion");
-    }
-
-    student.summary =
-      "Student shows curiosity-driven questioning behavior.";
-
-    students[studentId] = student;
-    saveStudents(students);
-
-    return res.status(200).json({ reply });
+    res.status(200).json({ reply });
 
   } catch (error) {
     console.error(error);
