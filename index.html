@@ -1,80 +1,154 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Restore AI Chat</title>
-
-  <!-- Force Vercel rebuild + routing recognition -->
-  <meta name="restore-build" content="v2" />
+  <title>Restore AI — Teacher Mode</title>
 
   <style>
     body {
       font-family: Arial, sans-serif;
-      max-width: 700px;
-      margin: 40px auto;
-      padding: 20px;
+      background: #f3f4f6;
+      margin: 0;
     }
 
-    h1 {
-      margin-bottom: 20px;
+    header {
+      background: #0f172a;
+      color: white;
+      text-align: center;
+      padding: 12px;
+      font-weight: bold;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 30px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    #chat {
+      height: 400px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+
+    .user {
+      color: #2563eb;
+      margin: 8px 0;
+    }
+
+    .ai {
+      color: #111827;
+      margin: 8px 0;
     }
 
     input {
-      width: 70%;
-      padding: 8px;
-      font-size: 16px;
+      width: 80%;
+      padding: 10px;
     }
 
     button {
-      padding: 8px 14px;
-      font-size: 16px;
+      padding: 10px 16px;
+      background: #2563eb;
+      color: white;
+      border: none;
       cursor: pointer;
-    }
-
-    #response {
-      margin-top: 20px;
-      white-space: pre-wrap;
-      line-height: 1.5;
     }
   </style>
 </head>
 
 <body>
 
-  <!-- tiny edit included here (extra space forces redeploy) -->
-  <h1>Restore AI Chat </h1>
+<header>Restore AI — Teacher Mode</header>
 
-  <input id="question" placeholder="Ask anything..." />
-  <button onclick="askAI()">Send</button>
+<div class="container">
+  <div id="chat"></div>
 
-  <div id="response"></div>
+  <input id="message" placeholder="Ask a question..." />
+  <button onclick="sendMessage()">Send</button>
+</div>
 
-  <script>
-    async function askAI() {
-      const question = document.getElementById("question").value;
-      const responseBox = document.getElementById("response");
+<script>
+const chatDiv = document.getElementById("chat");
+const input = document.getElementById("message");
 
-      responseBox.textContent = "Thinking...";
+/* -----------------------------
+   STUDENT MEMORY (STEP 4)
+------------------------------ */
 
-      try {
-        const res = await fetch("/api/chat", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ message: question }),
-        });
+const studentId =
+  localStorage.getItem("studentId") ||
+  crypto.randomUUID();
 
-        const data = await res.json();
+localStorage.setItem("studentId", studentId);
 
-        responseBox.textContent =
-          data.reply || data.error || "No response returned.";
-      } catch (err) {
-        responseBox.textContent = "Error connecting to AI.";
-      }
-    }
-  </script>
+/* -----------------------------
+   CHAT HISTORY MEMORY
+------------------------------ */
+
+let history =
+  JSON.parse(localStorage.getItem("chatHistory")) || [];
+
+function renderHistory() {
+  chatDiv.innerHTML = "";
+  history.forEach(msg => {
+    const div = document.createElement("div");
+    div.className = msg.role === "user" ? "user" : "ai";
+    div.innerHTML =
+      `<strong>${msg.role === "user" ? "You" : "Restore AI"}:</strong> ${msg.content}`;
+    chatDiv.appendChild(div);
+  });
+
+  chatDiv.scrollTop = chatDiv.scrollHeight;
+}
+
+renderHistory();
+
+/* -----------------------------
+   SEND MESSAGE
+------------------------------ */
+
+async function sendMessage() {
+  const message = input.value.trim();
+  if (!message) return;
+
+  history.push({ role: "user", content: message });
+  localStorage.setItem("chatHistory", JSON.stringify(history));
+
+  renderHistory();
+  input.value = "";
+
+  const response = await fetch("/api/chat", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      message,
+      history,
+      studentId
+    })
+  });
+
+  const data = await response.json();
+
+  history.push({
+    role: "assistant",
+    content: data.reply
+  });
+
+  localStorage.setItem("chatHistory", JSON.stringify(history));
+  renderHistory();
+}
+
+/* ENTER KEY SUPPORT */
+input.addEventListener("keypress", e => {
+  if (e.key === "Enter") sendMessage();
+});
+</script>
 
 </body>
 </html>
