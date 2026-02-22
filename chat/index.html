@@ -1,97 +1,92 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Restore AI Chat</title>
-
+  <title>Restore AI — Teacher Mode</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f6f8;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
+      font-family: Arial;
+      background:#f4f6f8;
+      margin:0;
     }
 
-    .container {
-      width: 90%;
-      max-width: 800px;
-      margin-top: 40px;
-      background: white;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      padding: 20px;
+    header {
+      background:#0b1f3a;
+      color:white;
+      padding:15px;
+      text-align:center;
+      font-weight:bold;
     }
 
-    h1 {
-      text-align: center;
-      color: #1e2a38;
+    #chat {
+      max-width:800px;
+      margin:20px auto;
+      background:white;
+      padding:15px;
+      border-radius:8px;
+      height:60vh;
+      overflow-y:auto;
+      border:1px solid #ddd;
     }
 
-    #chatBox {
-      height: 400px;
-      overflow-y: auto;
-      border: 1px solid #ddd;
-      padding: 15px;
-      border-radius: 8px;
-      margin-bottom: 15px;
-      background: #fafafa;
-    }
+    .user { color:#1a73e8; margin:10px 0; }
+    .ai { color:#222; margin:10px 0; }
 
-    #chatBox p {
-      margin: 8px 0;
-      line-height: 1.4;
-    }
-
-    .inputRow {
-      display: flex;
-      gap: 10px;
+    #inputArea {
+      max-width:800px;
+      margin:auto;
+      display:flex;
+      gap:10px;
     }
 
     input {
-      flex: 1;
-      padding: 12px;
-      font-size: 16px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
+      flex:1;
+      padding:10px;
     }
 
     button {
-      padding: 12px 20px;
-      font-size: 16px;
-      background-color: #2b6cb0;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background-color: #1f4f82;
+      padding:10px 15px;
+      background:#1a73e8;
+      color:white;
+      border:none;
+      cursor:pointer;
     }
   </style>
 </head>
 
 <body>
-  <div class="container">
-    <h1>Restore AI</h1>
 
-    <div id="chatBox"></div>
+<header>Restore AI — Teacher Mode</header>
 
-    <div class="inputRow">
-      <input
-        id="messageInput"
-        type="text"
-        placeholder="Ask a question..."
-        onkeypress="if(event.key==='Enter'){sendMessage()}"
-      />
-      <button onclick="sendMessage()">Send</button>
-    </div>
-  </div>
+<div id="chat"></div>
 
-  <!-- CONNECTS FRONTEND TO AI -->
-  <script src="chat.js"></script>
+<div id="inputArea">
+  <input id="message" placeholder="Ask a question..." />
+  <button onclick="send()">Send</button>
+</div>
+
+<script>
+async function send() {
+  const input = document.getElementById("message");
+  const chat = document.getElementById("chat");
+
+  const message = input.value;
+  if (!message) return;
+
+  chat.innerHTML += `<div class="user"><b>You:</b> ${message}</div>`;
+  input.value = "";
+
+  const res = await fetch("/api/chat", {
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({ message })
+  });
+
+  const data = await res.json();
+
+  chat.innerHTML += `<div class="ai"><b>Restore AI:</b> ${data.reply}</div>`;
+  chat.scrollTop = chat.scrollHeight;
+}
+</script>
+
 </body>
 </html>
