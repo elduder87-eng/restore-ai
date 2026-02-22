@@ -1,15 +1,8 @@
 {
   "default": {
-    "name": "Student",
-    "preferences": {
-      "style": "guided",
-      "difficulty": "medium"
-    },
-    "history": [],
-    "insights": {
-      "prefersDirectAnswers": false,
-      "oftenConfused": false,
-      "curiosityLevel": 5
-    }
+    "learningStyle": "guided",
+    "confusionLevel": "medium",
+    "preferences": "interactive",
+    "lastTopic": ""
   }
 }
