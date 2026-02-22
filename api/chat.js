@@ -1,10 +1,55 @@
-export default async function handler(req, res) {
+import fs from "fs";
+import path from "path";
+
+const STUDENT_FILE = path.join(process.cwd(), "data", "students.json");
+
+function loadStudents() {
   try {
-    if (req.method !== "POST") {
-      return res.status(405).json({ error: "Method not allowed" });
+    return JSON.parse(fs.readFileSync(STUDENT_FILE, "utf8"));
+  } catch {
+    return {};
+  }
+}
+
+function saveStudents(data) {
+  fs.writeFileSync(STUDENT_FILE, JSON.stringify(data, null, 2));
+}
+
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  try {
+    const { message, history, studentId } = req.body;
+
+    // ===== LOAD STUDENT MEMORY =====
+    const students = loadStudents();
+
+    if (!students[studentId]) {
+      students[studentId] = {
+        curiosity: "unknown",
+        misconceptions: [],
+        interests: [],
+        summary: ""
+      };
     }
 
-    const { message, history = [] } = req.body;
+    const student = students[studentId];
+
+    // ===== SYSTEM PROMPT =====
+    const systemPrompt = `
+You are Restore AI, a curiosity-driven teacher.
+
+Student Profile:
+${JSON.stringify(student)}
+
+Goals:
+- Teach through questions.
+- Encourage thinking, not answers.
+- Detect misconceptions gently.
+- Update understanding over time.
+`;
 
     const response = await fetch(
       "https://api.openai.com/v1/chat/completions",
@@ -16,59 +61,34 @@ export default async function handler(req, res) {
         },
         body: JSON.stringify({
           model: "gpt-4o-mini",
-          temperature: 0.7,
-
           messages: [
-            {
-              role: "system",
-              content: `
-You are Restore AI.
-
-CORE IDENTITY:
-You are a reflective teacher helping students realize
-they were capable of understanding all along.
-
-CRITICAL RULE:
-The conversation history IS shared memory.
-You and the student are continuing the SAME discussion.
-
-NEVER say:
-- you lack memory
-- you don't remember
-- you have no record
-
-Instead:
-- reference earlier ideas naturally
-- continue learning threads
-- treat this as an ongoing relationship
-
-TEACHING STYLE:
-• Ask guiding questions first
-• Encourage thinking before explaining
-• Build understanding gradually
-• Mirror the student's reasoning
-• Reinforce confidence and curiosity
-
-Restore is a mirror, not an answer machine.
-`
-            },
-
+            { role: "system", content: systemPrompt },
             ...history,
-
-            {
-              role: "user",
-              content: message
-            }
+            { role: "user", content: message }
           ]
         })
       }
     );
 
     const data = await response.json();
+    const reply = data.choices[0].message.content;
 
-    res.status(200).json({
-      reply: data.choices[0].message.content
-    });
+    // ===== SIMPLE PROFILE UPDATE =====
+    if (message.toLowerCase().includes("why")) {
+      student.curiosity = "high";
+    }
+
+    if (message.toLowerCase().includes("fall faster")) {
+      student.misconceptions.push("gravity_speed_confusion");
+    }
+
+    student.summary =
+      "Student shows curiosity-driven questioning behavior.";
+
+    students[studentId] = student;
+    saveStudents(students);
+
+    return res.status(200).json({ reply });
 
   } catch (error) {
     console.error(error);
