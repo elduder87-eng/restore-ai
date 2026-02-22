@@ -1,142 +1,80 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Restore AI</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Restore AI Chat</title>
+
+  <!-- Force Vercel rebuild + routing recognition -->
+  <meta name="restore-build" content="v2" />
 
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f4f6f8;
-      margin: 0;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-    }
-
-    header {
-      background: white;
-      padding: 16px;
-      font-size: 24px;
-      font-weight: bold;
-      border-bottom: 1px solid #ddd;
-    }
-
-    #chat {
-      flex: 1;
-      overflow-y: auto;
+      max-width: 700px;
+      margin: 40px auto;
       padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
     }
 
-    .bubble {
-      max-width: 75%;
-      padding: 12px 16px;
-      border-radius: 16px;
-      line-height: 1.4;
-      white-space: pre-wrap;
-    }
-
-    .user {
-      align-self: flex-end;
-      background: #007aff;
-      color: white;
-    }
-
-    .ai {
-      align-self: flex-start;
-      background: white;
-      border: 1px solid #ddd;
-    }
-
-    #inputBar {
-      display: flex;
-      padding: 12px;
-      background: white;
-      border-top: 1px solid #ddd;
+    h1 {
+      margin-bottom: 20px;
     }
 
     input {
-      flex: 1;
-      padding: 10px;
+      width: 70%;
+      padding: 8px;
       font-size: 16px;
     }
 
     button {
-      margin-left: 10px;
-      padding: 10px 16px;
+      padding: 8px 14px;
       font-size: 16px;
       cursor: pointer;
     }
 
-    .thinking {
-      font-style: italic;
-      opacity: 0.6;
+    #response {
+      margin-top: 20px;
+      white-space: pre-wrap;
+      line-height: 1.5;
     }
   </style>
 </head>
 
 <body>
 
-<header>Restore AI</header>
+  <!-- tiny edit included here (extra space forces redeploy) -->
+  <h1>Restore AI Chat </h1>
 
-<div id="chat"></div>
+  <input id="question" placeholder="Ask anything..." />
+  <button onclick="askAI()">Send</button>
 
-<div id="inputBar">
-  <input id="message" placeholder="What do you want to learn about?" />
-  <button onclick="send()">Send</button>
-</div>
+  <div id="response"></div>
 
-<script>
-async function send() {
-  const input = document.getElementById("message");
-  const text = input.value.trim();
-  if (!text) return;
+  <script>
+    async function askAI() {
+      const question = document.getElementById("question").value;
+      const responseBox = document.getElementById("response");
 
-  addBubble(text, "user");
-  input.value = "";
+      responseBox.textContent = "Thinking...";
 
-  const thinkingBubble = addBubble("Restore is thinking...", "ai", true);
+      try {
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ message: question }),
+        });
 
-  try {
-    const res = await fetch("/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: text })
-    });
+        const data = await res.json();
 
-    const data = await res.json();
-
-    thinkingBubble.remove();
-
-    if (data.reply) {
-      addBubble(data.reply, "ai");
-    } else {
-      addBubble("⚠️ No response returned.", "ai");
+        responseBox.textContent =
+          data.reply || data.error || "No response returned.";
+      } catch (err) {
+        responseBox.textContent = "Error connecting to AI.";
+      }
     }
-
-  } catch (err) {
-    thinkingBubble.remove();
-    addBubble("⚠️ Connection error.", "ai");
-  }
-}
-
-function addBubble(text, type, thinking=false) {
-  const chat = document.getElementById("chat");
-
-  const bubble = document.createElement("div");
-  bubble.className = "bubble " + type;
-  if (thinking) bubble.classList.add("thinking");
-
-  bubble.textContent = text;
-
-  chat.appendChild(bubble);
-  chat.scrollTop = chat.scrollHeight;
-
-  return bubble;
-}
-</script>
+  </script>
 
 </body>
 </html>
