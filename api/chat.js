@@ -1,59 +1,46 @@
 import { loadStudent, saveStudent } from "../lib/studentMemory.js";
 
 export default async function handler(req, res) {
-
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
-    const { message, studentId = "default" } = req.body;
+    const { message } = req.body;
 
-    // ---- LOAD MEMORY ----
-    let student = loadStudent(studentId);
+    // Load student profile
+    let student = loadStudent("default");
 
     const text = message.toLowerCase();
-    let reply = "";
 
-    // ---- LEARNING STYLE DETECTION ----
-    if (text.includes("just explain") || text.includes("stop asking")) {
+    // --- Learning Detection ---
+    if (text.includes("stop asking") || text.includes("just explain")) {
       student.insights.prefersDirectAnswers = true;
     }
 
-    if (text.includes("i'm confused")) {
+    if (text.includes("confused")) {
       student.insights.oftenConfused = true;
     }
 
-    // curiosity tracking
-    student.insights.curiosityLevel += 1;
-
-    // ---- RESPONSE STYLE ----
-    if (student.insights.prefersDirectAnswers) {
-
-      if (text.includes("gravity")) {
-        reply =
-          "Gravity is the force that pulls objects toward each other. Earth's gravity pulls things toward the ground.";
-      }
-      else if (text.includes("volcano")) {
-        reply =
-          "A volcano is an opening in Earth's crust where magma rises and erupts as lava, ash, and gases.";
-      }
-      else {
-        reply =
-          "Here’s a clear explanation: tell me the topic you want to learn, and I’ll explain it simply.";
-      }
-
-    } else {
-
-      reply =
-        "Interesting question! What do you already know about this topic?";
+    if (text.includes("?")) {
+      student.insights.curiosityLevel += 1;
     }
 
-    // ---- SAVE UPDATED MEMORY ----
-    saveStudent(studentId, student);
+    // Save (simulated for now)
+    saveStudent("default", student);
+
+    // --- Teaching Style Selection ---
+    let reply = "";
+
+    if (student.insights.prefersDirectAnswers) {
+      reply =
+        "Here is a clear explanation: Gravity is a force that pulls objects toward each other. Earth's mass pulls objects toward its center, which is why things fall downward.";
+    } else {
+      reply =
+        "Let's think about this together. What do you already know about gravity, and how might it affect objects differently?";
+    }
 
     return res.status(200).json({ reply });
-
   } catch (err) {
     console.error(err);
     return res.status(500).json({ reply: "Server error." });
