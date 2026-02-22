@@ -1,4 +1,6 @@
-import { loadStudent, saveStudent } from "../lib/studentMemory.js";
+import { Redis } from "@upstash/redis";
+
+const redis = Redis.fromEnv();
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -6,43 +8,58 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { message } = req.body;
+    const { message, studentId = "default" } = req.body;
 
-    // Load student profile
-    let student = loadStudent("default");
+    // ✅ Load student memory
+    let memory = await redis.get(`student:${studentId}`);
 
-    const text = message.toLowerCase();
-
-    // --- Learning Detection ---
-    if (text.includes("stop asking") || text.includes("just explain")) {
-      student.insights.prefersDirectAnswers = true;
+    if (!memory) {
+      memory = {
+        preferences: {
+          style: "guided",
+          difficulty: "medium",
+        },
+        history: [],
+      };
     }
 
-    if (text.includes("confused")) {
-      student.insights.oftenConfused = true;
-    }
+    // Save message to history
+    memory.history.push({
+      role: "user",
+      content: message,
+    });
 
-    if (text.includes("?")) {
-      student.insights.curiosityLevel += 1;
-    }
+    // Keep history small
+    memory.history = memory.history.slice(-10);
 
-    // Save (simulated for now)
-    saveStudent("default", student);
+    // Teaching style logic
+    let reply;
 
-    // --- Teaching Style Selection ---
-    let reply = "";
-
-    if (student.insights.prefersDirectAnswers) {
+    if (
+      message.toLowerCase().includes("stop asking questions") ||
+      message.toLowerCase().includes("just explain")
+    ) {
+      memory.preferences.style = "direct";
       reply =
-        "Here is a clear explanation: Gravity is a force that pulls objects toward each other. Earth's mass pulls objects toward its center, which is why things fall downward.";
+        "Got it. I’ll explain things clearly and directly from now on.";
+    } else if (memory.preferences.style === "direct") {
+      reply = `Here is a clear explanation: ${message} is an important concept. Let me explain it step-by-step in simple terms.`;
     } else {
       reply =
-        "Let's think about this together. What do you already know about gravity, and how might it affect objects differently?";
+        "Let's think about this together. What do you already know about it?";
     }
 
+    memory.history.push({
+      role: "assistant",
+      content: reply,
+    });
+
+    // ✅ Save updated memory
+    await redis.set(`student:${studentId}`, memory);
+
     return res.status(200).json({ reply });
-  } catch (err) {
-    console.error(err);
+  } catch (error) {
+    console.error(error);
     return res.status(500).json({ reply: "Server error." });
   }
 }
