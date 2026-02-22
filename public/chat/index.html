@@ -1,134 +1,94 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Restore AI — Chat</title>
+  <title>Restore AI — Teacher Mode</title>
 
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #f4f6f8;
       margin: 0;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
+      font-family: Arial, sans-serif;
+      background: #f5f7fa;
     }
 
     header {
       background: #0f172a;
       color: white;
-      padding: 16px;
+      padding: 15px;
       text-align: center;
-      font-size: 20px;
       font-weight: bold;
     }
 
-    #chat-container {
-      flex: 1;
-      overflow-y: auto;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .message {
-      max-width: 80%;
-      padding: 12px 14px;
-      border-radius: 12px;
-      line-height: 1.4;
-      white-space: pre-wrap;
-    }
-
-    .user {
-      background: #2563eb;
-      color: white;
-      align-self: flex-end;
-    }
-
-    .assistant {
-      background: #e5e7eb;
-      color: black;
-      align-self: flex-start;
-    }
-
-    #input-area {
-      display: flex;
-      padding: 12px;
+    .chat-container {
+      max-width: 800px;
+      margin: 40px auto;
       background: white;
-      border-top: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    #messages {
+      height: 400px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      padding: 10px;
+      margin-bottom: 10px;
     }
 
     input {
-      flex: 1;
-      padding: 12px;
+      width: 75%;
+      padding: 10px;
       font-size: 16px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
     }
 
     button {
-      margin-left: 10px;
-      padding: 12px 18px;
-      font-size: 16px;
-      border: none;
-      border-radius: 8px;
-      background: #2563eb;
+      padding: 10px 16px;
+      background: #1d4ed8;
       color: white;
+      border: none;
       cursor: pointer;
+      border-radius: 6px;
     }
 
-    button:hover {
-      background: #1d4ed8;
-    }
+    .user { color: #1d4ed8; margin: 8px 0; }
+    .ai { color: #111; margin: 8px 0; }
   </style>
 </head>
 
 <body>
 
-<header>Restore AI — Teacher Mode</header>
+<header>
+  Restore AI — Teacher Mode
+</header>
 
-<div id="chat-container"></div>
+<div class="chat-container">
+  <div id="messages"></div>
 
-<div id="input-area">
-  <input id="userInput" placeholder="What do you want to learn about?" />
-  <button onclick="sendMessage()">Send</button>
+  <input id="input" placeholder="Ask a question..." />
+  <button onclick="send()">Send</button>
 </div>
 
 <script>
-async function sendMessage() {
-  const input = document.getElementById("userInput");
-  const text = input.value.trim();
+async function send() {
+  const input = document.getElementById("input");
+  const messages = document.getElementById("messages");
+
+  const text = input.value;
   if (!text) return;
 
-  addMessage(text, "user");
+  messages.innerHTML += `<div class="user"><b>You:</b> ${text}</div>`;
   input.value = "";
 
-  try {
-    const response = await fetch("/api/chat", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ message: text })
-    });
+  const res = await fetch("/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message: text })
+  });
 
-    const data = await response.json();
-    addMessage(data.reply || "No response.", "assistant");
+  const data = await res.json();
 
-  } catch (err) {
-    addMessage("Error contacting AI.", "assistant");
-  }
-}
-
-function addMessage(text, sender) {
-  const container = document.getElementById("chat-container");
-  const msg = document.createElement("div");
-  msg.className = "message " + sender;
-  msg.textContent = text;
-  container.appendChild(msg);
-  container.scrollTop = container.scrollHeight;
+  messages.innerHTML += `<div class="ai"><b>Restore AI:</b> ${data.reply}</div>`;
+  messages.scrollTop = messages.scrollHeight;
 }
 </script>
 
