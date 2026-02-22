@@ -1,44 +1,61 @@
+import { loadStudent, saveStudent } from "../lib/studentMemory.js";
+
 export default async function handler(req, res) {
 
-  // Allow POST requests only
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
-    const { message } = req.body;
+    const { message, studentId = "default" } = req.body;
 
-    if (!message) {
-      return res.status(400).json({ reply: "No message received." });
-    }
-
-    // ---- SIMPLE RESTORE AI RESPONSE ENGINE ----
-    // (Temporary brain — we upgrade next step)
-
-    let reply = "";
+    // ---- LOAD MEMORY ----
+    let student = loadStudent(studentId);
 
     const text = message.toLowerCase();
+    let reply = "";
 
-    if (text.includes("hello") || text.includes("hi")) {
-      reply = "Hello! What would you like to learn about today?";
-    } 
-    else if (text.includes("volcano")) {
-      reply =
-        "A volcano is an opening in Earth's crust where molten rock, ash, and gases escape. They usually form near tectonic plate boundaries.";
+    // ---- LEARNING STYLE DETECTION ----
+    if (text.includes("just explain") || text.includes("stop asking")) {
+      student.insights.prefersDirectAnswers = true;
     }
-    else if (text.includes("gravity")) {
-      reply =
-        "Gravity is the force that pulls objects toward each other. On Earth, it pulls things toward the planet's center.";
+
+    if (text.includes("i'm confused")) {
+      student.insights.oftenConfused = true;
     }
-    else {
+
+    // curiosity tracking
+    student.insights.curiosityLevel += 1;
+
+    // ---- RESPONSE STYLE ----
+    if (student.insights.prefersDirectAnswers) {
+
+      if (text.includes("gravity")) {
+        reply =
+          "Gravity is the force that pulls objects toward each other. Earth's gravity pulls things toward the ground.";
+      }
+      else if (text.includes("volcano")) {
+        reply =
+          "A volcano is an opening in Earth's crust where magma rises and erupts as lava, ash, and gases.";
+      }
+      else {
+        reply =
+          "Here’s a clear explanation: tell me the topic you want to learn, and I’ll explain it simply.";
+      }
+
+    } else {
+
       reply =
-        "That's an interesting question. Can you tell me a little more about what you'd like to understand?";
+        "Interesting question! What do you already know about this topic?";
     }
+
+    // ---- SAVE UPDATED MEMORY ----
+    saveStudent(studentId, student);
 
     return res.status(200).json({ reply });
 
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ reply: "Something went wrong." });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ reply: "Server error." });
   }
 }
