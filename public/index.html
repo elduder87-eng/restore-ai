@@ -2,33 +2,31 @@
 <html>
 <head>
   <title>Restore AI</title>
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      padding-top: 80px;
+      background: #f5f7fb;
+    }
+
+    a {
+      padding: 14px 24px;
+      background: #1e3a8a;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-size: 18px;
+    }
+  </style>
 </head>
 
 <body>
   <h1>Restore AI</h1>
+  <p>Learning through understanding.</p>
 
-  <input id="input" placeholder="Ask something..." />
-  <button onclick="send()">Send</button>
+  <br />
 
-  <pre id="response"></pre>
-
-  <script>
-    async function send() {
-      const message = document.getElementById("input").value;
-
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ message })
-      });
-
-      const data = await res.json();
-
-      document.getElementById("response").textContent =
-        data.reply || JSON.stringify(data);
-    }
-  </script>
+  <a href="/chat/">Enter Teacher Mode</a>
 </body>
 </html>
