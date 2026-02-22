@@ -1,104 +1,72 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Restore AI — Teacher Mode</title>
+  <title>Restore AI — Teacher Mode</title>
 
-<style>
-body {
-  font-family: Arial, sans-serif;
-  background: #f4f6f8;
-  margin: 0;
-}
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial;
+      background: #f3f4f6;
+    }
 
-header {
-  background: #0f1f3d;
-  color: white;
-  text-align: center;
-  padding: 12px;
-  font-weight: bold;
-}
+    header {
+      background: #0f172a;
+      color: white;
+      text-align: center;
+      padding: 14px;
+      font-weight: bold;
+    }
 
-.container {
-  max-width: 900px;
-  margin: 40px auto;
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-}
+    #container {
+      max-width: 800px;
+      margin: 30px auto;
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
 
-#chatBox {
-  height: 400px;
-  overflow-y: auto;
-  border: 1px solid #ddd;
-  padding: 15px;
-  margin-bottom: 10px;
-  background: #fafafa;
-}
+    #chatBox {
+      height: 400px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      padding: 10px;
+      margin-bottom: 12px;
+    }
 
-.message {
-  margin-bottom: 12px;
-}
+    .user { color: #2563eb; font-weight: bold; }
+    .ai { color: #111827; font-weight: bold; }
 
-.user {
-  color: #1a5cff;
-  font-weight: bold;
-}
+    input {
+      width: 80%;
+      padding: 10px;
+    }
 
-.ai {
-  color: #222;
-}
-
-.inputRow {
-  display: flex;
-  gap: 10px;
-}
-
-input {
-  flex: 1;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-button {
-  background: #2f5bea;
-  color: white;
-  border: none;
-  padding: 10px 18px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-button:hover {
-  background: #2447b8;
-}
-</style>
+    button {
+      padding: 10px 16px;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 6px;
+    }
+  </style>
 </head>
 
 <body>
 
-<header>
-Restore AI — Teacher Mode
-</header>
+<header>Restore AI — Teacher Mode</header>
 
-<div class="container">
+<div id="container">
+  <div id="chatBox"></div>
 
-<div id="chatBox"></div>
-
-<div class="inputRow">
-<input id="messageInput" placeholder="Ask a question..." />
-<button onclick="sendMessage()">Send</button>
-</div>
-
+  <input id="messageInput" placeholder="Ask a question..." />
+  <button onclick="sendMessage()">Send</button>
 </div>
 
 <script>
-/* ===============================
-   STUDENT SESSION MEMORY
-================================ */
+
+/* ================= SESSION ================= */
 
 const sessionId =
   localStorage.getItem("restoreSession") ||
@@ -106,57 +74,77 @@ const sessionId =
 
 localStorage.setItem("restoreSession", sessionId);
 
-/* ===============================
-   CHAT LOGIC
-================================ */
+/* ================= MEMORY ================= */
+
+let history =
+  JSON.parse(localStorage.getItem("restoreHistory")) || [];
 
 const chatBox = document.getElementById("chatBox");
 
-function addMessage(sender, text, className) {
+function addMessage(sender, text, cls) {
   const div = document.createElement("div");
-  div.className = "message";
-
-  div.innerHTML = `<span class="${className}">${sender}:</span> ${text}`;
+  div.innerHTML = `<span class="${cls}">${sender}:</span> ${text}`;
   chatBox.appendChild(div);
-
   chatBox.scrollTop = chatBox.scrollHeight;
 }
+
+/* restore conversation after refresh */
+history.forEach(msg => {
+  addMessage(
+    msg.role === "user" ? "You" : "Restore AI",
+    msg.content,
+    msg.role === "user" ? "user" : "ai"
+  );
+});
+
+/* ================= SEND ================= */
 
 async function sendMessage() {
   const input = document.getElementById("messageInput");
   const message = input.value.trim();
-
   if (!message) return;
 
   addMessage("You", message, "user");
+
+  history.push({
+    role: "user",
+    content: message
+  });
+
   input.value = "";
 
-  try {
-    const response = await fetch("/api/chat", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        message: message,
-        sessionId: sessionId
-      })
-    });
+  const res = await fetch("/api/chat", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      history: history,
+      sessionId: sessionId
+    })
+  });
 
-    const data = await response.json();
+  const data = await res.json();
 
-    addMessage("Restore AI", data.reply, "ai");
+  addMessage("Restore AI", data.reply, "ai");
 
-  } catch (error) {
-    addMessage("System", "Connection error.", "ai");
-  }
+  history.push({
+    role: "assistant",
+    content: data.reply
+  });
+
+  localStorage.setItem(
+    "restoreHistory",
+    JSON.stringify(history)
+  );
 }
 
-/* ENTER KEY SUPPORT */
+/* ENTER KEY */
 document.getElementById("messageInput")
-.addEventListener("keypress", function(e){
-  if(e.key === "Enter") sendMessage();
+.addEventListener("keypress", e => {
+  if (e.key === "Enter") sendMessage();
 });
+
 </script>
 
 </body>
