@@ -1,53 +1,52 @@
-import { Redis } from "@upstash/redis";
-
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN,
-});
-
 export default async function handler(req, res) {
+  // Allow POST only
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
-    const { message } = req.body;
+    // ✅ Fix for Vercel body parsing
+    let body = req.body;
+
+    if (typeof body === "string") {
+      body = JSON.parse(body);
+    }
+
+    const { message } = body;
 
     if (!message) {
       return res.status(400).json({ error: "No message provided" });
     }
 
-    // ---- MEMORY STORAGE ----
-    const historyKey = "restore:chat-history";
+    // -------------------------
+    // SIMPLE RESTORE AI LOGIC
+    // -------------------------
 
-    // Save user message
-    await redis.rpush(historyKey, `User: ${message}`);
+    let reply = "";
 
-    // Get last 10 messages
-    const history = await redis.lrange(historyKey, -10, -1);
+    const lower = message.toLowerCase();
 
-    // ---- SIMPLE RESPONSE ENGINE (temporary brain) ----
-    let reply;
-
-    if (message.toLowerCase().includes("gravity")) {
-      reply =
-        "Gravity is the force that pulls objects with mass toward each other. On Earth, gravity pulls everything toward the planet's center, which is why objects fall downward.";
-    } else if (message.toLowerCase().includes("hello")) {
+    if (lower.includes("hello") || lower.includes("hi")) {
       reply = "Hello! What would you like to learn about today?";
-    } else {
+    } 
+    else if (lower.includes("gravity")) {
       reply =
-        "Here is a clear explanation: learning happens when new information connects to things you already understand.";
+        "Gravity is a force that pulls objects toward each other. Earth's mass pulls objects toward its center, which is why things fall downward.";
+    }
+    else if (lower.includes("stop asking questions")) {
+      reply =
+        "Understood. I will focus on clear explanations instead of questions.";
+    }
+    else {
+      reply =
+        "Here is a clear explanation: learning works best when ideas build step by step from simple concepts to deeper understanding.";
     }
 
-    // Save AI reply
-    await redis.rpush(historyKey, `Restore AI: ${reply}`);
+    // ✅ Return response
+    return res.status(200).json({ reply });
 
-    return res.status(200).json({
-      reply,
-      memory: history,
-    });
   } catch (error) {
-    console.error("API ERROR:", error);
+    console.error(error);
     return res.status(500).json({ error: "Server error" });
   }
 }
