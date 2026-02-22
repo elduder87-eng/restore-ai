@@ -1,148 +1,130 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Restore AI — Teacher Mode</title>
+<meta charset="UTF-8">
+<title>Restore AI — Teacher Mode</title>
 
-  <style>
-    body {
-      margin:0;
-      font-family: Arial;
-      background:#f3f4f6;
-    }
+<style>
+body{
+  font-family:Arial;
+  background:#f1f3f5;
+  margin:0;
+}
 
-    header {
-      background:#0f172a;
-      color:white;
-      padding:14px;
-      text-align:center;
-      font-weight:bold;
-    }
+.header{
+  background:#0f172a;
+  color:white;
+  padding:14px;
+  text-align:center;
+  font-weight:bold;
+}
 
-    .container {
-      max-width:900px;
-      margin:30px auto;
-      background:white;
-      padding:20px;
-      border-radius:8px;
-      box-shadow:0 2px 6px rgba(0,0,0,0.1);
-    }
+.container{
+  max-width:900px;
+  margin:30px auto;
+  background:white;
+  padding:20px;
+  border-radius:10px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.1);
+}
 
-    #chatBox {
-      height:420px;
-      overflow-y:auto;
-      border:1px solid #ddd;
-      padding:12px;
-      margin-bottom:10px;
-    }
+.chat{
+  height:400px;
+  overflow-y:auto;
+  border:1px solid #ddd;
+  padding:10px;
+  margin-bottom:10px;
+}
 
-    .user {
-      color:#2563eb;
-      margin-bottom:8px;
-    }
+.user{
+  color:#2563eb;
+  margin:8px 0;
+}
 
-    .ai {
-      margin-bottom:14px;
-    }
+.ai{
+  color:#111;
+  margin:8px 0;
+}
 
-    .inputRow {
-      display:flex;
-      gap:10px;
-    }
+.inputRow{
+  display:flex;
+}
 
-    input {
-      flex:1;
-      padding:10px;
-      font-size:16px;
-    }
+input{
+  flex:1;
+  padding:10px;
+}
 
-    button {
-      background:#2563eb;
-      color:white;
-      border:none;
-      padding:10px 16px;
-      cursor:pointer;
-      border-radius:4px;
-    }
-  </style>
+button{
+  padding:10px 16px;
+  background:#2563eb;
+  color:white;
+  border:none;
+}
+</style>
 </head>
 
 <body>
 
-<header>
-  Restore AI — Teacher Mode
-</header>
+<div class="header">Restore AI — Teacher Mode</div>
 
 <div class="container">
-
-  <div id="chatBox"></div>
+  <div id="chat" class="chat"></div>
 
   <div class="inputRow">
-    <input id="messageInput" placeholder="Ask a question..." />
-    <button onclick="sendMessage()">Send</button>
+    <input id="input" placeholder="Ask a question..." />
+    <button onclick="send()">Send</button>
   </div>
-
 </div>
 
 <script>
-const chatBox = document.getElementById("chatBox");
-const input = document.getElementById("messageInput");
+let history = JSON.parse(localStorage.getItem("restoreHistory") || "[]");
 
-let history = JSON.parse(localStorage.getItem("restore_history")) || [];
+const chatDiv = document.getElementById("chat");
 
-function renderHistory() {
-  chatBox.innerHTML = "";
-
-  history.forEach(msg => {
-    const div = document.createElement("div");
-
-    if (msg.role === "user") {
-      div.className = "user";
-      div.innerHTML = "<b>You:</b> " + msg.content;
-    } else {
-      div.className = "ai";
-      div.innerHTML = "<b>Restore AI:</b> " + msg.content;
-    }
-
-    chatBox.appendChild(div);
+function renderHistory(){
+  chatDiv.innerHTML = "";
+  history.forEach(m=>{
+    const div=document.createElement("div");
+    div.className = m.role === "user" ? "user" : "ai";
+    div.innerText =
+      (m.role==="user" ? "You: " : "Restore AI: ") + m.content;
+    chatDiv.appendChild(div);
   });
-
-  chatBox.scrollTop = chatBox.scrollHeight;
 }
 
 renderHistory();
 
-async function sendMessage() {
-  const message = input.value.trim();
-  if (!message) return;
+async function send(){
+  const input=document.getElementById("input");
+  const message=input.value.trim();
+  if(!message) return;
 
-  history.push({ role: "user", content: message });
+  history.push({role:"user",content:message});
   renderHistory();
-  input.value = "";
+  input.value="";
 
-  const res = await fetch("/api/chat", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
+  const res=await fetch("/api/chat",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json"},
+    body:JSON.stringify({
       message,
       history
     })
   });
 
-  const data = await res.json();
+  const data=await res.json();
 
   history.push({
-    role: "assistant",
-    content: data.reply
+    role:"assistant",
+    content:data.reply
   });
 
-  localStorage.setItem("restore_history", JSON.stringify(history));
+  localStorage.setItem("restoreHistory",JSON.stringify(history));
 
   renderHistory();
+  chatDiv.scrollTop=chatDiv.scrollHeight;
 }
-
-input.addEventListener("keypress", e => {
-  if (e.key === "Enter") sendMessage();
-});
 </script>
 
 </body>
