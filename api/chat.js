@@ -1,52 +1,65 @@
+import { redis } from "../lib/redis.js";
+
 export default async function handler(req, res) {
-  // Allow POST only
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
-
   try {
-    // ✅ Fix for Vercel body parsing
-    let body = req.body;
-
-    if (typeof body === "string") {
-      body = JSON.parse(body);
+    if (req.method !== "POST") {
+      return res.status(405).json({ reply: "Method not allowed" });
     }
 
-    const { message } = body;
+    const { message } = req.body;
 
     if (!message) {
-      return res.status(400).json({ error: "No message provided" });
+      return res.status(400).json({ reply: "No message provided." });
     }
 
-    // -------------------------
-    // SIMPLE RESTORE AI LOGIC
-    // -------------------------
+    const userId = "default-user";
 
-    let reply = "";
+    // Load memory
+    let history = (await redis.get(userId)) || [];
 
-    const lower = message.toLowerCase();
+    history.push({
+      role: "user",
+      content: message,
+    });
 
-    if (lower.includes("hello") || lower.includes("hi")) {
-      reply = "Hello! What would you like to learn about today?";
-    } 
-    else if (lower.includes("gravity")) {
-      reply =
-        "Gravity is a force that pulls objects toward each other. Earth's mass pulls objects toward its center, which is why things fall downward.";
-    }
-    else if (lower.includes("stop asking questions")) {
-      reply =
-        "Understood. I will focus on clear explanations instead of questions.";
-    }
-    else {
-      reply =
-        "Here is a clear explanation: learning works best when ideas build step by step from simple concepts to deeper understanding.";
-    }
+    const response = await fetch(
+      "https://api.openai.com/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          messages: [
+            {
+              role: "system",
+              content:
+                "You are Restore AI, a calm teacher who explains concepts simply and clearly. Avoid unnecessary questions.",
+            },
+            ...history,
+          ],
+        }),
+      }
+    );
 
-    // ✅ Return response
-    return res.status(200).json({ reply });
+    const data = await response.json();
 
+    const reply =
+      data?.choices?.[0]?.message?.content ||
+      "Sorry, I couldn't generate a response.";
+
+    history.push({
+      role: "assistant",
+      content: reply,
+    });
+
+    await redis.set(userId, history);
+
+    res.status(200).json({ reply });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: "Server error" });
+    res.status(500).json({ reply: "Server error." });
   }
 }
