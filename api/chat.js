@@ -1,50 +1,60 @@
 import OpenAI from "openai";
-import { saveMemory, getMemory } from "../lib/studentMemory.js";
+import { getMemories, saveMemory } from "../lib/studentMemory.js";
+import {
+  saveLearningPreference,
+  getLearningProfile,
+} from "../lib/learningProfile.js";
 import { detectInsight } from "../lib/insights.js";
 
-const client = new OpenAI({
+const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
 export default async function handler(req, res) {
   try {
-    if (req.method !== "POST") {
-      return res.status(405).json({ error: "Method not allowed" });
-    }
-
     const { message, sessionId } = req.body;
 
     if (!message) {
-      return res.status(400).json({ error: "No message provided" });
+      return res.status(400).json({ reply: "No message provided." });
     }
 
-    // ✅ Load memory
-    const memory = await getMemory(sessionId);
+    const session = sessionId || "default";
 
-    // ✅ Detect new insights
+    // Detect insights
     const insight = detectInsight(message);
 
     if (insight) {
-      await saveMemory(sessionId, insight);
+      if (insight.type === "memory") {
+        await saveMemory(session, insight.value);
+      }
+
+      if (insight.type === "learning") {
+        await saveLearningPreference(session, insight.value);
+      }
     }
 
-    // ✅ Build system context
-    const memoryContext =
-      memory.length > 0
-        ? `Student facts:\n${memory.join("\n")}`
-        : "";
+    // Load stored data
+    const memories = await getMemories(session);
+    const learningProfile = await getLearningProfile(session);
 
-    const completion = await client.chat.completions.create({
+    const systemPrompt = `
+You are Restore AI, a supportive teaching assistant.
+
+Student facts:
+${memories.join("\n")}
+
+Learning preferences:
+${learningProfile.join("\n")}
+
+Teach clearly and adapt explanations to the learner.
+`;
+
+    const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
-          content: `You are Restore AI, a clear and supportive teacher.
-
-Explain simply and directly.
-Do not ask unnecessary questions.
-
-${memoryContext}`,
+          content: systemPrompt,
         },
         {
           role: "user",
@@ -57,7 +67,7 @@ ${memoryContext}`,
 
     res.status(200).json({ reply });
   } catch (error) {
-    console.error("SERVER ERROR:", error);
+    console.error(error);
     res.status(500).json({
       reply: "Server error. Please try again.",
     });
