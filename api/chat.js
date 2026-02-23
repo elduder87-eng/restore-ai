@@ -1,73 +1,83 @@
-import { saveMemory, getMemory } from "../lib/studentMemory.js";
-import { detectInsight } from "../lib/insights.js";
+import { saveMemory, getMemory } from "/lib/studentMemory.js";
+import { detectInsight } from "/lib/insights.js";
 
 export default async function handler(req, res) {
   try {
+    if (req.method !== "POST") {
+      return res.status(405).json({ reply: "Method not allowed" });
+    }
+
     const { message } = req.body;
 
-    // ---------- MEMORY DETECTION ----------
+    if (!message) {
+      return res.status(400).json({ reply: "No message provided." });
+    }
+
+    const userId = "default-user";
+
+    // ======================
+    // MEMORY DETECTION
+    // ======================
+
     const insight = detectInsight(message);
 
-    if (insight?.type === "memory") {
-      await saveMemory(insight.key, insight.value);
+    if (insight) {
+      await saveMemory(userId, insight.key, insight.value);
 
-      return res.status(200).json({
-        reply: `Got it — I'll remember that your favorite color is ${insight.value}.`,
+      return res.json({
+        reply: `Got it — I'll remember that ${insight.key} is ${insight.value}.`
       });
     }
 
-    // ---------- MEMORY RECALL ----------
-    if (message.toLowerCase().includes("what is my favorite color")) {
-      const color = await getMemory("favorite_color");
+    // ======================
+    // MEMORY RECALL
+    // ======================
+
+    if (message.toLowerCase().includes("favorite color")) {
+      const color = await getMemory(userId, "favorite color");
 
       if (color) {
-        return res.status(200).json({
-          reply: `Your favorite color is ${color}.`,
-        });
-      } else {
-        return res.status(200).json({
-          reply: "I don't know your favorite color yet.",
+        return res.json({
+          reply: `Your favorite color is ${color}.`
         });
       }
     }
 
-    // ---------- TEACHER MODE ----------
-    if (message.toLowerCase().includes("stop asking questions")) {
-      return res.status(200).json({
+    // ======================
+    // TEACHER MODE RESPONSES
+    // ======================
+
+    const lower = message.toLowerCase();
+
+    if (lower.includes("gravity")) {
+      return res.json({
         reply:
-          "Understood. I will focus on clear explanations instead of questions.",
+          "Gravity is a force that pulls objects toward each other. Earth's mass pulls objects toward its center, which is why things fall downward."
       });
     }
 
-    if (message.toLowerCase().includes("hello")) {
-      return res.status(200).json({
-        reply: "Hello! What would you like to learn about today?",
-      });
-    }
-
-    if (message.toLowerCase().includes("gravity")) {
-      return res.status(200).json({
+    if (lower.includes("photosynthesis")) {
+      return res.json({
         reply:
-          "Gravity is a force that pulls objects toward each other. Earth's mass pulls objects toward its center, which is why things fall downward.",
+          "Photosynthesis is how plants make food using sunlight, water, and carbon dioxide. They turn light energy into sugar and release oxygen."
       });
     }
 
-    if (message.toLowerCase().includes("photosynthesis")) {
-      return res.status(200).json({
-        reply:
-          "Photosynthesis is how plants use sunlight, water, and carbon dioxide to make food and release oxygen.",
+    if (lower.includes("hello")) {
+      return res.json({
+        reply: "Hello! What would you like to learn about today?"
       });
     }
 
-    // ---------- DEFAULT ----------
-    return res.status(200).json({
-      reply: "Here is a clear explanation: learning works best with understanding.",
+    return res.json({
+      reply:
+        "Here is a clear explanation: learning works best when ideas are broken into simple steps and connected to things you already understand."
     });
-  } catch (error) {
-    console.error(error);
 
+  } catch (error) {
+    console.error("API ERROR:", error);
     return res.status(500).json({
-      reply: "Server error. Please try again.",
+      reply: "Server error. Please try again."
     });
   }
 }
