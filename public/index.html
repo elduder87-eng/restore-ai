@@ -7,37 +7,41 @@
 <body>
   <h1>Restore AI — Teacher Mode</h1>
 
-  <div id="chat" style="border:1px solid #ccc;height:400px;overflow:auto;padding:10px;"></div>
+  <div id="chat" style="height:400px;overflow:auto;border:1px solid #ccc;padding:10px;"></div>
 
   <input id="input" placeholder="Ask a question..." />
   <button onclick="sendMessage()">Send</button>
 
-  <script>
-    async function sendMessage() {
-      const input = document.getElementById("input");
-      const chat = document.getElementById("chat");
+<script>
+async function sendMessage() {
+  const input = document.getElementById("input");
+  const chat = document.getElementById("chat");
 
-      const message = input.value;
-      if (!message) return;
+  const message = input.value;
+  if (!message) return;
 
-      chat.innerHTML += `<p style="color:blue;">You: ${message}</p>`;
-      input.value = "";
+  chat.innerHTML += `<p style="color:blue;">You: ${message}</p>`;
+  input.value = "";
 
-      try {
-        const response = await fetch("/api/chat", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message }),
-        });
+  try {
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ message }),
+    });
 
-        const data = await response.json();
+    const data = await res.json();
 
-        chat.innerHTML += `<p>Restore AI: ${data.reply}</p>`;
-        chat.scrollTop = chat.scrollHeight;
-      } catch (err) {
-        chat.innerHTML += `<p>Restore AI: Server error. Please try again.</p>`;
-      }
-    }
-  </script>
+    chat.innerHTML += `<p>Restore AI: ${data.reply}</p>`;
+    chat.scrollTop = chat.scrollHeight;
+
+  } catch (err) {
+    chat.innerHTML += `<p>Restore AI: Server error.</p>`;
+  }
+}
+</script>
+
 </body>
 </html>
