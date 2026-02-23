@@ -3,43 +3,43 @@
 <head>
   <title>Restore AI — Teacher Mode</title>
 </head>
+
 <body>
+  <h1>Restore AI — Teacher Mode</h1>
 
-<h2>Restore AI — Teacher Mode</h2>
+  <div id="chat" style="border:1px solid #ccc;height:400px;overflow:auto;padding:10px;"></div>
 
-<div id="chat"></div>
-
-<input id="message" placeholder="Ask a question..." />
-<button onclick="sendMessage()">Send</button>
+  <input id="input" placeholder="Ask a question..." />
+  <button onclick="sendMessage()">Send</button>
 
 <script>
-const sessionId = "student1";
-
 async function sendMessage() {
-  const input = document.getElementById("message");
-  const text = input.value;
+  const input = document.getElementById("input");
+  const chat = document.getElementById("chat");
 
-  if (!text) return;
+  const message = input.value;
+  if (!message) return;
 
-  addMessage("You", text);
+  chat.innerHTML += `<p style="color:blue;">You: ${message}</p>`;
   input.value = "";
 
-  const res = await fetch("/api/chat", {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({
-      message: text,
-      sessionId
-    })
-  });
+  try {
+    const response = await fetch("/api/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ message })
+    });
 
-  const data = await res.json();
-  addMessage("Restore AI", data.reply);
-}
+    const data = await response.json();
 
-function addMessage(sender, text) {
-  const div = document.getElementById("chat");
-  div.innerHTML += `<p><b>${sender}:</b> ${text}</p>`;
+    chat.innerHTML += `<p>Restore AI: ${data.reply}</p>`;
+    chat.scrollTop = chat.scrollHeight;
+
+  } catch (err) {
+    chat.innerHTML += `<p>Restore AI: Server error.</p>`;
+  }
 }
 </script>
 
