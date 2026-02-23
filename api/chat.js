@@ -1,4 +1,9 @@
-import { redis } from "../lib/redis.js";
+import { Redis } from "@upstash/redis";
+
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+});
 
 export default async function handler(req, res) {
   try {
@@ -12,16 +17,40 @@ export default async function handler(req, res) {
       return res.status(400).json({ reply: "No message provided." });
     }
 
-    const userId = "default-user";
+    const sessionId = "default-user";
 
-    // Load memory
-    let history = (await redis.get(userId)) || [];
+    // -------------------------
+    // LOAD MEMORY
+    // -------------------------
+    let memory = await redis.get(`memory:${sessionId}`);
+    if (!memory) memory = [];
 
-    history.push({
-      role: "user",
-      content: message,
-    });
+    // Save user message
+    memory.push({ role: "user", content: message });
 
+    // Keep memory small
+    memory = memory.slice(-10);
+
+    // -------------------------
+    // SYSTEM PROMPT
+    // -------------------------
+    const systemPrompt = {
+      role: "system",
+      content: `
+You are Restore AI — a calm educational assistant.
+
+Rules:
+- Prefer clear explanations.
+- If user asks for simple explanation → explain directly.
+- Avoid excessive questioning.
+- Be encouraging and easy to understand.
+- Remember personal facts the user shares.
+      `,
+    };
+
+    // -------------------------
+    // OPENAI CALL
+    // -------------------------
     const response = await fetch(
       "https://api.openai.com/v1/chat/completions",
       {
@@ -32,14 +61,8 @@ export default async function handler(req, res) {
         },
         body: JSON.stringify({
           model: "gpt-4o-mini",
-          messages: [
-            {
-              role: "system",
-              content:
-                "You are Restore AI, a calm teacher who explains concepts simply and clearly. Avoid unnecessary questions.",
-            },
-            ...history,
-          ],
+          messages: [systemPrompt, ...memory],
+          temperature: 0.7,
         }),
       }
     );
@@ -48,18 +71,18 @@ export default async function handler(req, res) {
 
     const reply =
       data?.choices?.[0]?.message?.content ||
-      "Sorry, I couldn't generate a response.";
+      "I’m having trouble responding right now.";
 
-    history.push({
-      role: "assistant",
-      content: reply,
-    });
+    // Save assistant reply
+    memory.push({ role: "assistant", content: reply });
 
-    await redis.set(userId, history);
+    await redis.set(`memory:${sessionId}`, memory);
 
-    res.status(200).json({ reply });
+    return res.status(200).json({ reply });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ reply: "Server error." });
+    console.error("CHAT ERROR:", error);
+    return res
+      .status(500)
+      .json({ reply: "Server error. Please try again." });
   }
 }
