@@ -1,4 +1,5 @@
-import { saveMemory, getMemory } from "../lib/studentMemory";
+import { rememberFact, recallMemory } from "../lib/studentMemory.js";
+import { generateInsight } from "../lib/insights.js";
 
 export default async function handler(req, res) {
   try {
@@ -12,83 +13,27 @@ export default async function handler(req, res) {
       return res.status(400).json({ reply: "No message provided." });
     }
 
-    const userId = "default-user"; // simple user identity for now
-
-    const lowerMessage = message.toLowerCase();
-
-    // =============================
-    // MEMORY SAVE
-    // =============================
-    if (lowerMessage.includes("my favorite color is")) {
-      const color = message.split("is")[1]?.trim();
-
-      if (color) {
-        await saveMemory(userId, "favoriteColor", color);
-        return res.json({
-          reply: `Got it — I'll remember that your favorite color is ${color}.`,
-        });
-      }
+    // 1️⃣ Recall stored memory
+    const memoryRecall = await recallMemory(message);
+    if (memoryRecall) {
+      return res.status(200).json({ reply: memoryRecall });
     }
 
-    // =============================
-    // MEMORY RECALL
-    // =============================
-    if (lowerMessage.includes("what is my favorite color")) {
-      const color = await getMemory(userId, "favoriteColor");
-
-      if (color) {
-        return res.json({
-          reply: `Your favorite color is ${color}.`,
-        });
-      } else {
-        return res.json({
-          reply: "You haven't told me your favorite color yet.",
-        });
-      }
+    // 2️⃣ Store new memory
+    const memorySaved = await rememberFact(message);
+    if (memorySaved) {
+      return res.status(200).json({ reply: memorySaved });
     }
 
-    // =============================
-    // TEACHER MODE RESPONSES
-    // =============================
-    if (lowerMessage.includes("hello")) {
-      return res.json({
-        reply: "Hello! What would you like to learn about today?",
-      });
-    }
+    // 3️⃣ Normal teaching response
+    const reply = generateInsight(message);
 
-    if (lowerMessage.includes("gravity")) {
-      return res.json({
-        reply:
-          "Gravity is a force that pulls objects toward each other. Earth's mass pulls objects toward its center, which is why things fall downward.",
-      });
-    }
+    return res.status(200).json({ reply });
 
-    if (lowerMessage.includes("photosynthesis")) {
-      return res.json({
-        reply:
-          "Photosynthesis is how plants make food using sunlight, water, and carbon dioxide. They turn light energy into sugar for growth and release oxygen into the air.",
-      });
-    }
-
-    if (lowerMessage.includes("stop asking questions")) {
-      return res.json({
-        reply:
-          "Understood. I will focus on clear explanations instead of questions.",
-      });
-    }
-
-    // =============================
-    // DEFAULT RESPONSE
-    // =============================
-    return res.json({
-      reply:
-        "Here is a clear explanation: learning works best when ideas connect to understanding.",
-    });
   } catch (error) {
-    console.error(error);
-
+    console.error("CHAT ERROR:", error);
     return res.status(500).json({
-      reply: "Server error. Please try again.",
+      reply: "Server error. Please try again."
     });
   }
 }
