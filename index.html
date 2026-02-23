@@ -2,57 +2,44 @@
 <html>
 <head>
   <title>Restore AI — Teacher Mode</title>
-  <style>
-    body {
-      font-family: Arial;
-      max-width: 700px;
-      margin: auto;
-      padding: 20px;
-    }
-
-    #chat {
-      border: 1px solid #ccc;
-      padding: 10px;
-      height: 400px;
-      overflow-y: auto;
-      margin-bottom: 10px;
-    }
-
-    .user { color: blue; }
-    .ai { color: black; }
-  </style>
 </head>
-
 <body>
 
 <h2>Restore AI — Teacher Mode</h2>
 
 <div id="chat"></div>
 
-<input id="input" placeholder="Ask a question..." style="width:80%">
-<button onclick="send()">Send</button>
+<input id="message" placeholder="Ask a question..." />
+<button onclick="sendMessage()">Send</button>
 
 <script>
-async function send() {
-  const input = document.getElementById("input");
-  const chat = document.getElementById("chat");
+const sessionId = "student1";
 
-  const message = input.value;
-  if (!message) return;
+async function sendMessage() {
+  const input = document.getElementById("message");
+  const text = input.value;
 
-  chat.innerHTML += `<div class="user"><b>You:</b> ${message}</div>`;
+  if (!text) return;
+
+  addMessage("You", text);
   input.value = "";
 
   const res = await fetch("/api/chat", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message })
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({
+      message: text,
+      sessionId
+    })
   });
 
   const data = await res.json();
+  addMessage("Restore AI", data.reply);
+}
 
-  chat.innerHTML += `<div class="ai"><b>Restore AI:</b> ${data.reply}</div>`;
-  chat.scrollTop = chat.scrollHeight;
+function addMessage(sender, text) {
+  const div = document.getElementById("chat");
+  div.innerHTML += `<p><b>${sender}:</b> ${text}</p>`;
 }
 </script>
 
