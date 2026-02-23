@@ -1,60 +1,31 @@
 import OpenAI from "openai";
-import { getMemories, saveMemory } from "../lib/studentMemory.js";
-import {
-  saveLearningPreference,
-  getLearningProfile,
-} from "../lib/learningProfile.js";
-import { detectInsight } from "../lib/insights.js";
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 export default async function handler(req, res) {
   try {
-    const { message, sessionId } = req.body;
+    // Only allow POST
+    if (req.method !== "POST") {
+      return res.status(405).json({ error: "Method not allowed" });
+    }
+
+    const { message } = req.body;
 
     if (!message) {
-      return res.status(400).json({ reply: "No message provided." });
+      return res.status(400).json({ error: "No message provided" });
     }
 
-    const session = sessionId || "default";
+    // Create OpenAI client
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
 
-    // Detect insights
-    const insight = detectInsight(message);
-
-    if (insight) {
-      if (insight.type === "memory") {
-        await saveMemory(session, insight.value);
-      }
-
-      if (insight.type === "learning") {
-        await saveLearningPreference(session, insight.value);
-      }
-    }
-
-    // Load stored data
-    const memories = await getMemories(session);
-    const learningProfile = await getLearningProfile(session);
-
-    const systemPrompt = `
-You are Restore AI, a supportive teaching assistant.
-
-Student facts:
-${memories.join("\n")}
-
-Learning preferences:
-${learningProfile.join("\n")}
-
-Teach clearly and adapt explanations to the learner.
-`;
-
+    // Call model
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
-          content: systemPrompt,
+          content:
+            "You are Restore AI, a calm teacher who explains concepts clearly and simply without asking many questions.",
         },
         {
           role: "user",
@@ -65,11 +36,13 @@ Teach clearly and adapt explanations to the learner.
 
     const reply = completion.choices[0].message.content;
 
-    res.status(200).json({ reply });
+    return res.status(200).json({ reply });
+
   } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      reply: "Server error. Please try again.",
+    console.error("API ERROR:", error);
+    return res.status(500).json({
+      error: "Server error",
+      details: error.message,
     });
   }
 }
