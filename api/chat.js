@@ -1,39 +1,31 @@
 import OpenAI from "openai";
-import { getStudentMemory, saveStudentMemory } from "../lib/studentMemory";
-
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 export default async function handler(req, res) {
   try {
+    // Only allow POST
     if (req.method !== "POST") {
       return res.status(405).json({ error: "Method not allowed" });
     }
 
     const { message } = req.body;
 
-    const studentId = "default-student";
-
-    // ✅ get memory safely
-    let memory = "";
-    try {
-      memory = await getStudentMemory(studentId);
-    } catch (e) {
-      console.log("Memory read failed:", e);
+    if (!message) {
+      return res.status(400).json({ error: "No message provided" });
     }
 
-    const completion = await client.chat.completions.create({
+    // Create OpenAI client
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+
+    // Call OpenAI
+    const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
           content:
-            "You are Restore AI, a calm teacher who explains clearly and simply.",
-        },
-        {
-          role: "system",
-          content: `Student memory: ${memory}`,
+            "You are Restore AI, a calm and encouraging teacher who explains ideas clearly and simply.",
         },
         {
           role: "user",
@@ -44,19 +36,13 @@ export default async function handler(req, res) {
 
     const reply = completion.choices[0].message.content;
 
-    // ✅ save memory safely (non-blocking)
-    try {
-      const updatedMemory = memory + "\n" + message;
-      await saveStudentMemory(studentId, updatedMemory);
-    } catch (e) {
-      console.log("Memory save failed:", e);
-    }
-
     return res.status(200).json({ reply });
   } catch (error) {
     console.error("API ERROR:", error);
+
     return res.status(500).json({
-      reply: "Server error. Please try again.",
+      error: "Server error",
+      details: error.message,
     });
   }
 }
