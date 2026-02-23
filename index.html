@@ -2,106 +2,35 @@
 <html>
 <head>
   <title>Restore AI — Teacher Mode</title>
-
-  <style>
-    body {
-      font-family: Arial;
-      background: #f5f5f5;
-      margin: 0;
-    }
-
-    header {
-      background: #0b1f3a;
-      color: white;
-      padding: 12px;
-      text-align: center;
-      font-weight: bold;
-    }
-
-    #chat {
-      width: 90%;
-      max-width: 700px;
-      margin: 20px auto;
-      background: white;
-      padding: 15px;
-      border-radius: 8px;
-      height: 400px;
-      overflow-y: auto;
-      border: 1px solid #ccc;
-    }
-
-    .user {
-      color: blue;
-      margin: 8px 0;
-    }
-
-    .ai {
-      color: black;
-      margin: 8px 0;
-    }
-
-    #inputArea {
-      width: 90%;
-      max-width: 700px;
-      margin: auto;
-      display: flex;
-      gap: 10px;
-    }
-
-    input {
-      flex: 1;
-      padding: 10px;
-    }
-
-    button {
-      padding: 10px 18px;
-      background: #2f6fed;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-  </style>
 </head>
 
 <body>
+  <h2>Restore AI — Teacher Mode</h2>
 
-<header>Restore AI — Teacher Mode</header>
+  <div id="chat"></div>
 
-<div id="chat"></div>
-
-<div id="inputArea">
-  <input id="message" placeholder="Ask a question..." />
-  <button onclick="sendMessage()">Send</button>
-</div>
+  <input id="input" placeholder="Ask a question..." />
+  <button onclick="send()">Send</button>
 
 <script>
-async function sendMessage() {
-  const input = document.getElementById("message");
+async function send() {
+  const input = document.getElementById("input");
   const chat = document.getElementById("chat");
 
-  const message = input.value.trim();
-  if (!message) return;
+  const message = input.value;
 
-  chat.innerHTML += `<div class="user">You: ${message}</div>`;
+  chat.innerHTML += `<p><b>You:</b> ${message}</p>`;
   input.value = "";
 
-  try {
-    const response = await fetch("/api/chat", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ message })
-    });
+  const res = await fetch("/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message })
+  });
 
-    const data = await response.json();
+  const data = await res.json();
 
-    chat.innerHTML += `<div class="ai">Restore AI: ${data.reply}</div>`;
-    chat.scrollTop = chat.scrollHeight;
-
-  } catch (err) {
-    chat.innerHTML += `<div class="ai">Restore AI: Server error.</div>`;
-  }
+  chat.innerHTML += `<p><b>Restore AI:</b> ${data.reply}</p>`;
 }
 </script>
 
