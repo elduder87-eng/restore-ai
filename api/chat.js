@@ -1,3 +1,10 @@
+import { Redis } from "@upstash/redis";
+
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+});
+
 export default async function handler(req, res) {
   try {
     if (req.method !== "POST") {
@@ -10,6 +17,15 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "No message provided" });
     }
 
+    // ---------- MEMORY ----------
+    const sessionId = "default-user";
+
+    let history = await redis.get(sessionId);
+    if (!history) history = [];
+
+    history.push({ role: "user", content: message });
+
+    // ---------- OPENAI ----------
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -21,35 +37,28 @@ export default async function handler(req, res) {
         messages: [
           {
             role: "system",
-            content: `
-You are Restore AI.
-
-You teach with curiosity, warmth, and simplicity.
-Explain ideas clearly using simple language.
-Keep answers concise unless asked for more detail.
-Use analogies when helpful.
-Encourage curiosity and understanding.
-End responses with gentle encouragement.
-`,
+            content:
+              "You are Restore AI, a calm teacher that explains concepts clearly and simply.",
           },
-          {
-            role: "user",
-            content: message,
-          },
+          ...history,
         ],
-        temperature: 0.7,
       }),
     });
 
     const data = await response.json();
 
     const reply =
-      data.choices?.[0]?.message?.content ||
-      "Sorry — I couldn't respond right now.";
+      data?.choices?.[0]?.message?.content ||
+      "Sorry — I couldn't generate a reply.";
+
+    history.push({ role: "assistant", content: reply });
+
+    // keep last 10 messages
+    await redis.set(sessionId, history.slice(-10));
 
     res.status(200).json({ reply });
-  } catch (error) {
-    console.error(error);
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ error: "Server error" });
   }
 }
