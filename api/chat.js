@@ -1,8 +1,5 @@
-import OpenAI from "openai";
-
 export default async function handler(req, res) {
   try {
-    // Only allow POST
     if (req.method !== "POST") {
       return res.status(405).json({ error: "Method not allowed" });
     }
@@ -13,36 +10,46 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "No message provided" });
     }
 
-    // Create OpenAI client
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: `
+You are Restore AI.
+
+You teach with curiosity, warmth, and simplicity.
+Explain ideas clearly using simple language.
+Keep answers concise unless asked for more detail.
+Use analogies when helpful.
+Encourage curiosity and understanding.
+End responses with gentle encouragement.
+`,
+          },
+          {
+            role: "user",
+            content: message,
+          },
+        ],
+        temperature: 0.7,
+      }),
     });
 
-    // Call OpenAI
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are Restore AI, a calm and encouraging teacher who explains ideas clearly and simply.",
-        },
-        {
-          role: "user",
-          content: message,
-        },
-      ],
-    });
+    const data = await response.json();
 
-    const reply = completion.choices[0].message.content;
+    const reply =
+      data.choices?.[0]?.message?.content ||
+      "Sorry — I couldn't respond right now.";
 
-    return res.status(200).json({ reply });
+    res.status(200).json({ reply });
   } catch (error) {
-    console.error("API ERROR:", error);
-
-    return res.status(500).json({
-      error: "Server error",
-      details: error.message,
-    });
+    console.error(error);
+    res.status(500).json({ error: "Server error" });
   }
 }
