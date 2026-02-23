@@ -1,83 +1,65 @@
-import { saveMemory, getMemory } from "/lib/studentMemory.js";
-import { detectInsight } from "/lib/insights.js";
+import OpenAI from "openai";
+import { saveMemory, getMemory } from "../lib/studentMemory.js";
+import { detectInsight } from "../lib/insights.js";
+
+const client = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 export default async function handler(req, res) {
   try {
     if (req.method !== "POST") {
-      return res.status(405).json({ reply: "Method not allowed" });
+      return res.status(405).json({ error: "Method not allowed" });
     }
 
-    const { message } = req.body;
+    const { message, sessionId } = req.body;
 
     if (!message) {
-      return res.status(400).json({ reply: "No message provided." });
+      return res.status(400).json({ error: "No message provided" });
     }
 
-    const userId = "default-user";
+    // ✅ Load memory
+    const memory = await getMemory(sessionId);
 
-    // ======================
-    // MEMORY DETECTION
-    // ======================
-
+    // ✅ Detect new insights
     const insight = detectInsight(message);
 
     if (insight) {
-      await saveMemory(userId, insight.key, insight.value);
-
-      return res.json({
-        reply: `Got it — I'll remember that ${insight.key} is ${insight.value}.`
-      });
+      await saveMemory(sessionId, insight);
     }
 
-    // ======================
-    // MEMORY RECALL
-    // ======================
+    // ✅ Build system context
+    const memoryContext =
+      memory.length > 0
+        ? `Student facts:\n${memory.join("\n")}`
+        : "";
 
-    if (message.toLowerCase().includes("favorite color")) {
-      const color = await getMemory(userId, "favorite color");
+    const completion = await client.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: `You are Restore AI, a clear and supportive teacher.
 
-      if (color) {
-        return res.json({
-          reply: `Your favorite color is ${color}.`
-        });
-      }
-    }
+Explain simply and directly.
+Do not ask unnecessary questions.
 
-    // ======================
-    // TEACHER MODE RESPONSES
-    // ======================
-
-    const lower = message.toLowerCase();
-
-    if (lower.includes("gravity")) {
-      return res.json({
-        reply:
-          "Gravity is a force that pulls objects toward each other. Earth's mass pulls objects toward its center, which is why things fall downward."
-      });
-    }
-
-    if (lower.includes("photosynthesis")) {
-      return res.json({
-        reply:
-          "Photosynthesis is how plants make food using sunlight, water, and carbon dioxide. They turn light energy into sugar and release oxygen."
-      });
-    }
-
-    if (lower.includes("hello")) {
-      return res.json({
-        reply: "Hello! What would you like to learn about today?"
-      });
-    }
-
-    return res.json({
-      reply:
-        "Here is a clear explanation: learning works best when ideas are broken into simple steps and connected to things you already understand."
+${memoryContext}`,
+        },
+        {
+          role: "user",
+          content: message,
+        },
+      ],
     });
 
+    const reply = completion.choices[0].message.content;
+
+    res.status(200).json({ reply });
   } catch (error) {
-    console.error("API ERROR:", error);
-    return res.status(500).json({
-      reply: "Server error. Please try again."
+    console.error("SERVER ERROR:", error);
+    res.status(500).json({
+      reply: "Server error. Please try again.",
     });
   }
 }
