@@ -1,88 +1,56 @@
-import { Redis } from "@upstash/redis";
+import OpenAI from "openai";
+import { saveMemory } from "../lib/studentMemory.js";
 
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+const client = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
 export default async function handler(req, res) {
   try {
     if (req.method !== "POST") {
-      return res.status(405).json({ reply: "Method not allowed" });
+      return res.status(405).json({ error: "Method not allowed" });
     }
 
     const { message } = req.body;
 
     if (!message) {
-      return res.status(400).json({ reply: "No message provided." });
+      return res.status(400).json({ error: "No message provided" });
     }
 
-    const sessionId = "default-user";
+    const userId = "default-user";
 
-    // -------------------------
-    // LOAD MEMORY
-    // -------------------------
-    let memory = await redis.get(`memory:${sessionId}`);
-    if (!memory) memory = [];
-
-    // Save user message
-    memory.push({ role: "user", content: message });
-
-    // Keep memory small
-    memory = memory.slice(-10);
-
-    // -------------------------
-    // SYSTEM PROMPT
-    // -------------------------
-    const systemPrompt = {
-      role: "system",
-      content: `
-You are Restore AI — a calm educational assistant.
-
-Rules:
-- Prefer clear explanations.
-- If user asks for simple explanation → explain directly.
-- Avoid excessive questioning.
-- Be encouraging and easy to understand.
-- Remember personal facts the user shares.
-      `,
-    };
-
-    // -------------------------
-    // OPENAI CALL
-    // -------------------------
-    const response = await fetch(
-      "https://api.openai.com/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        },
-        body: JSON.stringify({
-          model: "gpt-4o-mini",
-          messages: [systemPrompt, ...memory],
-          temperature: 0.7,
-        }),
+    // ---- MEMORY DETECTION ----
+    try {
+      if (message.toLowerCase().includes("my favorite color is")) {
+        const color = message.split("is")[1]?.trim();
+        if (color) {
+          await saveMemory(userId, "favoriteColor", color);
+        }
       }
-    );
+    } catch (memoryError) {
+      console.error("Memory failed but continuing:", memoryError);
+    }
 
-    const data = await response.json();
+    // ---- AI RESPONSE ----
+    const completion = await client.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are Restore AI, a teacher that explains concepts clearly and simply without asking unnecessary questions.",
+        },
+        {
+          role: "user",
+          content: message,
+        },
+      ],
+    });
 
-    const reply =
-      data?.choices?.[0]?.message?.content ||
-      "I’m having trouble responding right now.";
-
-    // Save assistant reply
-    memory.push({ role: "assistant", content: reply });
-
-    await redis.set(`memory:${sessionId}`, memory);
+    const reply = completion.choices[0].message.content;
 
     return res.status(200).json({ reply });
   } catch (error) {
-    console.error("CHAT ERROR:", error);
-    return res
-      .status(500)
-      .json({ reply: "Server error. Please try again." });
-  }
-}
+    console.error("CHAT API ERROR:", error);
+    return res.status(500).json({
+      reply
