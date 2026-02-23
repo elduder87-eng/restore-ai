@@ -5,27 +5,64 @@
   <style>
     body {
       font-family: Arial;
-      background:#f4f6f8;
-      text-align:center;
-      padding-top:80px;
+      max-width: 700px;
+      margin: auto;
+      padding: 20px;
     }
 
-    a {
-      padding:14px 24px;
-      background:#1e3a8a;
-      color:white;
-      text-decoration:none;
-      border-radius:8px;
-      font-size:18px;
+    #chat {
+      border: 1px solid #ccc;
+      height: 400px;
+      overflow-y: auto;
+      padding: 10px;
+      margin-bottom: 10px;
     }
+
+    .user { color: blue; }
+    .ai { color: black; }
   </style>
 </head>
+
 <body>
 
-<h1>Restore AI</h1>
-<p>What do you want to learn about?</p>
+<h2>Restore AI — Teacher Mode</h2>
 
-<a href="/chat/">Start Learning</a>
+<div id="chat"></div>
+
+<input id="input" placeholder="Ask a question..." />
+<button onclick="send()">Send</button>
+
+<script>
+const sessionId = localStorage.getItem("sessionId")
+  || crypto.randomUUID();
+
+localStorage.setItem("sessionId", sessionId);
+
+async function send() {
+  const input = document.getElementById("input");
+  const chat = document.getElementById("chat");
+
+  const message = input.value;
+  if (!message) return;
+
+  chat.innerHTML += `<div class="user">You: ${message}</div>`;
+  input.value = "";
+
+  const res = await fetch("/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      message,
+      sessionId
+    }),
+  });
+
+  const data = await res.json();
+
+  chat.innerHTML += `<div class="ai">Restore AI: ${data.reply}</div>`;
+  chat.scrollTop = chat.scrollHeight;
+}
+</script>
 
 </body>
 </html>
