@@ -1,63 +1,43 @@
-// public/chat.js
-
 const form = document.getElementById("chat-form");
-const inputBox = document.getElementById("message-input");
+const input = document.getElementById("message-input");
 const chatWindow = document.getElementById("chat-window");
 
-// --------------------------------
-// Create message bubbles
-// --------------------------------
 function addMessage(text, sender) {
-  const message = document.createElement("div");
-  message.className =
-    sender === "user" ? "user-message" : "ai-message";
-
-  message.textContent = text;
-
-  chatWindow.appendChild(message);
+  const div = document.createElement("div");
+  div.className = `message ${sender}`;
+  div.textContent = text;
+  chatWindow.appendChild(div);
   chatWindow.scrollTop = chatWindow.scrollHeight;
 }
 
-// --------------------------------
-// Send Message
-// --------------------------------
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const message = inputBox.value.trim();
+  const message = input.value.trim();
   if (!message) return;
 
   addMessage(message, "user");
-  inputBox.value = "";
+  input.value = "";
 
-  // loading placeholder
-  const loading = document.createElement("div");
-  loading.className = "ai-message";
-  loading.textContent = "Thinking...";
-  chatWindow.appendChild(loading);
+  const thinking = document.createElement("div");
+  thinking.className = "message assistant";
+  thinking.textContent = "Thinking...";
+  chatWindow.appendChild(thinking);
 
   try {
-    const response = await fetch("/api/chat", {
+    const res = await fetch("/api/chat", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        message: message,
-
-        // ✅ Stage 7C Student Identity
-        userId: "student-1"
-      })
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message })
     });
 
-    const data = await response.json();
+    const data = await res.json();
 
-    loading.remove();
-
-    addMessage(data.reply, "ai");
+    thinking.remove();
+    addMessage(data.reply, "assistant");
 
   } catch (err) {
-    loading.textContent = "Server error. Try again.";
-    console.error(err);
+    thinking.remove();
+    addMessage("Server error.", "assistant");
   }
 });
