@@ -1,65 +1,109 @@
-export default async function handler(req, res) {
+export const config = {
+  runtime: "edge",
+};
+
+export default async function handler(req) {
   try {
-    if (req.method !== "POST") {
-      return res.status(405).json({ error: "Method not allowed" });
+    const { message, memory = {} } = await req.json();
+
+    // =========================
+    // MEMORY STRUCTURE
+    // =========================
+    const updatedMemory = {
+      name: memory.name || null,
+      interests: memory.interests || [],
+      topics: memory.topics || [],
+      confusion: memory.confusion || [],
+    };
+
+    const text = message.toLowerCase();
+
+    // =========================
+    // IDENTITY MEMORY
+    // =========================
+    if (text.includes("my name is")) {
+      const name = message.split("my name is")[1]?.trim();
+      if (name) updatedMemory.name = name;
     }
 
-    const { message, memory } = req.body;
+    // =========================
+    // INTEREST DETECTION
+    // =========================
+    const interestTriggers = ["i like", "i love", "i enjoy", "i am interested in"];
 
-    let userName = memory?.name || null;
+    interestTriggers.forEach(trigger => {
+      if (text.includes(trigger)) {
+        const interest = message.split(trigger)[1]?.trim();
+        if (interest && !updatedMemory.interests.includes(interest)) {
+          updatedMemory.interests.push(interest);
+        }
+      }
+    });
 
-    // --- Identity Detection ---
-    const nameMatch = message.match(/my name is (\w+)/i);
-    if (nameMatch) {
-      userName = nameMatch[1];
+    // =========================
+    // TOPIC DETECTION
+    // =========================
+    const topicTriggers = ["explain", "what is", "tell me about"];
+
+    topicTriggers.forEach(trigger => {
+      if (text.startsWith(trigger)) {
+        const topic = message.replace(trigger, "").trim();
+        if (topic && !updatedMemory.topics.includes(topic)) {
+          updatedMemory.topics.push(topic);
+        }
+      }
+    });
+
+    // =========================
+    // CONFUSION DETECTION
+    // =========================
+    const confusionTriggers = [
+      "i don't understand",
+      "im confused",
+      "this is confusing",
+      "i'm lost",
+    ];
+
+    confusionTriggers.forEach(trigger => {
+      if (text.includes(trigger)) {
+        updatedMemory.confusion.push(message);
+      }
+    });
+
+    // =========================
+    // SIMPLE AI RESPONSE
+    // (temporary — upgraded later)
+    // =========================
+    let reply = "I'm here to help you learn.";
+
+    if (updatedMemory.name) {
+      reply = `Hello ${updatedMemory.name}! Let's explore that together.`;
     }
 
-    // --- Identity Recall ---
-    if (/what is my name/i.test(message) && userName) {
-      return res.status(200).json({
-        reply: `Your name is ${userName}. How can I help you today, ${userName}?`,
-        memory: { name: userName }
-      });
+    if (text.includes("what is my name")) {
+      reply = updatedMemory.name
+        ? `Your name is ${updatedMemory.name}.`
+        : "I don't know your name yet.";
     }
 
-    // --- OpenAI Call ---
-    const response = await fetch(
-      "https://api.openai.com/v1/chat/completions",
+    if (updatedMemory.interests.length > 0) {
+      reply += ` I see you're interested in ${updatedMemory.interests.join(", ")}.`;
+    }
+
+    return new Response(
+      JSON.stringify({
+        reply,
+        memory: updatedMemory,
+      }),
       {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`
-        },
-        body: JSON.stringify({
-          model: "gpt-4o-mini",
-          messages: [
-            {
-              role: "system",
-              content:
-                "You are Restore AI, a calm educational assistant helping students understand ideas clearly."
-            },
-            {
-              role: "user",
-              content: message
-            }
-          ]
-        })
+        headers: { "Content-Type": "application/json" },
       }
     );
 
-    const data = await response.json();
-
-    const reply =
-      data.choices?.[0]?.message?.content ||
-      "Sorry — I couldn't generate a response.";
-
-    res.status(200).json({
-      reply,
-      memory: { name: userName }
-    });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Server error" });
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      { status: 500 }
+    );
   }
 }
