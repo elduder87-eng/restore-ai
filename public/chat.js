@@ -1,51 +1,63 @@
-const chatBox = document.querySelector(".chat-box");
-const input = document.getElementById("messageInput");
+// public/chat.js
 
-const userId = "student1"; // temporary identity
+const form = document.getElementById("chat-form");
+const inputBox = document.getElementById("message-input");
+const chatWindow = document.getElementById("chat-window");
 
+// --------------------------------
+// Create message bubbles
+// --------------------------------
 function addMessage(text, sender) {
-  const div = document.createElement("div");
-  div.className = `msg ${sender}`;
-  div.textContent = text;
-  chatBox.appendChild(div);
-  chatBox.scrollTop = chatBox.scrollHeight;
+  const message = document.createElement("div");
+  message.className =
+    sender === "user" ? "user-message" : "ai-message";
+
+  message.textContent = text;
+
+  chatWindow.appendChild(message);
+  chatWindow.scrollTop = chatWindow.scrollHeight;
 }
 
-async function sendMessage() {
-  const message = input.value.trim();
+// --------------------------------
+// Send Message
+// --------------------------------
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const message = inputBox.value.trim();
   if (!message) return;
 
   addMessage(message, "user");
-  input.value = "";
+  inputBox.value = "";
 
+  // loading placeholder
   const loading = document.createElement("div");
-  loading.className = "msg ai";
-  loading.textContent = "...";
-  chatBox.appendChild(loading);
+  loading.className = "ai-message";
+  loading.textContent = "Thinking...";
+  chatWindow.appendChild(loading);
 
   try {
-    const res = await fetch("/api/chat", {
+    const response = await fetch("/api/chat", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        message,
-        userId
+        message: message,
+
+        // ✅ Stage 7C Student Identity
+        userId: "student-1"
       })
     });
 
-    const data = await res.json();
+    const data = await response.json();
 
     loading.remove();
+
     addMessage(data.reply, "ai");
 
   } catch (err) {
-    loading.textContent = "Error contacting AI.";
+    loading.textContent = "Server error. Try again.";
+    console.error(err);
   }
-}
-
-// ENTER key support
-input.addEventListener("keypress", e => {
-  if (e.key === "Enter") sendMessage();
 });
