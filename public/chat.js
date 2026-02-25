@@ -1,11 +1,14 @@
 async function sendMessage() {
-  const input = document.getElementById("message");
+  const input = document.getElementById("messageInput");
   const chat = document.getElementById("chat");
 
-  const message = input.value.trim();
+  const message = input.value;
   if (!message) return;
 
-  chat.innerHTML += `<div class="user">${message}</div>`;
+  chat.innerHTML += `
+    <div class="user">You: ${message}</div>
+  `;
+
   input.value = "";
 
   try {
@@ -19,10 +22,13 @@ async function sendMessage() {
 
     const data = await res.json();
 
-    chat.innerHTML += `<div class="bot">${data.reply}</div>`;
-    chat.scrollTop = chat.scrollHeight;
+    chat.innerHTML += `
+      <div class="ai">${data.reply}</div>
+    `;
 
   } catch {
-    chat.innerHTML += `<div class="bot">Error contacting server.</div>`;
+    chat.innerHTML += `
+      <div class="ai">Error contacting server.</div>
+    `;
   }
 }
