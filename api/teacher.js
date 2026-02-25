@@ -1,23 +1,20 @@
-let classroom = [];
+let teacherDB = {
+  students: []
+};
 
 export function saveStudent(profile) {
-  const existing = classroom.find(
+  const existing = teacherDB.students.find(
     s => s.name === profile.name
   );
 
   if (existing) {
-    Object.assign(existing, profile);
+    existing.interests = [...new Set(profile.interests)];
+    existing.learningProfile = profile.learningProfile;
   } else {
-    classroom.push(profile);
+    teacherDB.students.push(profile);
   }
 }
 
 export default function handler(req, res) {
-  if (req.method === "GET") {
-    return res.status(200).json({
-      students: classroom
-    });
-  }
-
-  res.status(405).json({ error: "Method not allowed" });
+  res.status(200).json(teacherDB);
 }
