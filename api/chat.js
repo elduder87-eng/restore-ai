@@ -6,32 +6,37 @@ const redis = new Redis({
 });
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).end();
-  }
+  if (req.method !== "POST") return res.status(405).end();
 
   const { message } = req.body;
+  const userId = "default-user";
 
-  const userId = "default-user"; // later becomes login/session id
-
-  // 🔹 Load stored profile
+  // Load profile
   let profile = await redis.get(`profile:${userId}`);
   if (!profile) profile = {};
 
-  // 🔹 Detect name learning
+  // ---- MEMORY LEARNING ----
+
   const nameMatch = message.match(/my name is (\w+)/i);
-  if (nameMatch) {
-    profile.name = nameMatch[1];
-    await redis.set(`profile:${userId}`, profile);
-  }
+  if (nameMatch) profile.name = nameMatch[1];
 
-  // 🔹 Build memory context
-  let memoryContext = "";
-  if (profile.name) {
-    memoryContext += `The user's name is ${profile.name}. `;
-  }
+  const likesMatch = message.match(/i like (.+)/i);
+  if (likesMatch) profile.likes = likesMatch[1];
 
-  // 🔹 OpenAI request
+  const goalMatch = message.match(/i want to learn (.+)/i);
+  if (goalMatch) profile.goal = goalMatch[1];
+
+  await redis.set(`profile:${userId}`, profile);
+
+  // ---- BUILD CONTEXT ----
+
+  let memoryContext = "User profile:";
+  if (profile.name) memoryContext += ` Name: ${profile.name}.`;
+  if (profile.likes) memoryContext += ` Interests: ${profile.likes}.`;
+  if (profile.goal) memoryContext += ` Learning goal: ${profile.goal}.`;
+
+  // ---- AI REQUEST ----
+
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -43,12 +48,11 @@ export default async function handler(req, res) {
       messages: [
         {
           role: "system",
-          content: `You are Restore AI, a supportive teacher AI. ${memoryContext}`,
+          content: `You are Restore AI, a warm supportive teacher AI.
+Use the stored user profile to personalize responses.
+${memoryContext}`,
         },
-        {
-          role: "user",
-          content: message,
-        },
+        { role: "user", content: message },
       ],
     }),
   });
