@@ -1,27 +1,23 @@
-// data/identity.js
+const identities = {};
 
-import { Redis } from "@upstash/redis";
+export function getIdentity(userId) {
+  if (!identities[userId]) {
+    identities[userId] = {
+      name: null
+    };
+  }
 
-const redis = Redis.fromEnv();
-
-// Create memory key per user
-function memoryKey(userId) {
-  return `identity:${userId}`;
+  return identities[userId];
 }
 
-// Get identity memory
-export async function getIdentity(userId) {
-  const data = await redis.get(memoryKey(userId));
-  return data || {
-    name: null,
-    interests: [],
-    learning_goals: [],
-    strengths: [],
-    struggles: []
-  };
-}
+export function updateIdentity(userId, message) {
+  const identity = getIdentity(userId);
 
-// Save identity memory
-export async function saveIdentity(userId, identity) {
-  await redis.set(memoryKey(userId), identity);
+  const match = message.match(/my name is (.+)/i);
+
+  if (match) {
+    identity.name = match[1].trim();
+  }
+
+  return identity;
 }
