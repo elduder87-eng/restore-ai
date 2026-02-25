@@ -1,74 +1,64 @@
 import OpenAI from "openai";
-import { Redis } from "@upstash/redis";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN,
-});
+// simple in-memory store (Stage 7B)
+const memory = {};
 
 export default async function handler(req, res) {
   try {
-    if (req.method !== "POST") {
-      return res.status(405).json({ error: "Method not allowed" });
+    const { message, userId = "default" } = req.body;
+
+    if (!memory[userId]) {
+      memory[userId] = {
+        name: null,
+        history: []
+      };
     }
 
-    const { message, conversation = [], userId = "student_1" } = req.body;
+    const userMemory = memory[userId];
 
-    if (!message) {
-      return res.status(400).json({ error: "No message provided" });
-    }
-
-    // -----------------------------
-    // LOAD MEMORY
-    // -----------------------------
-    const memoryKey = `memory:${userId}`;
-    let memory = await redis.get(memoryKey);
-
-    if (!memory) memory = {};
-
-    // -----------------------------
-    // SIMPLE IDENTITY DETECTION
-    // -----------------------------
+    // Detect name
     const nameMatch = message.match(/my name is (\w+)/i);
     if (nameMatch) {
-      memory.name = nameMatch[1];
-      await redis.set(memoryKey, memory);
+      userMemory.name = nameMatch[1];
     }
 
-    // -----------------------------
-    // BUILD SYSTEM PROMPT
-    // -----------------------------
     let systemPrompt = `
-You are Restore AI — a supportive teaching assistant.
-Speak clearly and help students learn through curiosity.
+You are Restore AI, a supportive teaching assistant.
+Speak clearly and help students learn step-by-step.
 `;
 
-    if (memory.name) {
-      systemPrompt += ` The student's name is ${memory.name}.`;
+    if (userMemory.name) {
+      systemPrompt += ` The student's name is ${userMemory.name}. Use it naturally.`;
     }
 
-    // -----------------------------
-    // OPENAI CALL
-    // -----------------------------
+    userMemory.history.push({
+      role: "user",
+      content: message
+    });
+
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         { role: "system", content: systemPrompt },
-        ...conversation,
-        { role: "user", content: message },
-      ],
+        ...userMemory.history.slice(-10)
+      ]
     });
 
     const reply = completion.choices[0].message.content;
 
+    userMemory.history.push({
+      role: "assistant",
+      content: reply
+    });
+
     res.status(200).json({ reply });
 
   } catch (error) {
-    console.error("CHAT ERROR:", error);
+    console.error(error);
     res.status(500).json({ error: "Server error" });
   }
 }
