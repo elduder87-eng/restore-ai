@@ -1,48 +1,66 @@
 import OpenAI from "openai";
-import { saveMemory, getMemory } from "../lib/memory.js";
+
+import {
+  getIdentity,
+  updateIdentity
+} from "../data/identityMemory.js";
+
+import {
+  getLearningProfile,
+  updateLearningProfile
+} from "../data/learningMemory.js";
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.OPENAI_API_KEY
 });
 
 export default async function handler(req, res) {
+  try {
+    const { message } = req.body;
 
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
+    const userId = "default-user";
 
-  const { message } = req.body;
-  const userId = "default-user";
+    // --- Identity Memory ---
+    const identity = updateIdentity(userId, message);
 
-  // ---- Identity Detection ----
-  const nameMatch = message.match(/my name is (\w+)/i);
+    // --- Learning Memory ---
+    const learningProfile =
+      updateLearningProfile(userId, message);
 
-  if (nameMatch) {
-    saveMemory(userId, "name", nameMatch[1]);
-  }
+    // --- Build system context ---
+    const systemMessage = `
+You are Restore AI, a personalized learning teacher.
 
-  const storedName = getMemory(userId, "name");
+Student name: ${identity.name || "Unknown"}
 
-  const systemPrompt = `
-You are Restore AI, a calm educational assistant.
-${storedName ? `The user's name is ${storedName}. Use it naturally.` : ""}
+Known Interests:
+${learningProfile.interests.join("\n")}
+
+Learning Goals:
+${learningProfile.goals.join("\n")}
+
+Confusion Areas:
+${learningProfile.confusions.join("\n")}
+
+Teach in a supportive, adaptive way.
 `;
 
-  try {
     const completion = await openai.chat.completions.create({
-      model: "gpt-4.1-mini",
+      model: "gpt-4o-mini",
       messages: [
-        { role: "system", content: systemPrompt },
+        { role: "system", content: systemMessage },
         { role: "user", content: message }
       ]
     });
 
-    const reply = completion.choices[0].message.content;
-
-    res.status(200).json({ reply });
+    res.status(200).json({
+      reply: completion.choices[0].message.content
+    });
 
   } catch (error) {
     console.error(error);
-    res.status(500).json({ reply: "AI error occurred." });
+    res.status(500).json({
+      error: "Server error"
+    });
   }
 }
