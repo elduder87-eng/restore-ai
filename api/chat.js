@@ -8,58 +8,80 @@ export default async function handler(req, res) {
   try {
     const { message, memory } = req.body;
 
-    // -----------------------------
-    // Safety defaults
-    // -----------------------------
     const userMessage = message || "";
     const text = userMessage.toLowerCase();
     const updatedMemory = memory || {};
 
-    // -----------------------------
-    // 🧠 IDENTITY MEMORY
-    // -----------------------------
+    // =============================
+    // IDENTITY MEMORY
+    // =============================
     if (text.includes("my name is")) {
-      const index = text.indexOf("my name is");
-      const name = userMessage.substring(index + 10).trim();
-
-      if (name) {
-        updatedMemory.name = name;
-      }
+      const name = userMessage.split("my name is")[1]?.trim();
+      if (name) updatedMemory.name = name;
     }
 
-    // -----------------------------
-    // 🧠 INTEREST MEMORY
-    // -----------------------------
+    // =============================
+    // INTEREST MEMORY
+    // =============================
     if (text.includes("i enjoy")) {
-      const index = text.indexOf("i enjoy");
-      const interest = userMessage.substring(index + 7).trim();
-
-      if (interest) {
-        updatedMemory.interest = interest;
-      }
+      const interest = userMessage.split("i enjoy")[1]?.trim();
+      if (interest) updatedMemory.interest = interest;
     }
 
-    // -----------------------------
-    // 🤖 RESPONSE BUILDER
-    // -----------------------------
+    // =============================
+    // 🧠 INSIGHT ENGINE (NEW)
+    // =============================
+
+    // Detect subject domains
+    if (text.includes("physics")) updatedMemory.subject = "Physics";
+    if (text.includes("math")) updatedMemory.subject = "Mathematics";
+    if (text.includes("history")) updatedMemory.subject = "History";
+    if (text.includes("biology")) updatedMemory.subject = "Biology";
+
+    // Detect curiosity signals
+    if (
+      text.includes("why") ||
+      text.includes("how") ||
+      text.includes("explain")
+    ) {
+      updatedMemory.curiosity = "High";
+    }
+
+    // Detect confusion signals
+    if (
+      text.includes("don't understand") ||
+      text.includes("confused") ||
+      text.includes("hard")
+    ) {
+      updatedMemory.learningState = "Needs Support";
+    } else {
+      updatedMemory.learningState = "Exploring";
+    }
+
+    // =============================
+    // RESPONSE BUILDER
+    // =============================
+
     let reply = "I'm here to help you learn.";
 
-    if (updatedMemory.name && updatedMemory.interest) {
-      reply = `Hello ${updatedMemory.name}! I remember you enjoy ${updatedMemory.interest}. Let's explore that together.`;
-    } 
-    else if (updatedMemory.name) {
-      reply = `Hello ${updatedMemory.name}! How can I help you learn today?`;
-    } 
-    else if (updatedMemory.interest) {
-      reply = `That's great! We'll explore more about ${updatedMemory.interest}.`;
+    if (updatedMemory.name && updatedMemory.subject) {
+      reply = `Hello ${updatedMemory.name}! I see you're exploring ${updatedMemory.subject}. What would you like to understand next?`;
     }
 
-    // -----------------------------
-    // ✅ SEND RESPONSE
-    // -----------------------------
+    if (updatedMemory.curiosity === "High") {
+      reply += " I love curious questions — let's dig deeper together.";
+    }
+
+    if (updatedMemory.learningState === "Needs Support") {
+      reply += " We'll slow down and work through this step-by-step.";
+    }
+
+    // =============================
+    // SEND RESPONSE
+    // =============================
     return res.status(200).json({
       reply,
-      memory: updatedMemory
+      memory: updatedMemory,
     });
 
   } catch (error) {
