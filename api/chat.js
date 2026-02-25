@@ -8,67 +8,92 @@ const redis = new Redis({
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
 
-  const { message } = req.body;
-  const userId = "default-user";
+  const { message, userId } = req.body;
 
-  // ---------- LOAD PROFILE ----------
+  if (!message || !userId) {
+    return res.status(400).json({ reply: "Missing message or userId" });
+  }
+
+  /* ---------------- LOAD PROFILE ---------------- */
+
   let profile = await redis.get(`profile:${userId}`);
   if (!profile) profile = {};
 
-  // ---------- LEARN PROFILE ----------
+  const text = message.toLowerCase();
+
+  /* ---------------- AUTO LEARNING ---------------- */
+
+  // Name detection
   const nameMatch = message.match(/my name is (\w+)/i);
   if (nameMatch) profile.name = nameMatch[1];
 
-  const likesMatch = message.match(/i like (.+)/i);
-  if (likesMatch) profile.likes = likesMatch[1];
+  // Interest detection (natural phrases)
+  if (text.includes("i like") || text.includes("i love") || text.includes("i enjoy")) {
+    profile.interest = message.replace(/i (like|love|enjoy)/i, "").trim();
+  }
 
-  const goalMatch = message.match(/i want to learn (.+)/i);
-  if (goalMatch) profile.goal = goalMatch[1];
+  // Difficulty detection
+  if (text.includes("is hard") || text.includes("struggle")) {
+    profile.challenge = message;
+  }
+
+  // Learning goal detection
+  if (text.includes("want to learn") || text.includes("trying to learn")) {
+    profile.goal = message;
+  }
 
   await redis.set(`profile:${userId}`, profile);
 
-  // ---------- LOAD CHAT MEMORY ----------
+  /* ---------------- LOAD HISTORY ---------------- */
+
   let history = await redis.lrange(`history:${userId}`, 0, 5);
   history = history || [];
 
   const memoryContext = `
-User profile:
+Student Profile:
 Name: ${profile.name || "Unknown"}
-Interests: ${profile.likes || "Unknown"}
+Interest: ${profile.interest || "Unknown"}
 Goal: ${profile.goal || "Unknown"}
+Challenge: ${profile.challenge || "None noted"}
 
-Recent conversation:
+Recent Conversation:
 ${history.join("\n")}
 `;
 
-  // ---------- AI CALL ----------
-  const response = await fetch(
-    "https://api.openai.com/v1/chat/completions",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: [
-          {
-            role: "system",
-            content: `You are Restore AI, a supportive teacher.
-Use memory to continue conversations naturally.
-${memoryContext}`,
-          },
-          { role: "user", content: message },
-        ],
-      }),
-    }
-  );
+  /* ---------------- AI CALL ---------------- */
+
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: `You are Restore AI, a calm educational companion.
+Use the student profile to personalize explanations naturally.
+Do not announce memory updates.`,
+        },
+        {
+          role: "system",
+          content: memoryContext,
+        },
+        {
+          role: "user",
+          content: message,
+        },
+      ],
+    }),
+  });
 
   const data = await response.json();
   const reply = data.choices[0].message.content;
 
-  // ---------- SAVE MEMORY ----------
+  /* ---------------- SAVE HISTORY ---------------- */
+
   await redis.lpush(`history:${userId}`, `User: ${message}`);
   await redis.lpush(`history:${userId}`, `AI: ${reply}`);
   await redis.ltrim(`history:${userId}`, 0, 10);
