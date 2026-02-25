@@ -1,5 +1,3 @@
-// Simple in-memory learning profile store
-
 const learningProfiles = {};
 
 export function getLearningProfile(userId) {
@@ -19,7 +17,7 @@ export function updateLearningProfile(userId, message) {
 
   const text = message.toLowerCase();
 
-  // Detect interests
+  // Interests
   if (
     text.includes("i like") ||
     text.includes("i enjoy") ||
@@ -28,16 +26,15 @@ export function updateLearningProfile(userId, message) {
     profile.interests.push(message);
   }
 
-  // Detect goals
+  // Goals
   if (
     text.includes("i want to learn") ||
-    text.includes("i want to understand") ||
-    text.includes("my goal")
+    text.includes("i want to understand")
   ) {
     profile.goals.push(message);
   }
 
-  // Detect confusion
+  // Confusion
   if (
     text.includes("i don't understand") ||
     text.includes("im confused") ||
