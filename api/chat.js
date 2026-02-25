@@ -1,11 +1,5 @@
-// api/chat.js
-
 import OpenAI from "openai";
 import { Redis } from "@upstash/redis";
-
-/* =========================
-   Clients
-========================= */
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -16,122 +10,68 @@ const redis = new Redis({
   token: process.env.UPSTASH_REDIS_REST_TOKEN,
 });
 
-/* =========================
-   Learning Signal Detection
-========================= */
-
-function analyzeLearningSignals(message) {
-  const text = message.toLowerCase();
-  let signals = {};
-
-  // depth preference
-  if (text.includes("simply") || text.includes("basic")) {
-    signals.depth_preference = "beginner";
-  }
-
-  if (
-    text.includes("in depth") ||
-    text.includes("advanced") ||
-    text.includes("detailed")
-  ) {
-    signals.depth_preference = "advanced";
-  }
-
-  // curiosity level
-  if (text.includes("why") || text.includes("how")) {
-    signals.engagement = "high";
-  }
-
-  // topic detection
-  const topics = ["physics", "science", "math", "biology", "chemistry"];
-
-  topics.forEach(topic => {
-    if (text.includes(topic)) {
-      signals.topic_interest = topic;
-    }
-  });
-
-  // learning intent
-  if (text.includes("explain")) {
-    signals.learning_mode = "instruction";
-  }
-
-  return signals;
-}
-
-/* =========================
-   Personal Memory Extraction
-========================= */
-
-function extractPersonalInfo(message) {
-  const text = message.toLowerCase();
-  let memory = {};
-
-  // name detection
-  if (text.includes("my name is")) {
-    memory.name = message.split("my name is")[1]?.trim();
-  }
-
-  // interests
-  if (text.includes("i enjoy")) {
-    memory.interest = message.split("i enjoy")[1]?.trim();
-  }
-
-  if (text.includes("i want to learn")) {
-    memory.learning_goal = message.split("i want to learn")[1]?.trim();
-  }
-
-  return memory;
-}
-
-/* =========================
-   API Handler
-========================= */
-
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
-
   try {
-    const { message } = req.body;
+    if (req.method !== "POST") {
+      return res.status(405).json({ error: "Method not allowed" });
+    }
 
-    const userId = "default-user";
+    const { message, sessionId } = req.body;
 
-    /* =========================
-       Load Memory
-    ========================= */
+    if (!message || !sessionId) {
+      return res.status(400).json({ error: "Missing data" });
+    }
 
-    let memory = (await redis.get(userId)) || {};
+    // -------------------------
+    // Load memory
+    // -------------------------
+    let memory = await redis.get(`memory:${sessionId}`);
 
-    /* =========================
-       Update Personal Memory
-    ========================= */
+    if (!memory) {
+      memory = [];
+    }
 
-    const personalInfo = extractPersonalInfo(message);
-    memory = { ...memory, ...personalInfo };
+    // Save user message
+    memory.push({
+      role: "user",
+      content: message,
+    });
 
-    /* =========================
-       Update Learning Profile
-    ========================= */
+    // Keep last 10 messages only
+    memory = memory.slice(-10);
 
-    const learningSignals = analyzeLearningSignals(message);
+    // -------------------------
+    // AI Response
+    // -------------------------
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are Restore AI, a friendly adaptive teacher that remembers user interests and helps them learn.",
+        },
+        ...memory,
+      ],
+    });
 
-    memory.learning_profile = {
-      ...(memory.learning_profile || {}),
-      ...learningSignals,
-    };
+    const reply = completion.choices[0].message.content;
 
-    /* =========================
-       Save Memory
-    ========================= */
+    // Save assistant reply
+    memory.push({
+      role: "assistant",
+      content: reply,
+    });
 
-    await redis.set(userId, memory);
+    // Store memory
+    await redis.set(`memory:${sessionId}`, memory);
 
-    /* =========================
-       Build Context
-    ========================= */
-
-    let context = "";
-
-    if (memory
+    return res.status(200).json({ reply });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      error: "Server error",
+      details: error.message,
+    });
+  }
+}
