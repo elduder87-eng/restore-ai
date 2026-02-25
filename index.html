@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
   <title>Restore AI — Teacher Mode</title>
 
   <style>
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
+      font-family: Arial, Helvetica, sans-serif;
       background: #f4f6f8;
       display: flex;
       flex-direction: column;
@@ -16,8 +17,8 @@
     header {
       background: #111827;
       color: white;
-      padding: 16px;
-      font-size: 20px;
+      padding: 18px;
+      font-size: 22px;
       font-weight: bold;
       text-align: center;
     }
@@ -33,9 +34,9 @@
 
     .message {
       max-width: 75%;
-      padding: 12px 16px;
+      padding: 12px 14px;
       border-radius: 14px;
-      line-height: 1.4;
+      line-height: 1.5;
       white-space: pre-wrap;
     }
 
@@ -49,7 +50,6 @@
       align-self: flex-start;
       background: white;
       border: 1px solid #ddd;
-      color: #111;
     }
 
     #inputArea {
@@ -70,17 +70,17 @@
 
     button {
       margin-left: 10px;
-      padding: 10px 16px;
+      padding: 10px 18px;
       font-size: 16px;
-      border: none;
       border-radius: 8px;
-      background: #2563eb;
+      border: none;
+      background: #111827;
       color: white;
       cursor: pointer;
     }
 
     button:hover {
-      background: #1d4ed8;
+      background: #1f2937;
     }
   </style>
 </head>
@@ -94,52 +94,33 @@
 <div id="chat"></div>
 
 <div id="inputArea">
-  <input
-    id="messageInput"
-    placeholder="Ask a question..."
-    onkeydown="if(event.key==='Enter') sendMessage()"
-  />
+  <input id="messageInput" placeholder="Ask a question..." />
   <button onclick="sendMessage()">Send</button>
 </div>
 
 <script>
-  const chatDiv = document.getElementById("chat");
+let memory = {
+  name: null
+};
 
-  function addMessage(text, sender) {
-    const msg = document.createElement("div");
-    msg.className = "message " + sender;
-    msg.textContent = text;
-    chatDiv.appendChild(msg);
-    chatDiv.scrollTop = chatDiv.scrollHeight;
+function addMessage(text, sender) {
+  const chat = document.getElementById("chat");
+  const div = document.createElement("div");
+  div.className = "message " + sender;
+  div.textContent = text;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function detectMemory(message) {
+  const lower = message.toLowerCase();
+
+  if (lower.includes("my name is")) {
+    const name = message.split("my name is")[1].trim();
+    memory.name = name;
+    return `Got it, ${name}! I'll remember that.`;
   }
 
-  async function sendMessage() {
-    const input = document.getElementById("messageInput");
-    const message = input.value.trim();
-
-    if (!message) return;
-
-    addMessage(message, "user");
-    input.value = "";
-
-    try {
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ message })
-      });
-
-      const data = await response.json();
-
-      addMessage(data.reply, "ai");
-
-    } catch (err) {
-      addMessage("Error contacting AI.", "ai");
-    }
-  }
-</script>
-
-</body>
-</html>
+  if (lower.includes("what is my name")) {
+    if (memory.name) {
+      return `Your name is ${memory
