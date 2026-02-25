@@ -2,16 +2,77 @@
 <html>
 <head>
   <title>Restore AI — Teacher Mode</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #f4f6f8;
+      margin: 0;
+    }
+
+    header {
+      background: #0f172a;
+      color: white;
+      padding: 15px;
+      font-size: 20px;
+    }
+
+    #chat {
+      padding: 15px;
+      height: 70vh;
+      overflow-y: auto;
+    }
+
+    .user {
+      background: #2563eb;
+      color: white;
+      padding: 10px;
+      border-radius: 10px;
+      margin: 8px 0;
+      text-align: right;
+    }
+
+    .ai {
+      background: #e5e7eb;
+      padding: 10px;
+      border-radius: 10px;
+      margin: 8px 0;
+    }
+
+    #inputArea {
+      display: flex;
+      padding: 10px;
+      background: white;
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+    }
+
+    input {
+      flex: 1;
+      padding: 10px;
+    }
+
+    button {
+      padding: 10px 20px;
+      background: #2563eb;
+      color: white;
+      border: none;
+    }
+  </style>
 </head>
 
 <body>
-  <h2>Restore AI — Teacher Mode</h2>
 
-  <div id="chat"></div>
+<header>Restore AI — Teacher Mode</header>
 
-  <input id="input" placeholder="Type message..." />
-  <button onclick="send()">Send</button>
+<div id="chat"></div>
 
-  <script src="chat.js"></script>
+<div id="inputArea">
+  <input id="messageInput" placeholder="Type message..." />
+  <button onclick="sendMessage()">Send</button>
+</div>
+
+<script src="/chat.js"></script>
+
 </body>
 </html>
