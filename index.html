@@ -5,9 +5,9 @@
 
   <style>
     body {
+      margin: 0;
       font-family: Arial, sans-serif;
       background: #f4f6f8;
-      margin: 0;
       display: flex;
       flex-direction: column;
       height: 100vh;
@@ -16,10 +16,10 @@
     header {
       background: #111827;
       color: white;
-      padding: 15px;
-      font-size: 22px;
-      text-align: center;
+      padding: 16px;
+      font-size: 20px;
       font-weight: bold;
+      text-align: center;
     }
 
     #chat {
@@ -34,35 +34,34 @@
     .message {
       max-width: 75%;
       padding: 12px 16px;
-      border-radius: 16px;
+      border-radius: 14px;
       line-height: 1.4;
-      word-wrap: break-word;
+      white-space: pre-wrap;
     }
 
     .user {
       align-self: flex-end;
       background: #2563eb;
       color: white;
-      border-bottom-right-radius: 4px;
     }
 
     .ai {
       align-self: flex-start;
       background: white;
       border: 1px solid #ddd;
-      border-bottom-left-radius: 4px;
+      color: #111;
     }
 
     #inputArea {
       display: flex;
-      padding: 10px;
+      padding: 12px;
       background: white;
       border-top: 1px solid #ddd;
     }
 
     #messageInput {
       flex: 1;
-      padding: 12px;
+      padding: 10px;
       font-size: 16px;
       border-radius: 8px;
       border: 1px solid #ccc;
@@ -71,7 +70,7 @@
 
     button {
       margin-left: 10px;
-      padding: 12px 18px;
+      padding: 10px 16px;
       font-size: 16px;
       border: none;
       border-radius: 8px;
@@ -95,41 +94,51 @@
 <div id="chat"></div>
 
 <div id="inputArea">
-  <input id="messageInput" placeholder="Ask a question..." />
+  <input
+    id="messageInput"
+    placeholder="Ask a question..."
+    onkeydown="if(event.key==='Enter') sendMessage()"
+  />
   <button onclick="sendMessage()">Send</button>
 </div>
 
 <script>
-async function sendMessage() {
-  const input = document.getElementById("messageInput");
-  const chat = document.getElementById("chat");
+  const chatDiv = document.getElementById("chat");
 
-  const message = input.value.trim();
-  if (!message) return;
+  function addMessage(text, sender) {
+    const msg = document.createElement("div");
+    msg.className = "message " + sender;
+    msg.textContent = text;
+    chatDiv.appendChild(msg);
+    chatDiv.scrollTop = chatDiv.scrollHeight;
+  }
 
-  addMessage(message, "user");
-  input.value = "";
+  async function sendMessage() {
+    const input = document.getElementById("messageInput");
+    const message = input.value.trim();
 
-  const response = await fetch("/api/chat", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ message })
-  });
+    if (!message) return;
 
-  const data = await response.json();
-  addMessage(data.reply, "ai");
-}
+    addMessage(message, "user");
+    input.value = "";
 
-function addMessage(text, type) {
-  const chat = document.getElementById("chat");
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ message })
+      });
 
-  const msg = document.createElement("div");
-  msg.className = `message ${type}`;
-  msg.textContent = text;
+      const data = await response.json();
 
-  chat.appendChild(msg);
-  chat.scrollTop = chat.scrollHeight;
-}
+      addMessage(data.reply, "ai");
+
+    } catch (err) {
+      addMessage("Error contacting AI.", "ai");
+    }
+  }
 </script>
 
 </body>
