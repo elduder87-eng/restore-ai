@@ -2,7 +2,5 @@
   "name": "restore-ai",
   "version": "1.0.0",
   "type": "module",
-  "dependencies": {
-    "openai": "^4.56.0"
-  }
+  "dependencies": {}
 }
