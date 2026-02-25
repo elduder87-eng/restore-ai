@@ -6,69 +6,40 @@
   <style>
     body {
       font-family: Arial;
-      margin: 0;
+      margin: 20px;
       background: #f4f6f8;
     }
 
-    header {
-      background: #0f1f33;
-      color: white;
-      padding: 15px;
-      font-size: 20px;
-    }
-
     #chat {
-      padding: 15px;
-      height: 75vh;
-      overflow-y: auto;
+      margin-bottom: 20px;
     }
 
     .user {
-      background: #2f6fed;
+      background: #2d6cdf;
       color: white;
       padding: 10px;
-      margin: 8px 0;
-      border-radius: 8px;
+      margin: 5px 0;
+      border-radius: 6px;
       text-align: right;
     }
 
-    .bot {
-      background: #e5e7eb;
+    .ai {
+      background: #ddd;
       padding: 10px;
-      margin: 8px 0;
-      border-radius: 8px;
-    }
-
-    #inputArea {
-      display: flex;
-      padding: 10px;
-      background: white;
-    }
-
-    input {
-      flex: 1;
-      padding: 10px;
-    }
-
-    button {
-      padding: 10px 15px;
-      background: #2f6fed;
-      color: white;
-      border: none;
+      margin: 5px 0;
+      border-radius: 6px;
     }
   </style>
 </head>
 
 <body>
 
-<header>Restore AI — Teacher Mode</header>
+<h2>Restore AI — Teacher Mode</h2>
 
 <div id="chat"></div>
 
-<div id="inputArea">
-  <input id="message" placeholder="Type message..." />
-  <button onclick="sendMessage()">Send</button>
-</div>
+<input id="messageInput" placeholder="Type message..." />
+<button onclick="sendMessage()">Send</button>
 
 <script src="/chat.js"></script>
 
