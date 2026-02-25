@@ -1,51 +1,61 @@
-// Restore AI — Frontend Chat Controller
-
 const chatBox = document.getElementById("chat-box");
-const input = document.getElementById("message-input");
-const button = document.getElementById("send-button");
+const inputField = document.getElementById("chat-input");
+const sendButton = document.getElementById("send-btn");
 
-// ✅ Create persistent user identity
-let userId = localStorage.getItem("restore_user_id");
+let messages = [];
 
-if (!userId) {
-  userId = "user_" + Math.random().toString(36).substring(2, 10);
-  localStorage.setItem("restore_user_id", userId);
-}
-
-// Add message to UI
 function addMessage(text, sender) {
-  const message = document.createElement("div");
-  message.className = sender === "user" ? "user-message" : "ai-message";
-  message.textContent = text;
-  chatBox.appendChild(message);
+  const bubble = document.createElement("div");
+  bubble.className = sender === "user" ? "user-message" : "bot-message";
+  bubble.textContent = text;
+
+  chatBox.appendChild(bubble);
   chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-// Send message
 async function sendMessage() {
-  const message = input.value.trim();
-  if (!message) return;
+  const input = inputField.value.trim();
+  if (!input) return;
 
-  addMessage(message, "user");
-  input.value = "";
+  addMessage(input, "user");
 
-  const response = await fetch("/api/chat", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      message,
-      userId
-    })
+  messages.push({
+    role: "user",
+    content: input,
   });
 
-  const data = await response.json();
-  addMessage(data.reply, "ai");
+  inputField.value = "";
+
+  try {
+    const response = await fetch("/api/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        message: input,
+        conversation: messages,
+        userId: "student_1",
+      }),
+    });
+
+    const data = await response.json();
+
+    addMessage(data.reply, "bot");
+
+    messages.push({
+      role: "assistant",
+      content: data.reply,
+    });
+
+  } catch (err) {
+    addMessage("Something went wrong.", "bot");
+    console.error(err);
+  }
 }
 
-button.addEventListener("click", sendMessage);
+sendButton.addEventListener("click", sendMessage);
 
-input.addEventListener("keypress", (e) => {
+inputField.addEventListener("keypress", (e) => {
   if (e.key === "Enter") sendMessage();
 });
