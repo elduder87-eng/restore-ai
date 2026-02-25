@@ -1,3 +1,5 @@
+// api/chat.js
+
 import OpenAI from "openai";
 import { Redis } from "@upstash/redis";
 
@@ -16,59 +18,45 @@ export default async function handler(req, res) {
       return res.status(405).json({ error: "Method not allowed" });
     }
 
-    const { message, sessionId } = req.body;
+    const { message, sessionId = "default" } = req.body;
 
-    if (!message || !sessionId) {
-      return res.status(400).json({ error: "Missing data" });
+    if (!message) {
+      return res.status(400).json({ error: "No message provided" });
     }
 
-    // -------------------------
-    // Load memory
-    // -------------------------
-    let memory = await redis.get(`memory:${sessionId}`);
+    // Get memory
+    const memory = (await redis.get(sessionId)) || [];
 
-    if (!memory) {
-      memory = [];
-    }
+    const messages = [
+      {
+        role: "system",
+        content:
+          "You are Restore AI, a supportive teacher helping users learn step-by-step.",
+      },
+      ...memory,
+      { role: "user", content: message },
+    ];
 
-    // Save user message
-    memory.push({
-      role: "user",
-      content: message,
-    });
-
-    // Keep last 10 messages only
-    memory = memory.slice(-10);
-
-    // -------------------------
-    // AI Response
-    // -------------------------
+    // OpenAI request
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are Restore AI, a friendly adaptive teacher that remembers user interests and helps them learn.",
-        },
-        ...memory,
-      ],
+      messages,
     });
 
     const reply = completion.choices[0].message.content;
 
-    // Save assistant reply
-    memory.push({
-      role: "assistant",
-      content: reply,
-    });
+    // Save memory
+    const updatedMemory = [
+      ...memory,
+      { role: "user", content: message },
+      { role: "assistant", content: reply },
+    ].slice(-20);
 
-    // Store memory
-    await redis.set(`memory:${sessionId}`, memory);
+    await redis.set(sessionId, updatedMemory);
 
     return res.status(200).json({ reply });
   } catch (error) {
-    console.error(error);
+    console.error("CHAT ERROR:", error);
     return res.status(500).json({
       error: "Server error",
       details: error.message,
