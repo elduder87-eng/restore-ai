@@ -1,45 +1,118 @@
+
 <!DOCTYPE html>
 <html>
 <head>
   <title>Restore AI — Teacher Mode</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background:#f4f6f8;
+      margin:0;
+    }
+
+    header{
+      background:#111827;
+      color:white;
+      padding:16px;
+      font-size:22px;
+      font-weight:bold;
+    }
+
+    #chat{
+      max-width:800px;
+      margin:20px auto;
+      background:white;
+      padding:20px;
+      border-radius:10px;
+      height:70vh;
+      overflow-y:auto;
+      box-shadow:0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    .user{
+      text-align:right;
+      margin:10px 0;
+    }
+
+    .user span{
+      background:#2563eb;
+      color:white;
+      padding:10px 14px;
+      border-radius:18px;
+      display:inline-block;
+    }
+
+    .ai{
+      text-align:left;
+      margin:10px 0;
+    }
+
+    .ai span{
+      background:#e5e7eb;
+      padding:10px 14px;
+      border-radius:18px;
+      display:inline-block;
+    }
+
+    #inputArea{
+      max-width:800px;
+      margin:10px auto;
+      display:flex;
+      gap:10px;
+    }
+
+    input{
+      flex:1;
+      padding:12px;
+      border-radius:8px;
+      border:1px solid #ccc;
+      font-size:16px;
+    }
+
+    button{
+      padding:12px 18px;
+      border:none;
+      background:#2563eb;
+      color:white;
+      border-radius:8px;
+      cursor:pointer;
+    }
+  </style>
 </head>
 
 <body>
-  <h1>Restore AI — Teacher Mode</h1>
 
-  <div id="chat" style="height:400px;overflow:auto;border:1px solid #ccc;padding:10px;"></div>
+<header>Restore AI — Teacher Mode</header>
 
-  <input id="input" placeholder="Ask a question..." />
-  <button onclick="sendMessage()">Send</button>
+<div id="chat"></div>
+
+<div id="inputArea">
+  <input id="message" placeholder="Ask a question..." />
+  <button onclick="send()">Send</button>
+</div>
 
 <script>
-async function sendMessage() {
-  const input = document.getElementById("input");
+async function send() {
+  const input = document.getElementById("message");
+  const text = input.value;
+  if(!text) return;
+
   const chat = document.getElementById("chat");
 
-  const message = input.value;
-  if (!message) return;
-
-  chat.innerHTML += `<p style="color:blue;">You: ${message}</p>`;
+  chat.innerHTML += `<div class="user"><span>${text}</span></div>`;
   input.value = "";
 
-  try {
-    const res = await fetch("/api/chat", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ message }),
-    });
+  const res = await fetch("/api/chat", {
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({ message:text })
+  });
 
-    const data = await res.json();
+  const data = await res.json();
 
-    chat.innerHTML += `<p>Restore AI: ${data.reply}</p>`;
-    chat.scrollTop = chat.scrollHeight;
-
-  } catch (err) {
-    chat.innerHTML += `<p>Restore AI: Server error.</p>`;
-  }
+  chat.innerHTML += `<div class="ai"><span>${data.reply}</span></div>`;
+  chat.scrollTop = chat.scrollHeight;
 }
 </script>
 
