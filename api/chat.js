@@ -1,61 +1,88 @@
 import OpenAI from "openai";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+import {
+  getStudent,
+  addHistory,
+  setName,
+  addTopic,
+  addInterest,
+  addConfusion
+} from "../lib/memory.js";
 
-// simple in-memory store (Stage 7B)
-const memory = {};
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
 
 export default async function handler(req, res) {
   try {
-    const { message, userId = "default" } = req.body;
+    const { message, userId = "default-user" } = req.body;
 
-    if (!memory[userId]) {
-      memory[userId] = {
-        name: null,
-        history: []
-      };
-    }
+    const student = getStudent(userId);
 
-    const userMemory = memory[userId];
-
-    // Detect name
+    // -------------------------
+    // Identity Detection
+    // -------------------------
     const nameMatch = message.match(/my name is (\w+)/i);
     if (nameMatch) {
-      userMemory.name = nameMatch[1];
+      setName(userId, nameMatch[1]);
     }
 
-    let systemPrompt = `
-You are Restore AI, a supportive teaching assistant.
-Speak clearly and help students learn step-by-step.
-`;
+    // -------------------------
+    // Topic Detection (simple AI brain v1)
+    // -------------------------
+    const lower = message.toLowerCase();
 
-    if (userMemory.name) {
-      systemPrompt += ` The student's name is ${userMemory.name}. Use it naturally.`;
+    if (lower.includes("physics")) addTopic(userId, "Physics");
+    if (lower.includes("gravity")) addTopic(userId, "Gravity");
+    if (lower.includes("math")) addTopic(userId, "Math");
+    if (lower.includes("biology")) addTopic(userId, "Biology");
+
+    // -------------------------
+    // Interest Detection
+    // -------------------------
+    if (lower.includes("i like") || lower.includes("i enjoy")) {
+      addInterest(userId, message);
     }
 
-    userMemory.history.push({
-      role: "user",
-      content: message
-    });
+    // -------------------------
+    // Confusion Detection
+    // -------------------------
+    if (
+      lower.includes("confused") ||
+      lower.includes("don't understand") ||
+      lower.includes("hard to understand")
+    ) {
+      addConfusion(userId, "Needs Review");
+    }
 
+    addHistory(userId, "user", message);
+
+    // -------------------------
+    // AI RESPONSE
+    // -------------------------
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-4.1-mini",
       messages: [
-        { role: "system", content: systemPrompt },
-        ...userMemory.history.slice(-10)
+        {
+          role: "system",
+          content: `You are Restore AI, a supportive teacher.
+
+Student name: ${student.name ?? "Unknown"}
+
+Known interests: ${student.interests.join(", ") || "None yet"}
+Topics explored: ${student.topics.join(", ") || "None yet"}
+
+Respond naturally and helpfully.`
+        },
+        ...student.history.slice(-10)
       ]
     });
 
     const reply = completion.choices[0].message.content;
 
-    userMemory.history.push({
-      role: "assistant",
-      content: reply
-    });
+    addHistory(userId, "assistant", reply);
 
-    res.status(200).json({ reply });
+    res.status(200).json({ reply, student });
 
   } catch (error) {
     console.error(error);
