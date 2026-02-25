@@ -1,61 +1,51 @@
-const chatBox = document.getElementById("chat-box");
-const inputField = document.getElementById("chat-input");
-const sendButton = document.getElementById("send-btn");
+const chatBox = document.querySelector(".chat-box");
+const input = document.getElementById("messageInput");
 
-let messages = [];
+const userId = "student1"; // temporary identity
 
 function addMessage(text, sender) {
-  const bubble = document.createElement("div");
-  bubble.className = sender === "user" ? "user-message" : "bot-message";
-  bubble.textContent = text;
-
-  chatBox.appendChild(bubble);
+  const div = document.createElement("div");
+  div.className = `msg ${sender}`;
+  div.textContent = text;
+  chatBox.appendChild(div);
   chatBox.scrollTop = chatBox.scrollHeight;
 }
 
 async function sendMessage() {
-  const input = inputField.value.trim();
-  if (!input) return;
+  const message = input.value.trim();
+  if (!message) return;
 
-  addMessage(input, "user");
+  addMessage(message, "user");
+  input.value = "";
 
-  messages.push({
-    role: "user",
-    content: input,
-  });
-
-  inputField.value = "";
+  const loading = document.createElement("div");
+  loading.className = "msg ai";
+  loading.textContent = "...";
+  chatBox.appendChild(loading);
 
   try {
-    const response = await fetch("/api/chat", {
+    const res = await fetch("/api/chat", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        message: input,
-        conversation: messages,
-        userId: "student_1",
-      }),
+        message,
+        userId
+      })
     });
 
-    const data = await response.json();
+    const data = await res.json();
 
-    addMessage(data.reply, "bot");
-
-    messages.push({
-      role: "assistant",
-      content: data.reply,
-    });
+    loading.remove();
+    addMessage(data.reply, "ai");
 
   } catch (err) {
-    addMessage("Something went wrong.", "bot");
-    console.error(err);
+    loading.textContent = "Error contacting AI.";
   }
 }
 
-sendButton.addEventListener("click", sendMessage);
-
-inputField.addEventListener("keypress", (e) => {
+// ENTER key support
+input.addEventListener("keypress", e => {
   if (e.key === "Enter") sendMessage();
 });
