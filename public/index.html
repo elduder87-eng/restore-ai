@@ -1,120 +1,115 @@
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Restore AI — Teacher Mode</title>
 
   <style>
     body {
+      margin: 0;
       font-family: Arial, sans-serif;
-      background:#f4f6f8;
-      margin:0;
+      background: #f3f4f6;
     }
 
-    header{
-      background:#111827;
-      color:white;
-      padding:16px;
-      font-size:22px;
-      font-weight:bold;
+    header {
+      background: #0f172a;
+      color: white;
+      padding: 15px;
+      font-size: 20px;
+      font-weight: bold;
     }
 
-    #chat{
-      max-width:800px;
-      margin:20px auto;
-      background:white;
-      padding:20px;
-      border-radius:10px;
-      height:70vh;
-      overflow-y:auto;
-      box-shadow:0 4px 10px rgba(0,0,0,0.1);
+    #chat-container {
+      max-width: 900px;
+      margin: 20px auto;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      height: 75vh;
     }
 
-    .user{
-      text-align:right;
-      margin:10px 0;
+    #chat-box {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
     }
 
-    .user span{
-      background:#2563eb;
-      color:white;
-      padding:10px 14px;
-      border-radius:18px;
-      display:inline-block;
+    .user-message {
+      background: #2563eb;
+      color: white;
+      padding: 10px 14px;
+      border-radius: 16px;
+      margin: 10px 0;
+      max-width: 70%;
+      margin-left: auto;
     }
 
-    .ai{
-      text-align:left;
-      margin:10px 0;
+    .ai-message {
+      background: #e5e7eb;
+      color: black;
+      padding: 10px 14px;
+      border-radius: 16px;
+      margin: 10px 0;
+      max-width: 70%;
     }
 
-    .ai span{
-      background:#e5e7eb;
-      padding:10px 14px;
-      border-radius:18px;
-      display:inline-block;
+    #input-area {
+      display: flex;
+      border-top: 1px solid #ddd;
+      padding: 10px;
     }
 
-    #inputArea{
-      max-width:800px;
-      margin:10px auto;
-      display:flex;
-      gap:10px;
+    #message-input {
+      flex: 1;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
     }
 
-    input{
-      flex:1;
-      padding:12px;
-      border-radius:8px;
-      border:1px solid #ccc;
-      font-size:16px;
+    #send-button {
+      margin-left: 10px;
+      padding: 10px 18px;
+      font-size: 16px;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
     }
 
-    button{
-      padding:12px 18px;
-      border:none;
-      background:#2563eb;
-      color:white;
-      border-radius:8px;
-      cursor:pointer;
+    #send-button:hover {
+      background: #1e40af;
     }
   </style>
 </head>
 
 <body>
 
-<header>Restore AI — Teacher Mode</header>
+  <header>
+    Restore AI — Teacher Mode
+  </header>
 
-<div id="chat"></div>
+  <div id="chat-container">
 
-<div id="inputArea">
-  <input id="message" placeholder="Ask a question..." />
-  <button onclick="send()">Send</button>
-</div>
+    <div id="chat-box"></div>
 
-<script>
-async function send() {
-  const input = document.getElementById("message");
-  const text = input.value;
-  if(!text) return;
+    <div id="input-area">
+      <input
+        id="message-input"
+        type="text"
+        placeholder="Ask a question..."
+      />
+      <button id="send-button">Send</button>
+    </div>
 
-  const chat = document.getElementById("chat");
+  </div>
 
-  chat.innerHTML += `<div class="user"><span>${text}</span></div>`;
-  input.value = "";
-
-  const res = await fetch("/api/chat", {
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify({ message:text })
-  });
-
-  const data = await res.json();
-
-  chat.innerHTML += `<div class="ai"><span>${data.reply}</span></div>`;
-  chat.scrollTop = chat.scrollHeight;
-}
-</script>
+  <!-- ✅ IMPORTANT: loads frontend logic -->
+  <script src="/chat.js"></script>
 
 </body>
 </html>
