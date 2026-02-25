@@ -1,17 +1,23 @@
 export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
   try {
-    if (req.method !== "POST") {
-      return res.status(405).json({ error: "Method not allowed" });
-    }
-
-    const { message, memory } = req.body;
+    const { message, memory = {} } = req.body;
 
     // -----------------------------
-    // MEMORY
+    // MEMORY + LEARNING PROFILE
     // -----------------------------
 
-    let studentName = memory?.name || null;
-    let interests = memory?.interests || [];
+    let studentName = memory.name || null;
+    let interests = memory.interests || [];
+
+    let learningProfile = memory.learningProfile || {
+      topics: [],
+      curiosityScore: 0,
+      confusionAreas: []
+    };
 
     const lower = message.toLowerCase();
 
@@ -32,79 +38,81 @@ export default async function handler(req, res) {
       }
     }
 
-    // -----------------------------
-    // MEMORY CONTEXT
-    // -----------------------------
+    // Detect learning topics
+    const topicKeywords = [
+      "gravity",
+      "physics",
+      "math",
+      "history",
+      "biology"
+    ];
 
-    let memoryContext = "";
+    topicKeywords.forEach(topic => {
+      if (lower.includes(topic) &&
+          !learningProfile.topics.includes(topic)) {
+        learningProfile.topics.push(topic);
+      }
+    });
 
-    if (studentName) {
-      memoryContext += `The student's name is ${studentName}. `;
+    // Curiosity signal
+    if (message.includes("?")) {
+      learningProfile.curiosityScore += 1;
     }
 
-    if (interests.length > 0) {
-      memoryContext += `The student enjoys ${interests.join(", ")}. `;
+    // Confusion signal
+    if (
+      lower.includes("i don't understand") ||
+      lower.includes("confused")
+    ) {
+      learningProfile.confusionAreas.push(message);
     }
 
     // -----------------------------
-    // DIRECT MEMORY QUESTION
+    // RESPONSE LOGIC
     // -----------------------------
+
+    let reply = "I'm here to help you learn. I love curious questions — let's dig deeper together.";
 
     if (lower.includes("what is my name")) {
-      return res.status(200).json({
-        reply: studentName
-          ? `Your name is ${studentName}.`
-          : "I don't know your name yet.",
-        memory: { name: studentName, interests }
-      });
+      reply = studentName
+        ? `Your name is ${studentName}.`
+        : "I don't know your name yet.";
+    }
+
+    else if (lower.includes("explain gravity")) {
+      reply =
+        `Hi ${studentName || "there"}! Gravity is the force that pulls objects with mass toward each other. ` +
+        `On Earth, gravity keeps us grounded and causes objects to fall. ` +
+        `Einstein later showed that gravity happens because massive objects bend space and time itself.`;
+    }
+
+    else if (studentName && interests.length > 0) {
+      reply = `Hello ${studentName}! I remember you enjoy ${interests.join(
+        ", "
+      )}. Let's explore that together.`;
+    }
+
+    else if (studentName) {
+      reply = `Hello ${studentName}! How can I help you learn today?`;
     }
 
     // -----------------------------
-    // OPENAI CALL
+    // RETURN RESPONSE
     // -----------------------------
-
-    const response = await fetch(
-      "https://api.openai.com/v1/responses",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`
-        },
-        body: JSON.stringify({
-          model: "gpt-4.1-mini",
-          input: `
-You are Restore AI, a supportive learning companion.
-
-${memoryContext}
-
-Student: ${message}
-Respond helpfully and warmly.
-`
-        })
-      }
-    );
-
-    const data = await response.json();
-
-    const reply =
-      data?.output?.[0]?.content?.[0]?.text ||
-      "I'm here to help you learn.";
 
     return res.status(200).json({
       reply,
       memory: {
         name: studentName,
-        interests
+        interests,
+        learningProfile
       }
     });
 
-  } catch (error) {
-    console.error("SERVER ERROR:", error);
-
-    return res.status(200).json({
-      reply: "I'm here to help you learn.",
-      memory: {}
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({
+      error: "Server error"
     });
   }
 }
