@@ -1,76 +1,92 @@
+// api/chat.js
+
+import OpenAI from "openai";
 import { Redis } from "@upstash/redis";
+
+/* =========================
+   Clients
+========================= */
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL,
   token: process.env.UPSTASH_REDIS_REST_TOKEN,
 });
 
-/* ===============================
-   Learning Signal Analyzer
-================================ */
+/* =========================
+   Learning Signal Detection
+========================= */
 
 function analyzeLearningSignals(message) {
   const text = message.toLowerCase();
-
   let signals = {};
 
-  // curiosity
+  // depth preference
+  if (text.includes("simply") || text.includes("basic")) {
+    signals.depth_preference = "beginner";
+  }
+
+  if (
+    text.includes("in depth") ||
+    text.includes("advanced") ||
+    text.includes("detailed")
+  ) {
+    signals.depth_preference = "advanced";
+  }
+
+  // curiosity level
   if (text.includes("why") || text.includes("how")) {
     signals.engagement = "high";
   }
 
-  // beginner preference
-  if (text.includes("simple") || text.includes("explain like")) {
-    signals.depth_preference = "beginner";
-  }
+  // topic detection
+  const topics = ["physics", "science", "math", "biology", "chemistry"];
 
-  // advanced preference
-  if (text.includes("advanced") || text.includes("deep")) {
-    signals.depth_preference = "advanced";
-  }
+  topics.forEach(topic => {
+    if (text.includes(topic)) {
+      signals.topic_interest = topic;
+    }
+  });
 
-  // interest expression
-  if (text.includes("i enjoy") || text.includes("i like")) {
-    signals.learning_style = "exploratory";
-  }
-
-  // goal-oriented language
-  if (text.includes("i want to learn")) {
-    signals.motivation = "goal_oriented";
+  // learning intent
+  if (text.includes("explain")) {
+    signals.learning_mode = "instruction";
   }
 
   return signals;
 }
 
-/* ===============================
-   Extract Basic Memory
-================================ */
+/* =========================
+   Personal Memory Extraction
+========================= */
 
-function extractMemory(message, memory) {
+function extractPersonalInfo(message) {
   const text = message.toLowerCase();
+  let memory = {};
 
-  // name memory
+  // name detection
   if (text.includes("my name is")) {
-    const name = message.split("my name is")[1]?.trim();
-    if (name) memory.name = name;
+    memory.name = message.split("my name is")[1]?.trim();
   }
 
-  // interest
-  if (text.includes("i enjoy") || text.includes("i like")) {
-    memory.interest = message;
+  // interests
+  if (text.includes("i enjoy")) {
+    memory.interest = message.split("i enjoy")[1]?.trim();
   }
 
-  // learning goal
   if (text.includes("i want to learn")) {
-    memory.goal = message;
+    memory.learning_goal = message.split("i want to learn")[1]?.trim();
   }
 
   return memory;
 }
 
-/* ===============================
+/* =========================
    API Handler
-================================ */
+========================= */
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -78,73 +94,44 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { message, userId = "default-user" } = req.body;
+    const { message } = req.body;
 
-    const userKey = `memory:${userId}`;
+    const userId = "default-user";
 
-    // Load memory
-    let memory = (await redis.get(userKey)) || {};
+    /* =========================
+       Load Memory
+    ========================= */
 
-    /* ===== Update Memory ===== */
+    let memory = (await redis.get(userId)) || {};
 
-    memory = extractMemory(message, memory);
+    /* =========================
+       Update Personal Memory
+    ========================= */
 
-    // Analyze learning behavior
+    const personalInfo = extractPersonalInfo(message);
+    memory = { ...memory, ...personalInfo };
+
+    /* =========================
+       Update Learning Profile
+    ========================= */
+
     const learningSignals = analyzeLearningSignals(message);
 
     memory.learning_profile = {
-      ...memory.learning_profile,
+      ...(memory.learning_profile || {}),
       ...learningSignals,
     };
 
-    // Save updated memory
-    await redis.set(userKey, memory);
+    /* =========================
+       Save Memory
+    ========================= */
 
-    /* ===== Build System Prompt ===== */
+    await redis.set(userId, memory);
 
-    const systemPrompt = `
-You are Restore AI — an adaptive teacher and mentor.
+    /* =========================
+       Build Context
+    ========================= */
 
-You adjust your teaching style based on the learner profile.
+    let context = "";
 
-Learner Memory:
-${JSON.stringify(memory)}
-
-Teaching Rules:
-- Be supportive and encouraging.
-- Adapt explanation depth automatically.
-- Teach clearly and naturally.
-- Encourage curiosity.
-- Act like a patient human teacher.
-`;
-
-    /* ===== Call OpenAI ===== */
-
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: message },
-        ],
-        temperature: 0.7,
-      }),
-    });
-
-    const data = await response.json();
-
-    const reply =
-      data.choices?.[0]?.message?.content ||
-      "I'm here, but something went wrong.";
-
-    return res.status(200).json({ reply });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: "Server error" });
-  }
-}
+    if (memory
