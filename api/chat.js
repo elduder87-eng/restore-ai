@@ -1,118 +1,74 @@
+import { saveStudent } from "./teacher.js";
+
+let studentName = null;
+let interests = [];
+let learningProfile = {
+  topics: [],
+  curiosityScore: 0
+};
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
-    const { message, memory = {} } = req.body;
+    const { message } = req.body;
+    const text = message.toLowerCase();
 
-    // -----------------------------
-    // MEMORY + LEARNING PROFILE
-    // -----------------------------
+    let reply = "I'm here to help you learn.";
 
-    let studentName = memory.name || null;
-    let interests = memory.interests || [];
-
-    let learningProfile = memory.learningProfile || {
-      topics: [],
-      curiosityScore: 0,
-      confusionAreas: []
-    };
-
-    const lower = message.toLowerCase();
-
-    // Learn name
-    const nameMatch = message.match(/my name is (\w+)/i);
+    // ---------- NAME MEMORY ----------
+    const nameMatch = text.match(/my name is (\w+)/i);
     if (nameMatch) {
-      studentName = nameMatch[1];
+      studentName =
+        nameMatch[1].charAt(0).toUpperCase() +
+        nameMatch[1].slice(1);
+
+      reply = `Hello ${studentName}! How can I help you learn today?`;
     }
 
-    // Learn interests
-    if (lower.includes("i enjoy") || lower.includes("i like")) {
-      const interest = message
-        .replace(/i enjoy|i like/i, "")
-        .trim();
+    if (text.includes("what is my name") && studentName) {
+      reply = `Your name is ${studentName}.`;
+    }
 
-      if (!interests.includes(interest)) {
-        interests.push(interest);
+    // ---------- INTEREST MEMORY ----------
+    if (text.includes("i enjoy")) {
+      const interest = text.replace("i enjoy", "").trim();
+      interests.push(interest);
+
+      reply = `Hello ${studentName || ""}! I remember you enjoy ${interest}. Let's explore that together.`;
+    }
+
+    // ---------- TOPIC TRACKING ----------
+    if (text.includes("gravity")) {
+      if (!learningProfile.topics.includes("gravity")) {
+        learningProfile.topics.push("gravity");
       }
-    }
 
-    // Detect learning topics
-    const topicKeywords = [
-      "gravity",
-      "physics",
-      "math",
-      "history",
-      "biology"
-    ];
+      learningProfile.curiosityScore++;
 
-    topicKeywords.forEach(topic => {
-      if (lower.includes(topic) &&
-          !learningProfile.topics.includes(topic)) {
-        learningProfile.topics.push(topic);
-      }
-    });
-
-    // Curiosity signal
-    if (message.includes("?")) {
-      learningProfile.curiosityScore += 1;
-    }
-
-    // Confusion signal
-    if (
-      lower.includes("i don't understand") ||
-      lower.includes("confused")
-    ) {
-      learningProfile.confusionAreas.push(message);
-    }
-
-    // -----------------------------
-    // RESPONSE LOGIC
-    // -----------------------------
-
-    let reply = "I'm here to help you learn. I love curious questions — let's dig deeper together.";
-
-    if (lower.includes("what is my name")) {
-      reply = studentName
-        ? `Your name is ${studentName}.`
-        : "I don't know your name yet.";
-    }
-
-    else if (lower.includes("explain gravity")) {
       reply =
-        `Hi ${studentName || "there"}! Gravity is the force that pulls objects with mass toward each other. ` +
+        `Hi ${studentName || ""}! Gravity is the force that pulls objects with mass toward each other. ` +
         `On Earth, gravity keeps us grounded and causes objects to fall. ` +
         `Einstein later showed that gravity happens because massive objects bend space and time itself.`;
     }
 
-    else if (studentName && interests.length > 0) {
-      reply = `Hello ${studentName}! I remember you enjoy ${interests.join(
-        ", "
-      )}. Let's explore that together.`;
-    }
-
-    else if (studentName) {
-      reply = `Hello ${studentName}! How can I help you learn today?`;
-    }
-
-    // -----------------------------
-    // RETURN RESPONSE
-    // -----------------------------
-
-    return res.status(200).json({
-      reply,
-      memory: {
+    // ---------- SAVE TO TEACHER SYSTEM ----------
+    if (studentName) {
+      saveStudent({
         name: studentName,
         interests,
         learningProfile
-      }
-    });
+      });
+    }
 
-  } catch (err) {
-    console.error(err);
+    return res.status(200).json({ reply });
+
+  } catch (error) {
+    console.error(error);
     return res.status(500).json({
-      error: "Server error"
+      reply: "Error contacting server."
     });
   }
 }
