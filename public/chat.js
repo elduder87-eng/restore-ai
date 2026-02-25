@@ -1,14 +1,15 @@
-const chat = document.getElementById("chat");
-const input = document.getElementById("messageInput");
+const chatBox = document.getElementById("chat");
+const input = document.getElementById("message");
+const sendBtn = document.getElementById("send");
 
 let memory = {};
 
 function addMessage(text, sender) {
   const div = document.createElement("div");
   div.className = sender;
-  div.textContent = text;
-  chat.appendChild(div);
-  chat.scrollTop = chat.scrollHeight;
+  div.innerText = text;
+  chatBox.appendChild(div);
+  chatBox.scrollTop = chatBox.scrollHeight;
 }
 
 async function sendMessage() {
@@ -18,13 +19,8 @@ async function sendMessage() {
   addMessage(message, "user");
   input.value = "";
 
-  const loading = document.createElement("div");
-  loading.className = "ai";
-  loading.textContent = "...";
-  chat.appendChild(loading);
-
   try {
-    const response = await fetch("/api/chat", {
+    const res = await fetch("/api/chat", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -35,16 +31,23 @@ async function sendMessage() {
       })
     });
 
-    const data = await response.json();
+    const data = await res.json();
 
-    loading.remove();
-
-    addMessage(data.reply, "ai");
+    if (data.reply) {
+      addMessage(data.reply, "ai");
+    }
 
     if (data.memory) {
       memory = data.memory;
     }
+
   } catch (err) {
-    loading.textContent = "Error contacting server.";
+    addMessage("Error contacting server.", "ai");
   }
 }
+
+sendBtn.onclick = sendMessage;
+
+input.addEventListener("keypress", e => {
+  if (e.key === "Enter") sendMessage();
+});
