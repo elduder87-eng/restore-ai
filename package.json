@@ -1,5 +1,12 @@
 {
   "name": "restore-ai",
   "version": "1.0.0",
-  "type": "module"
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@upstash/redis": "^1.34.0"
+  }
 }
