@@ -20,19 +20,32 @@ async function sendMessage() {
 
   const message = input.value;
 
+  // show user message
   chat.innerHTML += `<p><b>You:</b> ${message}</p>`;
 
-  const res = await fetch("/api/chat", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message })
-  });
-
-  const data = await res.json();
-
-  chat.innerHTML += `<p>${data.reply}</p>`;
-
   input.value = "";
+
+  try {
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ message })
+    });
+
+    const data = await res.json();
+
+    console.log("API RESPONSE:", data);
+
+    const reply = data.reply || "No response from AI.";
+
+    chat.innerHTML += `<p><b>AI:</b> ${reply}</p>`;
+
+  } catch (err) {
+    console.error(err);
+    chat.innerHTML += `<p><b>AI:</b> Server connection failed.</p>`;
+  }
 }
 </script>
 
