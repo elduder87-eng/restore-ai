@@ -1,23 +1,56 @@
-import { setName, addInterest } from "../lib/memory.js";
+import { NextResponse } from "next/server";
+import OpenAI from "openai";
 
-export default async function handler(req, res) {
-  const { message } = req.body;
+import { getMemory, saveMemory } from "@/lib/memory";
+import extractIdentity from "@/lib/extractIdentity";
 
-  let reply = "I'm here to help you learn.";
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
-  const nameMatch = message.match(/my name is (.+)/i);
-  if (nameMatch) {
-    const name = nameMatch[1].trim();
-    setName(name);
-    reply = `Nice to meet you, ${name}.`;
+export async function POST(req) {
+  try {
+    const { message, userId = "default-user" } = await req.json();
+
+    // 1️⃣ LOAD MEMORY FROM REDIS
+    const memory = await getMemory(userId);
+
+    // 2️⃣ EXTRACT NEW IDENTITY INFO
+    const identity = extractIdentity(message);
+
+    if (identity.name || identity.interests.length > 0) {
+      await saveMemory(userId, identity);
+    }
+
+    // 3️⃣ BUILD CONTEXT FOR AI
+    const systemContext = `
+You are Restore AI.
+
+User Memory:
+Name: ${memory?.name || "Unknown"}
+Interests: ${(memory?.interests || []).join(", ")}
+
+Use this information naturally if relevant.
+`;
+
+    // 4️⃣ CALL AI
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: systemContext },
+        { role: "user", content: message },
+      ],
+    });
+
+    const reply = completion.choices[0].message.content;
+
+    return NextResponse.json({ reply });
+
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json(
+      { reply: "I'm here to help you learn." },
+      { status: 200 }
+    );
   }
-
-  const interestMatch = message.match(/i enjoy (.+)/i);
-  if (interestMatch) {
-    const interest = interestMatch[1].trim();
-    addInterest(interest);
-    reply = `I remember you enjoy ${interest}.`;
-  }
-
-  res.status(200).json({ reply });
 }
