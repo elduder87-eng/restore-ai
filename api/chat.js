@@ -7,20 +7,28 @@ export default async function handler(req, res) {
     const { message } = req.body;
     const userId = "default-user";
 
-    // ---------- GET PROFILE ----------
+    // ---------- PROFILE ----------
     const name = await redis.get(`${userId}:name`);
 
-    // ---------- GET HISTORY ----------
+    // ---------- LOAD HISTORY ----------
     let history = await redis.get(`${userId}:history`);
-    if (!history) history = [];
 
-    // add new message
+    // convert string → array
+    if (history) {
+      history = JSON.parse(history);
+    } else {
+      history = [];
+    }
+
+    // add user message
     history.push(`User: ${message}`);
-
-    // keep last 6 messages only
     history = history.slice(-6);
 
-    await redis.set(`${userId}:history`, history);
+    // save history
+    await redis.set(
+      `${userId}:history`,
+      JSON.stringify(history)
+    );
 
     // ---------- BUILD CONTEXT ----------
     const context = history.join("\n");
@@ -33,15 +41,19 @@ export default async function handler(req, res) {
       reply = "I'm here to help you learn.";
     }
 
-    // store AI reply too
+    // store AI reply
     history.push(`AI: ${reply}`);
     history = history.slice(-6);
-    await redis.set(`${userId}:history`, history);
+
+    await redis.set(
+      `${userId}:history`,
+      JSON.stringify(history)
+    );
 
     res.status(200).json({ reply });
 
   } catch (error) {
-    console.error(error);
+    console.error("CHAT ERROR:", error);
     res.status(500).json({ reply: "Server error." });
   }
 }
