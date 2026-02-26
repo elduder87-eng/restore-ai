@@ -1,14 +1,18 @@
-export default function handler(req, res) {
-  try {
-    const memory = {
-      name: global.userName || null,
-      interests: global.userInterests || []
-    };
+import { getProfile, setName, addInterest } from "../lib/memory.js";
 
-    res.status(200).json(memory);
-  } catch (error) {
-    res.status(500).json({
-      error: "Could not load profile"
-    });
+export default function handler(req, res) {
+  if (req.method === "GET") {
+    return res.status(200).json(getProfile());
   }
+
+  if (req.method === "POST") {
+    const { name, interest } = req.body;
+
+    if (name) setName(name);
+    if (interest) addInterest(interest);
+
+    return res.status(200).json(getProfile());
+  }
+
+  res.status(405).end();
 }
