@@ -1,60 +1,47 @@
 import { Redis } from "@upstash/redis";
 
-const redis = new Redis({
-  url: process.env.KV_REST_API_URL,
-  token: process.env.KV_REST_API_TOKEN,
-});
+const redis = Redis.fromEnv();
 
 export default async function handler(req, res) {
   try {
     const { message } = req.body;
     const userId = "default-user";
 
-    const lower = message.toLowerCase();
+    // ---------- GET PROFILE ----------
+    const name = await redis.get(`${userId}:name`);
 
-    // ---- LOAD MEMORY ----
-    const savedName = await redis.get(`${userId}:name`);
+    // ---------- GET HISTORY ----------
+    let history = await redis.get(`${userId}:history`);
+    if (!history) history = [];
 
-    let extractedName = null;
+    // add new message
+    history.push(`User: ${message}`);
 
-    // Detect multiple intro styles
-    if (lower.includes("my name is")) {
-      extractedName = message.split(/my name is/i)[1].trim();
+    // keep last 6 messages only
+    history = history.slice(-6);
+
+    await redis.set(`${userId}:history`, history);
+
+    // ---------- BUILD CONTEXT ----------
+    const context = history.join("\n");
+
+    let reply;
+
+    if (name) {
+      reply = `Welcome back, ${name}. Based on our conversation:\n${context}`;
+    } else {
+      reply = "I'm here to help you learn.";
     }
 
-    if (lower.startsWith("i am ")) {
-      extractedName = message.slice(5).trim();
-    }
+    // store AI reply too
+    history.push(`AI: ${reply}`);
+    history = history.slice(-6);
+    await redis.set(`${userId}:history`, history);
 
-    if (lower.startsWith("i'm ")) {
-      extractedName = message.slice(4).trim();
-    }
-
-    // ---- SAVE NAME ----
-    if (extractedName) {
-      await redis.set(`${userId}:name`, extractedName);
-
-      return res.status(200).json({
-        reply: `Nice to meet you, ${extractedName}! I'll remember that.`,
-      });
-    }
-
-    // ---- NORMAL RESPONSE ----
-    if (savedName) {
-      return res.status(200).json({
-        reply: `Welcome back, ${savedName}. I'm here to help you learn.`,
-      });
-    }
-
-    return res.status(200).json({
-      reply: "I'm here to help you learn.",
-    });
+    res.status(200).json({ reply });
 
   } catch (error) {
     console.error(error);
-
-    return res.status(500).json({
-      reply: "Server error.",
-    });
+    res.status(500).json({ reply: "Server error." });
   }
 }
