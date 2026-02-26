@@ -8,26 +8,41 @@ const redis = new Redis({
 export default async function handler(req, res) {
   try {
     const { message } = req.body;
-
     const userId = "default-user";
 
-    // ---- LOAD MEMORY ----
-    const name = await redis.get(`${userId}:name`);
+    const lower = message.toLowerCase();
 
-    // ---- SAVE NAME IF PROVIDED ----
-    if (message.toLowerCase().includes("my name is")) {
-      const extracted = message.split("my name is")[1].trim();
-      await redis.set(`${userId}:name`, extracted);
+    // ---- LOAD MEMORY ----
+    const savedName = await redis.get(`${userId}:name`);
+
+    let extractedName = null;
+
+    // Detect multiple intro styles
+    if (lower.includes("my name is")) {
+      extractedName = message.split(/my name is/i)[1].trim();
+    }
+
+    if (lower.startsWith("i am ")) {
+      extractedName = message.slice(5).trim();
+    }
+
+    if (lower.startsWith("i'm ")) {
+      extractedName = message.slice(4).trim();
+    }
+
+    // ---- SAVE NAME ----
+    if (extractedName) {
+      await redis.set(`${userId}:name`, extractedName);
 
       return res.status(200).json({
-        reply: `Nice to meet you, ${extracted}! I'll remember that.`,
+        reply: `Nice to meet you, ${extractedName}! I'll remember that.`,
       });
     }
 
     // ---- NORMAL RESPONSE ----
-    if (name) {
+    if (savedName) {
       return res.status(200).json({
-        reply: `Welcome back, ${name}. I'm here to help you learn.`,
+        reply: `Welcome back, ${savedName}. I'm here to help you learn.`,
       });
     }
 
