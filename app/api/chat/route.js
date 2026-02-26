@@ -1,43 +1,51 @@
 import OpenAI from "openai";
+import { Redis } from "@upstash/redis";
+
+const redis = Redis.fromEnv();
 
 export async function POST(req) {
   try {
     const { message } = await req.json();
 
-    // ----- SIMPLE MEMORY (TEMPORARY SAFE MODE) -----
-    // We disable Redis for now to confirm OpenAI works.
-    // We'll re-enable memory after success.
+    const userId = "default-user";
 
-    let reply = "I'm here to help you learn.";
+    // ---------- LOAD MEMORY ----------
+    const savedName = await redis.get(`name:${userId}`);
 
+    let systemPrompt = "You are Restore AI, a helpful teaching assistant.";
+
+    if (savedName) {
+      systemPrompt += ` The user's name is ${savedName}.`;
+    }
+
+    // ---------- SAVE NAME ----------
     const nameMatch = message.match(/my name is (\w+)/i);
 
     if (nameMatch) {
       const name = nameMatch[1];
-      reply = `Nice to meet you, ${name}. I'll remember that.`;
+      await redis.set(`name:${userId}`, name);
     }
 
-    // ----- OPENAI CALL -----
+    // ---------- OPENAI ----------
     const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
+      apiKey: process.env.OPENAI_API_KEY
     });
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
-        { role: "system", content: "You are a helpful teacher." },
-        { role: "user", content: message },
-      ],
+        { role: "system", content: systemPrompt },
+        { role: "user", content: message }
+      ]
     });
 
-    const aiResponse = completion.choices[0].message.content;
+    const reply = completion.choices[0].message.content;
 
-    return Response.json({
-      reply: aiResponse || reply,
-    });
+    return Response.json({ reply });
 
   } catch (error) {
     console.error("CHAT ERROR:", error);
+
     return Response.json(
       { reply: "Server error." },
       { status: 500 }
