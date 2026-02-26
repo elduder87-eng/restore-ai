@@ -2,34 +2,6 @@
 <html>
 <head>
   <title>Restore AI — Teacher Mode</title>
-
-  <style>
-    body {
-      font-family: Arial;
-      margin: 20px;
-      background: #f4f6f8;
-    }
-
-    #chat {
-      margin-bottom: 20px;
-    }
-
-    .user {
-      background: #2d6cdf;
-      color: white;
-      padding: 10px;
-      margin: 5px 0;
-      border-radius: 6px;
-      text-align: right;
-    }
-
-    .ai {
-      background: #ddd;
-      padding: 10px;
-      margin: 5px 0;
-      border-radius: 6px;
-    }
-  </style>
 </head>
 
 <body>
@@ -38,10 +10,31 @@
 
 <div id="chat"></div>
 
-<input id="messageInput" placeholder="Type message..." />
+<input id="message" placeholder="Type message..." />
 <button onclick="sendMessage()">Send</button>
 
-<script src="/chat.js"></script>
+<script>
+async function sendMessage() {
+  const input = document.getElementById("message");
+  const chat = document.getElementById("chat");
+
+  const message = input.value;
+
+  chat.innerHTML += `<p><b>You:</b> ${message}</p>`;
+
+  const res = await fetch("/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message })
+  });
+
+  const data = await res.json();
+
+  chat.innerHTML += `<p>${data.reply}</p>`;
+
+  input.value = "";
+}
+</script>
 
 </body>
 </html>
