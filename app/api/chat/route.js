@@ -1,7 +1,14 @@
 import OpenAI from "openai";
 import { Redis } from "@upstash/redis";
 
-const redis = Redis.fromEnv();
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+});
 
 export async function POST(req) {
   try {
@@ -9,45 +16,40 @@ export async function POST(req) {
 
     const userId = "default-user";
 
-    // ---------- LOAD MEMORY ----------
-    const savedName = await redis.get(`name:${userId}`);
+    // get stored name
+    let name = await redis.get(`name:${userId}`);
 
-    let systemPrompt = "You are Restore AI, a helpful teaching assistant.";
-
-    if (savedName) {
-      systemPrompt += ` The user's name is ${savedName}.`;
-    }
-
-    // ---------- SAVE NAME ----------
-    const nameMatch = message.match(/my name is (\w+)/i);
-
-    if (nameMatch) {
-      const name = nameMatch[1];
+    // detect name introduction
+    if (message.toLowerCase().includes("my name is")) {
+      name = message.split("my name is")[1].trim();
       await redis.set(`name:${userId}`, name);
     }
-
-    // ---------- OPENAI ----------
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY
-    });
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: message }
-      ]
+        {
+          role: "system",
+          content: `You are a helpful teacher AI. ${
+            name ? `The user's name is ${name}.` : ""
+          }`,
+        },
+        { role: "user", content: message },
+      ],
     });
 
     const reply = completion.choices[0].message.content;
 
-    return Response.json({ reply });
+    return new Response(
+      JSON.stringify({ reply }),
+      { status: 200 }
+    );
 
   } catch (error) {
     console.error("CHAT ERROR:", error);
 
-    return Response.json(
-      { reply: "Server error." },
+    return new Response(
+      JSON.stringify({ reply: "Server error." }),
       { status: 500 }
     );
   }
