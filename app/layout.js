@@ -1,14 +1,12 @@
 export const metadata = {
   title: "Restore AI",
-  description: "Restore AI — Teacher Mode",
+  description: "Teacher Mode",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body>
-        {children}
-      </body>
+      <body>{children}</body>
     </html>
   );
 }
