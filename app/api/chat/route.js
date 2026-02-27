@@ -1,9 +1,9 @@
+// app/api/chat/route.js
+
 import OpenAI from "openai";
 import {
-  saveMessage,
-  extractFacts,
-  buildMemoryPrompt,
-  getMemory
+  updateMemory,
+  buildMemoryPrompt
 } from "../../lib/memory";
 
 const openai = new OpenAI({
@@ -14,41 +14,47 @@ export async function POST(req) {
   try {
     const { message, sessionId } = await req.json();
 
-    // ----- MEMORY -----
-    saveMessage(sessionId, "user", message);
-    extractFacts(sessionId, message);
+    // ==========================
+    // 1. UPDATE MEMORY
+    // ==========================
+    updateMemory(sessionId, message);
 
+    // ==========================
+    // 2. BUILD MEMORY CONTEXT
+    // ==========================
     const memoryContext = buildMemoryPrompt(sessionId);
-    const memory = getMemory(sessionId);
 
-    // ----- AI CALL -----
+    // ==========================
+    // 3. CREATE AI RESPONSE
+    // ==========================
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
           content: `
-You are Restore AI running in Teacher Mode.
+You are Restore AI operating in Teacher Mode.
 
-Use the known user information when relevant.
+Use known information about the user when relevant.
 
 ${memoryContext}
-`
+          `,
         },
-        ...memory.history,
+        {
+          role: "user",
+          content: message,
+        },
       ],
     });
 
-    const reply = completion.choices[0].message.content;
-
-    saveMessage(sessionId, "assistant", reply);
-
-    return Response.json({ reply });
+    return Response.json({
+      reply: completion.choices[0].message.content,
+    });
 
   } catch (error) {
     console.error(error);
     return Response.json(
-      { reply: "Server connection failed." },
+      { error: "Server error" },
       { status: 500 }
     );
   }
