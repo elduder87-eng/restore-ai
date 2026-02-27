@@ -1,10 +1,7 @@
 // app/api/chat/route.js
 
 import OpenAI from "openai";
-import {
-  updateMemory,
-  buildMemoryPrompt
-} from "../../lib/memory";
+import { updateMemory, buildMemoryPrompt } from "@/app/lib/memory";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -12,21 +9,18 @@ const openai = new OpenAI({
 
 export async function POST(req) {
   try {
-    const { message, sessionId } = await req.json();
+    const { message } = await req.json();
 
-    // ==========================
-    // 1. UPDATE MEMORY
-    // ==========================
+    // Single demo session (later we upgrade this)
+    const sessionId = "default-user";
+
+    // ✅ Update memory FIRST
     updateMemory(sessionId, message);
 
-    // ==========================
-    // 2. BUILD MEMORY CONTEXT
-    // ==========================
+    // ✅ Build memory context
     const memoryContext = buildMemoryPrompt(sessionId);
 
-    // ==========================
-    // 3. CREATE AI RESPONSE
-    // ==========================
+    // ✅ Inject memory into system prompt
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
@@ -35,7 +29,7 @@ export async function POST(req) {
           content: `
 You are Restore AI operating in Teacher Mode.
 
-Use known information about the user when relevant.
+Use the known information about the user when answering questions about them.
 
 ${memoryContext}
           `,
@@ -50,12 +44,8 @@ ${memoryContext}
     return Response.json({
       reply: completion.choices[0].message.content,
     });
-
   } catch (error) {
     console.error(error);
-    return Response.json(
-      { error: "Server error" },
-      { status: 500 }
-    );
+    return Response.json({ error: "Server error" }, { status: 500 });
   }
 }
