@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { redis } from "@/lib/redis";
+import { kv } from "@vercel/kv";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -7,55 +7,56 @@ const openai = new OpenAI({
 
 export async function POST(req) {
   try {
-    const { message, sessionId } = await req.json();
+    const { message } = await req.json();
 
-    const id = sessionId || "default-user";
+    const userId = "default-user";
 
-    // 🧠 Load conversation memory
-    let history = await redis.get(id);
+    // ---- LOAD MEMORY ----
+    let memory = await kv.get(`memory:${userId}`);
 
-    if (!history) history = [];
+    if (!memory) {
+      memory = {};
+    }
 
-    // add user message
-    history.push({
-      role: "user",
-      content: message,
-    });
+    // ---- STORE NAME IF GIVEN ----
+    const nameMatch = message.match(/my name is (.+)/i);
 
-    // limit memory size
-    history = history.slice(-10);
+    if (nameMatch) {
+      memory.name = nameMatch[1];
+      await kv.set(`memory:${userId}`, memory);
+    }
 
+    // ---- BUILD SYSTEM CONTEXT ----
+    let systemContext = "You are Restore AI in Teacher Mode.";
+
+    if (memory.name) {
+      systemContext += ` The user's name is ${memory.name}.`;
+    }
+
+    // ---- OPENAI CALL ----
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
-          content:
-            "You are Restore AI — a calm, intelligent teacher that remembers users and helps them grow through conversation."
+          content: systemContext,
         },
-        ...history,
+        {
+          role: "user",
+          content: message,
+        },
       ],
     });
 
-    const reply =
-      completion.choices[0].message.content;
+    const reply = completion.choices[0].message.content;
 
-    // save AI reply
-    history.push({
-      role: "assistant",
-      content: reply,
+    return new Response(JSON.stringify({ reply }), {
+      headers: { "Content-Type": "application/json" },
     });
-
-    // 💾 store memory
-    await redis.set(id, history);
-
-    return Response.json({ reply });
-
-  } catch (error) {
-    console.error(error);
-
-    return Response.json(
-      { reply: "Server connection failed." },
+  } catch (err) {
+    console.error(err);
+    return new Response(
+      JSON.stringify({ reply: "Server error." }),
       { status: 500 }
     );
   }
