@@ -1,7 +1,5 @@
-// app/api/chat/route.js
-
 import OpenAI from "openai";
-import { updateMemory, buildMemoryPrompt } from "@/app/lib/memory";
+import { saveMemory, getMemories } from "../../lib/memory";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -11,28 +9,26 @@ export async function POST(req) {
   try {
     const { message } = await req.json();
 
-    // Single demo session (later we upgrade this)
-    const sessionId = "default-user";
+    // Get stored memories
+    const memories = await getMemories();
 
-    // ✅ Update memory FIRST
-    updateMemory(sessionId, message);
+    // Build memory context
+    const memoryContext =
+      memories.length > 0
+        ? `Known information about the user:\n${memories.join("\n")}`
+        : "No stored user information yet.";
 
-    // ✅ Build memory context
-    const memoryContext = buildMemoryPrompt(sessionId);
-
-    // ✅ Inject memory into system prompt
+    // Ask AI
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
-          content: `
-You are Restore AI operating in Teacher Mode.
+          content: `You are Restore AI in Teacher Mode.
+You remember useful facts about the user when provided.
+Use stored memories when answering questions about the user.
 
-Use the known information about the user when answering questions about them.
-
-${memoryContext}
-          `,
+${memoryContext}`,
         },
         {
           role: "user",
@@ -41,11 +37,19 @@ ${memoryContext}
       ],
     });
 
-    return Response.json({
-      reply: completion.choices[0].message.content,
-    });
+    const reply = completion.choices[0].message.content;
+
+    // Simple memory rule (Stage 9)
+    if (message.toLowerCase().includes("my name is")) {
+      await saveMemory(message);
+    }
+
+    return Response.json({ reply });
   } catch (error) {
     console.error(error);
-    return Response.json({ error: "Server error" }, { status: 500 });
+    return Response.json(
+      { error: "Something went wrong." },
+      { status: 500 }
+    );
   }
 }
