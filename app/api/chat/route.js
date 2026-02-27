@@ -1,26 +1,19 @@
 import OpenAI from "openai";
+import { getMemory, saveMessage } from "@/lib/memory";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// simple in-memory store (safe starter memory)
-const memoryStore = {};
-
 export async function POST(req) {
   try {
     const { message, sessionId } = await req.json();
 
-    if (!memoryStore[sessionId]) {
-      memoryStore[sessionId] = [];
-    }
+    // Load persistent memory
+    const history = getMemory(sessionId);
 
-    const history = memoryStore[sessionId];
-
-    history.push({
-      role: "user",
-      content: message,
-    });
+    // Save user message
+    saveMessage(sessionId, "user", message);
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
@@ -28,7 +21,7 @@ export async function POST(req) {
         {
           role: "system",
           content:
-            "You are Restore AI running in Teacher Mode. Remember facts users tell you during this session.",
+            "You are Restore AI in Teacher Mode. Remember facts users tell you about themselves.",
         },
         ...history,
       ],
@@ -36,14 +29,13 @@ export async function POST(req) {
 
     const reply = completion.choices[0].message.content;
 
-    history.push({
-      role: "assistant",
-      content: reply,
-    });
+    // Save AI reply
+    saveMessage(sessionId, "assistant", reply);
 
     return Response.json({ reply });
   } catch (error) {
     console.error(error);
+
     return Response.json(
       { reply: "Server connection failed." },
       { status: 500 }
