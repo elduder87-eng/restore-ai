@@ -7,49 +7,36 @@ export default function Home() {
   const [input, setInput] = useState("");
 
   async function sendMessage() {
-    if (!input.trim()) return;
+    if (!input) return;
 
-    const userMessage = input;
+    const newMessages = [...messages, { role: "user", text: input }];
+    setMessages(newMessages);
 
-    // show user message
-    setMessages((prev) => [
-      ...prev,
-      { role: "user", content: userMessage },
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ message: input }),
+    });
+
+    const data = await res.json();
+
+    setMessages([
+      ...newMessages,
+      { role: "assistant", text: data.reply },
     ]);
 
     setInput("");
-
-    try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ message: userMessage }),
-      });
-
-      const data = await res.json();
-
-      setMessages((prev) => [
-        ...prev,
-        { role: "ai", content: data.reply },
-      ]);
-    } catch (err) {
-      setMessages((prev) => [
-        ...prev,
-        { role: "ai", content: "Server connection failed." },
-      ]);
-    }
   }
 
   return (
     <main style={{ padding: 20 }}>
       <h1>Restore AI — Teacher Mode</h1>
 
-      {messages.map((msg, i) => (
+      {messages.map((m, i) => (
         <p key={i}>
-          <strong>{msg.role === "user" ? "You" : "AI"}:</strong>{" "}
-          {msg.content}
+          <strong>{m.role === "user" ? "You" : "AI"}:</strong> {m.text}
         </p>
       ))}
 
@@ -58,7 +45,6 @@ export default function Home() {
         onChange={(e) => setInput(e.target.value)}
         placeholder="Type message..."
       />
-
       <button onClick={sendMessage}>Send</button>
     </main>
   );
