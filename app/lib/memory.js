@@ -1,71 +1,55 @@
 // app/lib/memory.js
 
-// ===============================
-// In-Memory Store (temporary DB)
-// ===============================
-
+// In-memory store (temporary memory)
 const memoryStore = {};
 
-// ===============================
-// Get or Create Session Memory
-// ===============================
-
-export function getMemory(sessionId) {
+// ==========================
+// UPDATE MEMORY
+// ==========================
+export function updateMemory(sessionId, message) {
   if (!memoryStore[sessionId]) {
     memoryStore[sessionId] = {
-      facts: {
-        name: null,
-        interests: []
-      }
+      name: null,
+      interests: [],
     };
   }
 
-  return memoryStore[sessionId];
-}
+  const lower = message.toLowerCase();
 
-// ===============================
-// Update Memory From User Message
-// ===============================
-
-export function updateMemory(sessionId, message) {
-  const memory = getMemory(sessionId);
-  const text = message.toLowerCase();
-
-  // ---- Name Detection ----
-  const nameMatch = message.match(/my name is (\w+)/i);
-  if (nameMatch) {
-    memory.facts.name = nameMatch[1];
+  // Detect name
+  if (lower.includes("my name is")) {
+    const name = message.split("is")[1]?.trim();
+    if (name) {
+      memoryStore[sessionId].name = name;
+    }
   }
 
-  // ---- Interest Detection ----
-  const interestMatch = message.match(/i love (.+)/i);
-  if (interestMatch) {
-    const interest = interestMatch[1].trim();
-
-    if (!memory.facts.interests.includes(interest)) {
-      memory.facts.interests.push(interest);
+  // Detect interests
+  if (lower.includes("i love")) {
+    const interest = message.split("love")[1]?.trim();
+    if (interest) {
+      memoryStore[sessionId].interests.push(interest);
     }
   }
 }
 
-// ===============================
-// Build Memory Context for AI
-// ===============================
-
+// ==========================
+// BUILD MEMORY PROMPT
+// ==========================
 export function buildMemoryPrompt(sessionId) {
-  const data = memoryStore[sessionId];
+  const memory = memoryStore[sessionId];
 
-  if (!data) return "";
+  if (!memory) return "No known information about the user yet.";
 
-  let memoryText = "Known information about the user:\n";
+  let context = "Known information about the user:\n";
 
-  if (data.facts.name) {
-    memoryText += `Name: ${data.facts.name}\n`;
+  if (memory.name) {
+    context += `Name: ${memory.name}\n`;
   }
 
-  if (data.facts.interests.length > 0) {
-    memoryText += `Interests: ${data.facts.interests.join(", ")}\n`;
+  if (memory.interests.length > 0) {
+    context += `Interests: ${memory.interests.join(", ")}\n`;
   }
 
-  return memoryText;
+  return context;
 }
