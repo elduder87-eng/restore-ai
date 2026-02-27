@@ -1,72 +1,71 @@
+// app/lib/memory.js
+
+// ===============================
+// In-Memory Store (temporary DB)
+// ===============================
+
 const memoryStore = {};
+
+// ===============================
+// Get or Create Session Memory
+// ===============================
 
 export function getMemory(sessionId) {
   if (!memoryStore[sessionId]) {
     memoryStore[sessionId] = {
-      facts: {},
-      history: []
+      facts: {
+        name: null,
+        interests: []
+      }
     };
   }
+
   return memoryStore[sessionId];
 }
 
-export function saveMessage(sessionId, role, content) {
-  const memory = getMemory(sessionId);
+// ===============================
+// Update Memory From User Message
+// ===============================
 
-  memory.history.push({ role, content });
-
-  // keep history small
-  if (memory.history.length > 20) {
-    memory.history.shift();
-  }
-}
-
-export function extractFacts(sessionId, message) {
+export function updateMemory(sessionId, message) {
   const memory = getMemory(sessionId);
   const text = message.toLowerCase();
 
-  // ---- NAME MEMORY ----
-  if (text.includes("my name is")) {
-    const name = message.split("my name is")[1]?.trim();
-    if (name) memory.facts.name = name;
+  // ---- Name Detection ----
+  const nameMatch = message.match(/my name is (\w+)/i);
+  if (nameMatch) {
+    memory.facts.name = nameMatch[1];
   }
 
-  // ---- INTEREST MEMORY ----
-  if (text.includes("i love") || text.includes("i like")) {
-    const interest =
-      message.split("i love")[1] ||
-      message.split("i like")[1];
+  // ---- Interest Detection ----
+  const interestMatch = message.match(/i love (.+)/i);
+  if (interestMatch) {
+    const interest = interestMatch[1].trim();
 
-    if (interest) {
-      memory.facts.interest = interest.trim();
-    }
-  }
-
-  // ---- PROFESSION MEMORY (future-ready) ----
-  if (text.includes("i am a") || text.includes("i'm a")) {
-    const role =
-      message.split("i am a")[1] ||
-      message.split("i'm a")[1];
-
-    if (role) {
-      memory.facts.role = role.trim();
+    if (!memory.facts.interests.includes(interest)) {
+      memory.facts.interests.push(interest);
     }
   }
 }
 
+// ===============================
+// Build Memory Context for AI
+// ===============================
+
 export function buildMemoryPrompt(sessionId) {
-  const memory = getMemory(sessionId);
+  const data = memoryStore[sessionId];
 
-  let context = "Known information about the user:\n";
+  if (!data) return "";
 
-  if (memory.facts.name)
-    context += `Name: ${memory.facts.name}\n`;
+  let memoryText = "Known information about the user:\n";
 
-  if (memory.facts.interest)
-    context += `Interest: ${memory.facts.interest}\n`;
+  if (data.facts.name) {
+    memoryText += `Name: ${data.facts.name}\n`;
+  }
 
-  if (memory.facts.role)
-    context += `Role: ${memory.facts.role}\n`;
+  if (data.facts.interests.length > 0) {
+    memoryText += `Interests: ${data.facts.interests.join(", ")}\n`;
+  }
 
-  return context;
+  return memoryText;
 }
