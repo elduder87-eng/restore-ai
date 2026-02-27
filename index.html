@@ -3,58 +3,16 @@
 <head>
   <title>Restore AI — Teacher Mode</title>
 </head>
+<body>
 
-<body style="font-family: Arial; padding: 20px;">
+<h1>Restore AI — Teacher Mode</h1>
 
-  <h1>Restore AI — Teacher Mode</h1>
+<div id="chat"></div>
 
-  <div id="chat"></div>
+<input id="message" type="text" placeholder="Type message..." />
+<button onclick="sendMessage()">Send</button>
 
-  <br>
-
-  <input
-    id="message"
-    type="text"
-    placeholder="Type message..."
-    style="width: 250px;"
-  />
-
-  <button onclick="sendMessage()">Send</button>
-
-  <script>
-    async function sendMessage() {
-      const input = document.getElementById("message");
-      const chat = document.getElementById("chat");
-
-      const message = input.value.trim();
-      if (!message) return;
-
-      // Show user message
-      chat.innerHTML += `<p><strong>You:</strong> ${message}</p>`;
-
-      input.value = "";
-
-      try {
-        const response = await fetch("/api/chat", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ message })
-        });
-
-        const data = await response.json();
-
-        chat.innerHTML += `<p><strong>AI:</strong> ${
-          data.reply || "No response"
-        }</p>`;
-
-      } catch (error) {
-        chat.innerHTML +=
-          `<p><strong>AI:</strong> Server connection failed.</p>`;
-      }
-    }
-  </script>
+<script src="/script.js"></script>
 
 </body>
 </html>
