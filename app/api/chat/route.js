@@ -1,67 +1,37 @@
-import { Redis } from "@upstash/redis";
+import OpenAI from "openai";
 
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+export const runtime = "edge";
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
 export async function POST(req) {
   try {
     const { message } = await req.json();
 
-    const userId = "default-user";
-
-    // ---- Load memory ----
-    const memory =
-      (await redis.get(`memory:${userId}`)) || [];
-
-    // ---- Build conversation ----
-    const messages = [
-      {
-        role: "system",
-        content:
-          "You are Restore AI in Teacher Mode. Be calm, clear, encouraging, and educational.",
-      },
-      ...memory,
-      { role: "user", content: message },
-    ];
-
-    // ---- Call OpenAI ----
-    const response = await fetch(
-      "https://api.openai.com/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: "You are a helpful teacher helping users learn clearly.",
         },
-        body: JSON.stringify({
-          model: "gpt-4o-mini",
-          messages,
-        }),
+        {
+          role: "user",
+          content: message,
+        },
+      ],
+    });
+
+    return new Response(
+      JSON.stringify({
+        reply: completion.choices[0].message.content,
+      }),
+      {
+        headers: { "Content-Type": "application/json" },
       }
     );
-
-    const data = await response.json();
-
-    const reply =
-      data.choices?.[0]?.message?.content ||
-      "I'm here to help you learn.";
-
-    // ---- Save updated memory ----
-    const updatedMemory = [
-      ...memory,
-      { role: "user", content: message },
-      { role: "assistant", content: reply },
-    ].slice(-10); // keep last 10 messages
-
-    await redis.set(`memory:${userId}`, updatedMemory);
-
-    // ---- Return response ----
-    return new Response(JSON.stringify({ reply }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
   } catch (error) {
     console.error("CHAT ERROR:", error);
 
