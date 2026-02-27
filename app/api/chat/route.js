@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import { kv } from "@vercel/kv";
+import { extractMemory } from "@/lib/memory";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -11,35 +12,34 @@ export async function POST(req) {
 
     const userId = "default-user";
 
-    // ---- LOAD MEMORY ----
-    let memory = await kv.get(`memory:${userId}`);
+    // Load memory
+    let memory = (await kv.get(userId)) || {};
 
-    if (!memory) {
-      memory = {};
-    }
+    // Extract new memory automatically
+    const newMemory = extractMemory(message);
 
-    // ---- STORE NAME IF GIVEN ----
-    const nameMatch = message.match(/my name is (.+)/i);
+    // Merge memories
+    memory = { ...memory, ...newMemory };
 
-    if (nameMatch) {
-      memory.name = nameMatch[1];
-      await kv.set(`memory:${userId}`, memory);
-    }
+    // Save updated memory
+    await kv.set(userId, memory);
 
-    // ---- BUILD SYSTEM CONTEXT ----
-    let systemContext = "You are Restore AI in Teacher Mode.";
+    // Build memory context
+    const memoryContext = `
+User Memory:
+Name: ${memory.name || "unknown"}
+Preference: ${memory.preference || "unknown"}
+Goal: ${memory.goal || "unknown"}
+`;
 
-    if (memory.name) {
-      systemContext += ` The user's name is ${memory.name}.`;
-    }
-
-    // ---- OPENAI CALL ----
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
-          content: systemContext,
+          content: `You are Restore AI.
+Use stored memory naturally in conversation.
+${memoryContext}`,
         },
         {
           role: "user",
@@ -48,15 +48,14 @@ export async function POST(req) {
       ],
     });
 
-    const reply = completion.choices[0].message.content;
-
-    return new Response(JSON.stringify({ reply }), {
-      headers: { "Content-Type": "application/json" },
+    return Response.json({
+      reply: completion.choices[0].message.content,
     });
-  } catch (err) {
-    console.error(err);
-    return new Response(
-      JSON.stringify({ reply: "Server error." }),
+
+  } catch (error) {
+    console.error(error);
+    return Response.json(
+      { reply: "Server connection failed." },
       { status: 500 }
     );
   }
