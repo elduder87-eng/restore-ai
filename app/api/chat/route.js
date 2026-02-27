@@ -1,11 +1,10 @@
 import OpenAI from "openai";
-
 import {
   saveMessage,
   extractFacts,
   buildMemoryPrompt,
   getMemory
-} from "@/lib/memory";
+} from "../../lib/memory";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -13,43 +12,35 @@ const openai = new OpenAI({
 
 export async function POST(req) {
   try {
-    const { message } = await req.json();
+    const { message, sessionId } = await req.json();
 
-    const sessionId = "teacher-mode"; // later becomes real user id
-
-    // learn from message
+    // ----- MEMORY -----
+    saveMessage(sessionId, "user", message);
     extractFacts(sessionId, message);
 
-    // save user message
-    saveMessage(sessionId, "user", message);
-
+    const memoryContext = buildMemoryPrompt(sessionId);
     const memory = getMemory(sessionId);
 
-    const memoryContext = buildMemoryPrompt(sessionId);
-
-    const messages = [
-      {
-        role: "system",
-        content: `You are Restore AI operating in Teacher Mode.
-
-Use known user information when helpful.
-
-${memoryContext}`
-      },
-      ...memory.history.map(m => ({
-        role: m.role,
-        content: m.content
-      }))
-    ];
-
+    // ----- AI CALL -----
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
-      messages,
+      messages: [
+        {
+          role: "system",
+          content: `
+You are Restore AI running in Teacher Mode.
+
+Use the known user information when relevant.
+
+${memoryContext}
+`
+        },
+        ...memory.history,
+      ],
     });
 
     const reply = completion.choices[0].message.content;
 
-    // save AI reply
     saveMessage(sessionId, "assistant", reply);
 
     return Response.json({ reply });
