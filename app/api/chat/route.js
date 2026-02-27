@@ -1,57 +1,47 @@
 import OpenAI from "openai";
-import { kv } from "@vercel/kv";
-import { extractMemory } from "@/lib/memory";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// simple in-memory store (safe starter memory)
+const memoryStore = {};
+
 export async function POST(req) {
   try {
-    const { message } = await req.json();
+    const { message, sessionId } = await req.json();
 
-    const userId = "default-user";
+    if (!memoryStore[sessionId]) {
+      memoryStore[sessionId] = [];
+    }
 
-    // Load memory
-    let memory = (await kv.get(userId)) || {};
+    const history = memoryStore[sessionId];
 
-    // Extract new memory automatically
-    const newMemory = extractMemory(message);
-
-    // Merge memories
-    memory = { ...memory, ...newMemory };
-
-    // Save updated memory
-    await kv.set(userId, memory);
-
-    // Build memory context
-    const memoryContext = `
-User Memory:
-Name: ${memory.name || "unknown"}
-Preference: ${memory.preference || "unknown"}
-Goal: ${memory.goal || "unknown"}
-`;
+    history.push({
+      role: "user",
+      content: message,
+    });
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
-          content: `You are Restore AI.
-Use stored memory naturally in conversation.
-${memoryContext}`,
+          content:
+            "You are Restore AI running in Teacher Mode. Remember facts users tell you during this session.",
         },
-        {
-          role: "user",
-          content: message,
-        },
+        ...history,
       ],
     });
 
-    return Response.json({
-      reply: completion.choices[0].message.content,
+    const reply = completion.choices[0].message.content;
+
+    history.push({
+      role: "assistant",
+      content: reply,
     });
 
+    return Response.json({ reply });
   } catch (error) {
     console.error(error);
     return Response.json(
