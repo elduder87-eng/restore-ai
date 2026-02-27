@@ -3,16 +3,55 @@
 <head>
   <title>Restore AI — Teacher Mode</title>
 </head>
+
 <body>
+  <h1>Restore AI — Teacher Mode</h1>
 
-<h1>Restore AI — Teacher Mode</h1>
+  <div id="chat"></div>
 
-<div id="chat"></div>
+  <input id="message" placeholder="Type message..." />
+  <button onclick="sendMessage()">Send</button>
 
-<input id="message" type="text" placeholder="Type message..." />
-<button onclick="sendMessage()">Send</button>
+<script>
+const chat = document.getElementById("chat");
 
-<script src="/script.js"></script>
+const sessionId =
+  localStorage.getItem("restore-session") ||
+  crypto.randomUUID();
+
+localStorage.setItem("restore-session", sessionId);
+
+async function sendMessage() {
+  const input = document.getElementById("message");
+  const message = input.value;
+
+  if (!message) return;
+
+  chat.innerHTML += `<p><b>You:</b> ${message}</p>`;
+
+  input.value = "";
+
+  try {
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        message,
+        sessionId
+      }),
+    });
+
+    const data = await res.json();
+
+    chat.innerHTML += `<p><b>AI:</b> ${data.reply}</p>`;
+  } catch {
+    chat.innerHTML +=
+      `<p><b>AI:</b> Server connection failed.</p>`;
+  }
+}
+</script>
 
 </body>
 </html>
