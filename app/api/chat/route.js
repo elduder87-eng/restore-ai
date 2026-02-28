@@ -1,7 +1,9 @@
 import OpenAI from "openai";
-import { saveMemory, getMemories } from "@/lib/memory";
+import { saveMemory, loadMemory } from "../../../lib/memory";
 
-const client = new OpenAI({
+export const runtime = "nodejs"; // important for Redis
+
+const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
@@ -11,44 +13,42 @@ export async function POST(req) {
 
     const userId = "default-user";
 
-    // 1️⃣ Load memory
-    const memories = await getMemories(userId);
+    // ✅ Load stored memory
+    const memory = await loadMemory(userId);
 
-    const memoryContext =
-      memories.length > 0
-        ? `Known facts about user:\n${memories.join("\n")}`
-        : "";
+    const systemPrompt = `
+You are Restore AI — a thoughtful teacher assistant.
 
-    // 2️⃣ Ask AI
-    const completion = await client.chat.completions.create({
+Known facts about the user:
+${memory || "No stored memories yet."}
+
+Remember important personal facts the user shares.
+Answer naturally and helpfully.
+`;
+
+    // ✅ Ask OpenAI
+    const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
-        {
-          role: "system",
-          content:
-            "You are Restore AI, a helpful adaptive teacher who remembers students.",
-        },
-        {
-          role: "system",
-          content: memoryContext,
-        },
-        {
-          role: "user",
-          content: message,
-        },
+        { role: "system", content: systemPrompt },
+        { role: "user", content: message },
       ],
     });
 
     const reply = completion.choices[0].message.content;
 
-    // 3️⃣ Save new memory
+    // ✅ Save new memory
     await saveMemory(userId, message);
 
     return Response.json({ reply });
   } catch (error) {
-    console.error("CHAT ERROR:", error);
+    console.error("CHAT ERROR FULL:", error);
+
+    // show real error in UI while debugging
     return Response.json(
-      { reply: "Something went wrong." },
+      {
+        reply: "ERROR: " + (error?.message || "unknown"),
+      },
       { status: 500 }
     );
   }
