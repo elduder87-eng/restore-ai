@@ -1,82 +1,95 @@
-import OpenAI from "openai";
-import { saveMemory, getMemories } from "@/lib/memory";
-import { chooseMode } from "@/lib/hybridMode";
+// app/api/chat/route.js
 
+import OpenAI from "openai";
+import { redis } from "@/lib/redis";
+import { NextResponse } from "next/server";
+
+// --------------------
+// OpenAI Client
+// --------------------
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// --------------------
+// POST Handler
+// --------------------
 export async function POST(req) {
   try {
-    const { message } = await req.json();
+    const { message, userId = "default-user" } = await req.json();
 
-    // Save memory
-    await saveMemory(message);
-
-    // Load memories
-    const memories = await getMemories();
-
-    const memoryText = memories
-      .map(m => `User said: ${m.message}`)
-      .join("\n");
-
-    // Hybrid behavior selection
-    const mode = chooseMode(message);
-
-    let behaviorInstruction = "";
-
-    if (mode === "teacher-lean") {
-      behaviorInstruction =
-        "You are a warm teacher. Explain clearly while staying conversational.";
+    if (!message) {
+      return NextResponse.json({ reply: "No message received." });
     }
 
-    if (mode === "companion-lean") {
-      behaviorInstruction =
-        "You are reflective and thoughtful. Guide discussion gently like a trusted mentor.";
+    // --------------------
+    // Load Memory
+    // --------------------
+    const memoryKey = `memory:${userId}`;
+    let memory = await redis.get(memoryKey);
+
+    if (!memory) {
+      memory = [];
     }
 
-    if (mode === "support-first") {
-      behaviorInstruction =
-        "Start with empathy and reassurance, then guide learning step-by-step.";
-    }
+    // Add user message to memory
+    memory.push({
+      role: "user",
+      content: message,
+    });
 
-    if (mode === "balanced") {
-      behaviorInstruction =
-        "Balance friendly conversation with clear teaching.";
-    }
+    // Keep memory size reasonable
+    memory = memory.slice(-10);
 
-    // OpenAI call
+    // --------------------
+    // System Personality
+    // --------------------
+    const systemPrompt = {
+      role: "system",
+      content: `
+You are Restore AI operating in Teacher Mode.
+
+You are a hybrid between a thoughtful teacher and a supportive friend.
+You help users learn while building a genuine connection.
+
+Guidelines:
+- Be warm but intellectually engaging.
+- Encourage curiosity.
+- Ask occasional reflective questions.
+- Do NOT rush emotional bonding.
+- Let connection grow naturally over time.
+`,
+    };
+
+    const messages = [systemPrompt, ...memory];
+
+    // --------------------
+    // OpenAI Call
+    // --------------------
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content: `
-You are Restore AI — a hybrid teacher and companion.
-
-You remember past conversations and build connection over time.
-
-Past memories:
-${memoryText}
-
-Behavior:
-${behaviorInstruction}
-`,
-        },
-        {
-          role: "user",
-          content: message,
-        },
-      ],
+      messages,
+      temperature: 0.7,
     });
 
     const reply = completion.choices[0].message.content;
 
-    return Response.json({ reply });
-  } catch (error) {
-    console.error(error);
+    // Save AI reply into memory
+    memory.push({
+      role: "assistant",
+      content: reply,
+    });
 
-    return Response.json({
+    await redis.set(memoryKey, memory);
+
+    // --------------------
+    // Return Response
+    // --------------------
+    return NextResponse.json({ reply });
+  } catch (error) {
+    console.error("CHAT ERROR:", error);
+
+    return NextResponse.json({
       reply:
         "I'm having a small technical hiccup — but I'm still here. Try again in a moment.",
     });
