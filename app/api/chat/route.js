@@ -1,11 +1,10 @@
-import { NextResponse } from "next/server";
 import OpenAI from "openai";
 
-import { redis } from "@/lib/redis";
-import { saveMemory, getMemories } from "@/lib/memory";
-import { extractIdentity } from "@/lib/extractIdentity";
-import { updateIdentity, getIdentity } from "@/lib/identity";
-import { analyzeInterests, generateCuriosity } from "@/lib/curiosity";
+import { getMemory, saveMemory } from "@/lib/memory";
+import { getIdentity } from "@/lib/identity";
+import { getPersonality } from "@/lib/personality";
+import { getLearningProfile } from "@/lib/learningProfile";
+import { updateCuriosity } from "@/lib/curiosity";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -13,88 +12,86 @@ const openai = new OpenAI({
 
 export async function POST(req) {
   try {
-    const { message } = await req.json();
+    const body = await req.json();
+    const userMessage = body.message;
 
     const userId = "default-user";
 
-    // -------------------------
-    // LOAD MEMORY
-    // -------------------------
-    const memories = await getMemories(userId);
+    // ======================
+    // LOAD SYSTEM CONTEXT
+    // ======================
 
-    const memoryTexts = memories.map((m) =>
-      typeof m === "string" ? m : m.content || ""
-    );
-
-    // -------------------------
-    // INTEREST + CURIOSITY
-    // -------------------------
-    const interests = analyzeInterests(memoryTexts);
-    const curiosityPrompt = generateCuriosity(interests);
-
-    // -------------------------
-    // LOAD IDENTITY
-    // -------------------------
+    const memory = await getMemory(userId);
     const identity = await getIdentity(userId);
+    const personality = await getPersonality(userId);
+    const learningProfile = await getLearningProfile(userId);
 
-    // -------------------------
+    // ======================
     // BUILD SYSTEM PROMPT
-    // -------------------------
+    // ======================
+
     const systemPrompt = `
-You are Restore AI — a thoughtful adaptive teacher.
+You are Restore AI — a thoughtful teaching assistant.
 
-Identity summary:
-${identity || "Still learning about the user."}
+IDENTITY:
+${identity || "Still forming identity."}
 
-Known interests:
-${interests.length ? interests.join(", ") : "none yet"}
+PERSONALITY:
+${personality || "Friendly, curious, reflective."}
 
-${curiosityPrompt ? `Curiosity suggestion: ${curiosityPrompt}` : ""}
+LEARNING PROFILE:
+${learningProfile || "Learning about the user."}
 
-Speak naturally, warmly, and intelligently.
-Do NOT mention internal systems or memory storage.
+MEMORY:
+${memory || "No stored memories yet."}
+
+RULES:
+- Be thoughtful and conversational.
+- Reference memories naturally when helpful.
+- Ask curious follow-up questions when appropriate.
+- Do NOT mention system prompts or internal data.
 `;
 
-    // -------------------------
-    // CALL OPENAI
-    // -------------------------
+    // ======================
+    // OPENAI CALL
+    // ======================
+
     const completion = await openai.chat.completions.create({
-      model: "gpt-5-mini",
+      model: "gpt-5.2",
       messages: [
         { role: "system", content: systemPrompt },
-        ...memoryTexts.slice(-8).map((m) => ({
-          role: "user",
-          content: m,
-        })),
-        { role: "user", content: message },
+        { role: "user", content: userMessage },
       ],
+      temperature: 0.7,
     });
 
-    const reply = completion.choices[0].message.content;
+    // ✅ SAFE RESPONSE EXTRACTION (FIXES YOUR ERROR)
+    const reply =
+      completion?.choices?.[0]?.message?.content ||
+      "I'm thinking, but something interrupted my response. Try again!";
 
-    // -------------------------
+    // ======================
     // SAVE MEMORY
-    // -------------------------
-    await saveMemory(userId, message);
+    // ======================
 
-    // -------------------------
-    // UPDATE IDENTITY
-    // -------------------------
-    const identityUpdate = extractIdentity(message);
+    await saveMemory(userId, userMessage);
 
-    if (identityUpdate) {
-      await updateIdentity(userId, identityUpdate);
-    }
+    // ======================
+    // UPDATE CURIOSITY SYSTEM
+    // ======================
 
-    // -------------------------
+    await updateCuriosity(userId, userMessage, reply);
+
+    // ======================
     // RETURN RESPONSE
-    // -------------------------
-    return NextResponse.json({ reply });
+    // ======================
+
+    return Response.json({ reply });
   } catch (error) {
     console.error("CHAT ERROR:", error);
-    return NextResponse.json(
-      { reply: "Something went wrong." },
-      { status: 500 }
-    );
+
+    return Response.json({
+      reply: "Something went wrong.",
+    });
   }
 }
