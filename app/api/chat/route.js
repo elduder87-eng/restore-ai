@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { getMemory, saveMemory } from "@/app/lib/memory";
+import { getMemory, saveMemory } from "@/lib/memory";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -11,33 +11,23 @@ export async function POST(req) {
 
     const userId = "default-user";
 
-    // -------- SAFE MEMORY LOAD --------
-    let memory = {};
-    try {
-      memory = await getMemory(userId);
-    } catch (err) {
-      console.error("Memory load failed:", err);
-    }
+    // 🧠 Load memory from Upstash
+    const memory = await getMemory(userId);
 
-    // Detect name
-    const nameMatch = message.match(/my name is (.+)/i);
-    if (nameMatch) {
-      try {
-        await saveMemory(userId, "name", nameMatch[1]);
-      } catch (err) {
-        console.error("Memory save failed:", err);
-      }
-    }
-
-    // Build context
+    // System behavior
     const systemPrompt = `
-You are Restore AI — Teacher Mode.
-You remember user facts when available.
+You are Restore AI — a calm, thoughtful teacher AI.
 
-Known facts:
-${JSON.stringify(memory)}
+You remember important facts about the user when provided.
+Current known memory about the user:
+${memory || "No stored memory yet."}
+
+Be natural and conversational.
+If the user shares personal facts (name, interests, preferences),
+you may remember them for future conversations.
 `;
 
+    // 🤖 Ask OpenAI
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
@@ -48,12 +38,31 @@ ${JSON.stringify(memory)}
 
     const reply = completion.choices[0].message.content;
 
-    return Response.json({ reply });
-  } catch (error) {
-    console.error("CHAT ERROR:", error);
+    // 🧠 Simple memory learning
+    let updatedMemory = memory || "";
 
-    return Response.json({
-      reply: "I hit a small internal issue, but I'm still here. Try again.",
+    // remember name
+    if (/my name is/i.test(message)) {
+      updatedMemory += ` ${message}`;
+    }
+
+    // remember interests
+    if (/i love|i like|i enjoy/i.test(message)) {
+      updatedMemory += ` ${message}`;
+    }
+
+    // save memory
+    await saveMemory(userId, updatedMemory);
+
+    return new Response(JSON.stringify({ reply }), {
+      headers: { "Content-Type": "application/json" },
     });
+  } catch (error) {
+    console.error("Chat API error:", error);
+
+    return new Response(
+      JSON.stringify({ reply: "Something went wrong." }),
+      { status: 200 }
+    );
   }
 }
