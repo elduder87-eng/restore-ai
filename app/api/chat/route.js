@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { loadMemory, addToMemory } from "@/lib/memory";
+import { loadMemory, saveMemory, shouldRemember } from "@/lib/memory";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -9,61 +9,55 @@ export async function POST(req) {
   try {
     const { message } = await req.json();
 
-    const userId = "default-user";
+    /*
+    LOAD MEMORY
+    */
+    const memories = await loadMemory();
 
-    // =========================
-    // LOAD MEMORY
-    // =========================
-    const memory = await loadMemory(userId);
+    const memoryContext =
+      memories.length > 0
+        ? `Known facts about the user:\n${memories.join("\n")}`
+        : "No stored memories yet.";
 
-    // =========================
-    // BUILD MESSAGE STACK
-    // =========================
-    const messages = [
-      {
-        role: "system",
-        content:
-          "You are Restore AI, a helpful personal teacher that remembers facts about the user.",
-      },
-
-      // ✅ MEMORY INSERTED HERE
-      ...memory,
-
-      // newest user message
-      {
-        role: "user",
-        content: message,
-      },
-    ];
-
-    // =========================
-    // CALL OPENAI
-    // =========================
+    /*
+    AI RESPONSE
+    */
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
-      messages,
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are Restore AI, a helpful teacher assistant with memory."
+        },
+        {
+          role: "system",
+          content: memoryContext
+        },
+        {
+          role: "user",
+          content: message
+        }
+      ],
     });
 
     const reply = completion.choices[0].message.content;
 
-    // =========================
-    // SAVE MEMORY
-    // =========================
-    await addToMemory(userId, {
-      role: "user",
-      content: message,
-    });
+    /*
+    MEMORY JUDGE
+    */
+    const remember = await shouldRemember(openai, message);
 
-    await addToMemory(userId, {
-      role: "assistant",
-      content: reply,
-    });
+    if (remember) {
+      await saveMemory(message);
+    }
 
     return Response.json({ reply });
+
   } catch (error) {
     console.error(error);
     return Response.json({
-      reply: "Something went wrong.",
+      reply: "Something went wrong."
     });
   }
 }
