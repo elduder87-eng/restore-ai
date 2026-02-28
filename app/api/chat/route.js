@@ -1,7 +1,9 @@
 import OpenAI from "openai";
-
-import { saveMemory, loadMemory } from "@/lib/memory";
-import { buildIdentity, loadIdentity } from "@/lib/identity";
+import { loadMemory, updateMemory } from "@/lib/memory";
+import {
+  updatePersonality,
+  loadPersonality,
+} from "@/lib/personality";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -10,36 +12,46 @@ const openai = new OpenAI({
 export async function POST(req) {
   try {
     const { message } = await req.json();
-    const userId = "default";
 
-    // 1️⃣ Load stored memory
+    const userId = "default-user";
+
+    // ---- MEMORY ----
+    await updateMemory(userId, message);
     const memory = await loadMemory(userId);
 
-    // 2️⃣ Rebuild identity from memories
-    await buildIdentity(userId);
+    // ---- PERSONALITY ----
+    await updatePersonality(userId, message);
+    const personality = await loadPersonality(userId);
 
-    // 3️⃣ Load identity profile
-    const identity = await loadIdentity(userId);
+    const memoryPrompt = `
+User Memory:
+Favorite Color: ${memory.favorite_color || "Unknown"}
+Favorite Food: ${memory.favorite_food || "Unknown"}
+Favorite Movie: ${memory.favorite_movie || "Unknown"}
+`;
 
-    // 4️⃣ Ask AI with identity awareness
+    const personalityPrompt = `
+User Interaction Style:
+Depth Preference: ${personality.depth_preference || "normal"}
+Conversation Style: ${
+      personality.conversation_style || "balanced"
+    }
+Tone Preference: ${
+      personality.tone_preference || "friendly"
+    }
+
+Adapt responses to match this style.
+`;
+
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
-          content: `
-You are Restore AI — a learning assistant.
-
-User Identity:
-${identity}
-
-Known Memories:
-${memory.join("\n")}
-
-Use this information naturally in conversation.
-Do NOT list memories unless asked.
-Be conversational and human.
-`,
+          content:
+            "You are Restore AI, a thoughtful adaptive assistant.\n" +
+            memoryPrompt +
+            personalityPrompt,
         },
         {
           role: "user",
@@ -49,17 +61,7 @@ Be conversational and human.
     });
 
     const reply =
-      completion.choices?.[0]?.message?.content ||
-      "I couldn't generate a response.";
-
-    // 5️⃣ Store new memory automatically
-    if (
-      message.toLowerCase().includes("my") ||
-      message.toLowerCase().includes("i like") ||
-      message.toLowerCase().includes("i am")
-    ) {
-      await saveMemory(userId, message);
-    }
+      completion.choices[0].message.content;
 
     return Response.json({ reply });
   } catch (error) {
