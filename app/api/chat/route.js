@@ -1,6 +1,9 @@
 import OpenAI from "openai";
 import { Redis } from "@upstash/redis";
-import { buildPersonality } from "@/lib/personality";
+import {
+  getIdentity,
+  updateIdentityFromMessage,
+} from "@/lib/identity";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -11,54 +14,78 @@ const redis = new Redis({
   token: process.env.UPSTASH_REDIS_REST_TOKEN,
 });
 
+const MEMORY_KEY = "restore:memory";
+
 export async function POST(req) {
   try {
     const { message } = await req.json();
 
-    const MEMORY_KEY = "restore-memory";
+    /* ======================
+       UPDATE IDENTITY
+    ====================== */
+    await updateIdentityFromMessage(message);
+    const identity = await getIdentity();
 
-    // ---------- Load Memories ----------
-    const memories = (await redis.lrange(MEMORY_KEY, 0, -1)) || [];
+    /* ======================
+       LOAD MEMORY
+    ====================== */
+    let history = (await redis.get(MEMORY_KEY)) || [];
 
-    // ---------- Store new memory ----------
-    if (
-      message.toLowerCase().includes("favorite") ||
-      message.toLowerCase().includes("i enjoy") ||
-      message.toLowerCase().includes("i like")
-    ) {
-      await redis.rpush(MEMORY_KEY, message);
+    /* ======================
+       BUILD SYSTEM PROMPT
+    ====================== */
+    const systemPrompt = `
+You are Restore AI — a persistent learning intelligence.
+
+User Identity Profile:
+${JSON.stringify(identity, null, 2)}
+
+Rules:
+- Maintain consistency with the user's evolving identity.
+- Adapt tone to communication_style.
+- Speak naturally and conversationally.
+- Never mention identity systems or internal mechanics.
+`;
+
+    /* ======================
+       STYLE ADAPTATION
+    ====================== */
+    let styleInstruction = "Respond clearly and casually.";
+
+    if (identity.communication_style === "reflective") {
+      styleInstruction =
+        "Respond thoughtfully. Ask deeper questions and encourage reflection.";
     }
 
-    // ---------- Build Personality ----------
-    const personalityPrompt = buildPersonality(memories);
-
-    // ---------- Create AI Response ----------
+    /* ======================
+       OPENAI CALL
+    ====================== */
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
-        {
-          role: "system",
-          content: `
-You are Restore AI — a thoughtful assistant that remembers the user.
-
-Known Memories:
-${memories.join("\n")}
-
-${personalityPrompt}
-          `,
-        },
+        { role: "system", content: systemPrompt },
+        { role: "system", content: styleInstruction },
+        ...history,
         { role: "user", content: message },
       ],
     });
 
     const reply = completion.choices[0].message.content;
 
+    /* ======================
+       SAVE MEMORY
+    ====================== */
+    history.push({ role: "user", content: message });
+    history.push({ role: "assistant", content: reply });
+
+    // keep memory manageable
+    history = history.slice(-20);
+
+    await redis.set(MEMORY_KEY, history);
+
     return Response.json({ reply });
   } catch (error) {
     console.error(error);
-    return Response.json(
-      { reply: "Something went wrong." },
-      { status: 200 }
-    );
+    return Response.json({ reply: "Something went wrong." });
   }
 }
