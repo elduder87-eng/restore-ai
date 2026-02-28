@@ -1,5 +1,3 @@
-// app/api/chat/route.js
-
 import OpenAI from "openai";
 
 import { getMemories, addMemory } from "@/lib/memory";
@@ -20,70 +18,72 @@ export async function POST(req) {
       return Response.json({ reply: "No message received." });
     }
 
-    /* ===============================
-       LOAD MEMORY + PROFILE
-    =============================== */
+    /* =========================
+       SAFE MEMORY LOADING
+    ========================= */
 
-    const rawMemories = await getMemories();
-    const learningProfile = await getLearningProfile();
+    let memories = [];
+    let learningProfile = "";
 
-    // 🔧 MEMORY SAFETY NORMALIZATION (fixes crashes)
-    const memories = Array.isArray(rawMemories)
-      ? rawMemories.map((m) =>
-          typeof m === "string"
-            ? m
-            : m?.text || JSON.stringify(m)
-        )
-      : [];
+    try {
+      const rawMemories = await getMemories();
 
-    /* ===============================
-       IDENTITY EXTRACTION
-    =============================== */
-
-    const identity = extractIdentity(message);
-
-    if (identity) {
-      await addMemory(identity);
+      memories = Array.isArray(rawMemories)
+        ? rawMemories.map((m) =>
+            typeof m === "string"
+              ? m
+              : m?.text || JSON.stringify(m)
+          )
+        : [];
+    } catch (err) {
+      console.log("Memory load skipped:", err.message);
     }
 
-    /* ===============================
+    try {
+      learningProfile = await getLearningProfile();
+    } catch (err) {
+      console.log("Learning profile skipped");
+    }
+
+    /* =========================
+       SAFE IDENTITY SAVE
+    ========================= */
+
+    try {
+      const identity = extractIdentity(message);
+      if (identity) {
+        await addMemory(identity);
+      }
+    } catch (err) {
+      console.log("Identity save skipped");
+    }
+
+    /* =========================
        SYSTEM PROMPT
-    =============================== */
+    ========================= */
 
     const systemPrompt = `
-You are Restore AI — a hybrid teacher and thoughtful conversational partner.
+You are Restore AI — a hybrid teacher and thoughtful companion.
 
-CORE GOAL:
-Learning comes FIRST.
-Personal connection develops naturally THROUGH learning.
+Learning comes first.
+Connection develops through learning.
 
 STYLE:
-- Clear teacher explanations
-- Warm but not overly casual
-- Curious and engaging
-- Never robotic
-- Avoid long lectures unless asked
+- Clear explanations
+- Calm pacing
+- Friendly but intelligent
+- Never overly long unless asked
 
-PACE:
-- Do not rush bonding.
-- Do not feel like school.
-- Teach simply, then invite reflection.
+Known memories:
+${memories.join("\n") || "none yet"}
 
-KNOWN USER MEMORIES:
-${memories.length ? memories.join("\n") : "none yet"}
-
-LEARNING PROFILE:
-${learningProfile || "still forming"}
-
-RULES:
-- Explain concepts simply first.
-- Then optionally ask ONE reflective question.
-- Keep responses natural and human.
+Learning profile:
+${learningProfile || "forming"}
 `;
 
-    /* ===============================
+    /* =========================
        OPENAI CALL
-    =============================== */
+    ========================= */
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4.1-mini",
@@ -98,13 +98,9 @@ RULES:
       completion.choices?.[0]?.message?.content ||
       "I'm not sure how to respond yet.";
 
-    /* ===============================
-       RETURN RESPONSE
-    =============================== */
-
     return Response.json({ reply });
   } catch (error) {
-    console.error("CHAT ERROR:", error);
+    console.error("CHAT FAILURE:", error);
 
     return Response.json({
       reply:
