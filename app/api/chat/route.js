@@ -1,61 +1,56 @@
+// app/api/chat/route.js
+
 import OpenAI from "openai";
-import { Redis } from "@upstash/redis";
+import { saveMemory, getMemories } from "@/lib/memory";
+import { buildPersonality, buildSystemPrompt } from "@/lib/personality";
 
-const openai = new OpenAI({
+export const runtime = "edge";
+
+const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
-});
-
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN,
 });
 
 export async function POST(req) {
   try {
     const body = await req.json();
-    const userMessage = body.message;
+    const message = body.message;
 
-    // ✅ Load memory (NO JSON.parse)
-    let memory = (await redis.get("memory")) || [];
-
-    // Store user info if they reveal preferences
-    if (userMessage.toLowerCase().includes("favorite")) {
-      memory.push(userMessage);
-      await redis.set("memory", memory);
+    if (!message) {
+      return new Response(
+        JSON.stringify({ reply: "No message received." }),
+        { status: 400 }
+      );
     }
 
-    const memoryText =
-      memory.length > 0
-        ? `Here is what you remember about the user:\n${memory.join("\n")}`
-        : "You have no stored memories yet.";
+    // ✅ Save memory
+    await saveMemory(message);
 
-    // AI Response
-    const completion = await openai.chat.completions.create({
+    // ✅ Load memories
+    const memories = await getMemories();
+
+    // ✅ Build personality
+    const traits = buildPersonality(memories);
+    const systemPrompt = buildSystemPrompt(traits);
+
+    // ✅ AI response
+    const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
-        {
-          role: "system",
-          content: `You are Restore AI in Teacher Mode.
-
-You remember facts about the user across conversations.
-Use stored memories naturally when answering.
-
-${memoryText}`,
-        },
-        {
-          role: "user",
-          content: userMessage,
-        },
+        { role: "system", content: systemPrompt },
+        { role: "user", content: message },
       ],
     });
 
     const reply = completion.choices[0].message.content;
 
-    return Response.json({ reply });
+    return new Response(JSON.stringify({ reply }), {
+      headers: { "Content-Type": "application/json" },
+    });
   } catch (error) {
     console.error(error);
-    return Response.json(
-      { reply: "Something went wrong." },
+
+    return new Response(
+      JSON.stringify({ reply: "Something went wrong." }),
       { status: 500 }
     );
   }
