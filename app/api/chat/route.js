@@ -1,5 +1,7 @@
 import OpenAI from "openai";
-import { loadMemory, saveMemory, shouldRemember } from "@/lib/memory";
+
+import { saveMemory, loadMemory } from "@/lib/memory";
+import { buildIdentity, loadIdentity } from "@/lib/identity";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -8,34 +10,36 @@ const openai = new OpenAI({
 export async function POST(req) {
   try {
     const { message } = await req.json();
+    const userId = "default";
 
-    const userId = "default-user";
+    // 1️⃣ Load stored memory
+    const memory = await loadMemory(userId);
 
-    /* ======================
-       LOAD MEMORY
-    ====================== */
-    const memories = await loadMemory(userId);
+    // 2️⃣ Rebuild identity from memories
+    await buildIdentity(userId);
 
-    const memoryContext =
-      memories.length > 0
-        ? `Known facts about user:\n${memories.join("\n")}`
-        : "No stored memories yet.";
+    // 3️⃣ Load identity profile
+    const identity = await loadIdentity(userId);
 
-    /* ======================
-       AI RESPONSE
-    ====================== */
+    // 4️⃣ Ask AI with identity awareness
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
           content: `
-You are Restore AI.
+You are Restore AI — a learning assistant.
 
-Use stored memories when relevant.
+User Identity:
+${identity}
 
-${memoryContext}
-          `,
+Known Memories:
+${memory.join("\n")}
+
+Use this information naturally in conversation.
+Do NOT list memories unless asked.
+Be conversational and human.
+`,
         },
         {
           role: "user",
@@ -44,15 +48,16 @@ ${memoryContext}
       ],
     });
 
-    const reply = completion.choices[0].message.content;
+    const reply =
+      completion.choices?.[0]?.message?.content ||
+      "I couldn't generate a response.";
 
-    /* ======================
-       MEMORY JUDGE
-    ====================== */
-    const remember = await shouldRemember(openai, message);
-
-    if (remember) {
-      console.log("Saving memory:", message);
+    // 5️⃣ Store new memory automatically
+    if (
+      message.toLowerCase().includes("my") ||
+      message.toLowerCase().includes("i like") ||
+      message.toLowerCase().includes("i am")
+    ) {
       await saveMemory(userId, message);
     }
 
