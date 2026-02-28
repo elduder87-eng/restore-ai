@@ -1,57 +1,64 @@
-// app/api/chat/route.js
-
 import OpenAI from "openai";
-import { saveMemory, getMemories } from "@/lib/memory";
-import { buildPersonality, buildSystemPrompt } from "@/lib/personality";
+import { Redis } from "@upstash/redis";
+import { buildPersonality } from "@/lib/personality";
 
-export const runtime = "edge";
-
-const client = new OpenAI({
+const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
+});
+
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN,
 });
 
 export async function POST(req) {
   try {
-    const body = await req.json();
-    const message = body.message;
+    const { message } = await req.json();
 
-    if (!message) {
-      return new Response(
-        JSON.stringify({ reply: "No message received." }),
-        { status: 400 }
-      );
+    const MEMORY_KEY = "restore-memory";
+
+    // ---------- Load Memories ----------
+    const memories = (await redis.lrange(MEMORY_KEY, 0, -1)) || [];
+
+    // ---------- Store new memory ----------
+    if (
+      message.toLowerCase().includes("favorite") ||
+      message.toLowerCase().includes("i enjoy") ||
+      message.toLowerCase().includes("i like")
+    ) {
+      await redis.rpush(MEMORY_KEY, message);
     }
 
-    // ✅ Save memory
-    await saveMemory(message);
+    // ---------- Build Personality ----------
+    const personalityPrompt = buildPersonality(memories);
 
-    // ✅ Load memories
-    const memories = await getMemories();
-
-    // ✅ Build personality
-    const traits = buildPersonality(memories);
-    const systemPrompt = buildSystemPrompt(traits);
-
-    // ✅ AI response
-    const completion = await client.chat.completions.create({
+    // ---------- Create AI Response ----------
+    const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
-        { role: "system", content: systemPrompt },
+        {
+          role: "system",
+          content: `
+You are Restore AI — a thoughtful assistant that remembers the user.
+
+Known Memories:
+${memories.join("\n")}
+
+${personalityPrompt}
+          `,
+        },
         { role: "user", content: message },
       ],
     });
 
     const reply = completion.choices[0].message.content;
 
-    return new Response(JSON.stringify({ reply }), {
-      headers: { "Content-Type": "application/json" },
-    });
+    return Response.json({ reply });
   } catch (error) {
     console.error(error);
-
-    return new Response(
-      JSON.stringify({ reply: "Something went wrong." }),
-      { status: 500 }
+    return Response.json(
+      { reply: "Something went wrong." },
+      { status: 200 }
     );
   }
 }
