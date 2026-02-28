@@ -1,111 +1,66 @@
 import OpenAI from "openai";
 
-import { getMemory, saveMemory } from "@/lib/memory";
-import { getIdentity } from "@/lib/identity";
-import { getPersonality } from "@/lib/personality";
-import { getLearningProfile } from "@/lib/learningProfile";
-import { updateCuriosity } from "@/lib/curiosity";
+import { saveMemory, getMemories } from "@/lib/memory";
+import { updateAdaptationProfile } from "@/lib/adaptation";
+import { detectAdaptationSignals } from "@/lib/curiosity";
 
-const openai = new OpenAI({
+const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
 export async function POST(req) {
   try {
-    const { message } = await req.json();
+    const body = await req.json();
+    const message = body.message;
+
     const userId = "default-user";
 
-    // ======================
-    // SAFE LOAD FUNCTIONS
-    // ======================
+    /* ---------------- MEMORY ---------------- */
 
-    let memory = "";
-    let identity = "";
-    let personality = "";
-    let learningProfile = "";
+    await saveMemory(userId, message);
 
-    try {
-      memory = (await getMemory(userId)) || "";
-    } catch (e) {
-      console.log("Memory load failed");
-    }
+    const memories = await getMemories(userId);
 
-    try {
-      identity = (await getIdentity(userId)) || "";
-    } catch (e) {
-      console.log("Identity load failed");
-    }
+    /* ---------------- ADAPTATION ---------------- */
 
-    try {
-      personality = (await getPersonality(userId)) || "";
-    } catch (e) {
-      console.log("Personality load failed");
-    }
+    const signals = detectAdaptationSignals(message);
+    await updateAdaptationProfile(userId, signals);
 
-    try {
-      learningProfile = (await getLearningProfile(userId)) || "";
-    } catch (e) {
-      console.log("Learning profile load failed");
-    }
+    /* ---------------- PROMPT ---------------- */
 
-    // ======================
-    // SYSTEM PROMPT
-    // ======================
+    const memoryContext = memories
+      .slice(-5)
+      .map((m) => `User previously said: ${m}`)
+      .join("\n");
 
     const systemPrompt = `
-You are Restore AI — a thoughtful teaching assistant.
+You are Restore AI — Teacher Mode.
 
-IDENTITY:
-${identity}
+Speak naturally and thoughtfully.
+Build connection gradually.
+Do NOT rush intimacy.
+Adapt slowly based on repeated interaction.
 
-PERSONALITY:
-${personality}
-
-LEARNING PROFILE:
-${learningProfile}
-
-MEMORY:
-${memory}
-
-Be conversational, thoughtful, and curious.
+Known memories:
+${memoryContext}
 `;
 
-    // ======================
-    // OPENAI CALL
-    // ======================
+    /* ---------------- OPENAI ---------------- */
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-5.2",
+    const completion = await client.chat.completions.create({
+      model: "gpt-4o-mini",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: message },
       ],
-      temperature: 0.7,
     });
 
     const reply =
-      completion?.choices?.[0]?.message?.content ||
-      "I'm thinking but couldn't finish that response.";
-
-    // ======================
-    // SAFE SAVES
-    // ======================
-
-    try {
-      await saveMemory(userId, message);
-    } catch {
-      console.log("Memory save failed");
-    }
-
-    try {
-      await updateCuriosity(userId, message, reply);
-    } catch {
-      console.log("Curiosity update failed");
-    }
+      completion.choices[0].message.content;
 
     return Response.json({ reply });
   } catch (error) {
-    console.error("CHAT ERROR:", error);
+    console.error(error);
 
     return Response.json({
       reply: "Something went wrong.",
