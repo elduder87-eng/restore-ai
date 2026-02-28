@@ -1,73 +1,62 @@
 import OpenAI from "openai";
-import { loadMemory, updateMemory } from "@/lib/memory";
-import {
-  updatePersonality,
-  loadPersonality,
-} from "@/lib/personality";
+import { Redis } from "@upstash/redis";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+});
+
 export async function POST(req) {
   try {
-    const { message } = await req.json();
+    const body = await req.json();
+    const userMessage = body.message;
 
-    const userId = "default-user";
+    // ✅ Load memory (NO JSON.parse)
+    let memory = (await redis.get("memory")) || [];
 
-    // ---- MEMORY ----
-    await updateMemory(userId, message);
-    const memory = await loadMemory(userId);
-
-    // ---- PERSONALITY ----
-    await updatePersonality(userId, message);
-    const personality = await loadPersonality(userId);
-
-    const memoryPrompt = `
-User Memory:
-Favorite Color: ${memory.favorite_color || "Unknown"}
-Favorite Food: ${memory.favorite_food || "Unknown"}
-Favorite Movie: ${memory.favorite_movie || "Unknown"}
-`;
-
-    const personalityPrompt = `
-User Interaction Style:
-Depth Preference: ${personality.depth_preference || "normal"}
-Conversation Style: ${
-      personality.conversation_style || "balanced"
-    }
-Tone Preference: ${
-      personality.tone_preference || "friendly"
+    // Store user info if they reveal preferences
+    if (userMessage.toLowerCase().includes("favorite")) {
+      memory.push(userMessage);
+      await redis.set("memory", memory);
     }
 
-Adapt responses to match this style.
-`;
+    const memoryText =
+      memory.length > 0
+        ? `Here is what you remember about the user:\n${memory.join("\n")}`
+        : "You have no stored memories yet.";
 
+    // AI Response
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
-          content:
-            "You are Restore AI, a thoughtful adaptive assistant.\n" +
-            memoryPrompt +
-            personalityPrompt,
+          content: `You are Restore AI in Teacher Mode.
+
+You remember facts about the user across conversations.
+Use stored memories naturally when answering.
+
+${memoryText}`,
         },
         {
           role: "user",
-          content: message,
+          content: userMessage,
         },
       ],
     });
 
-    const reply =
-      completion.choices[0].message.content;
+    const reply = completion.choices[0].message.content;
 
     return Response.json({ reply });
   } catch (error) {
     console.error(error);
-    return Response.json({
-      reply: "Something went wrong.",
-    });
+    return Response.json(
+      { reply: "Something went wrong." },
+      { status: 500 }
+    );
   }
 }
