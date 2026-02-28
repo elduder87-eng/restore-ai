@@ -1,95 +1,85 @@
-// app/api/chat/route.js
-
 import OpenAI from "openai";
-import { redis } from "@/lib/redis";
-import { NextResponse } from "next/server";
+import { saveMemory, getMemories } from "@/lib/memory";
+import { saveLearningSignal, getLearningProfile } from "@/lib/learningMemory";
 
-// --------------------
-// OpenAI Client
-// --------------------
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// --------------------
-// POST Handler
-// --------------------
 export async function POST(req) {
   try {
-    const { message, userId = "default-user" } = await req.json();
+    const body = await req.json();
+    const userMessage = body.message;
 
-    if (!message) {
-      return NextResponse.json({ reply: "No message received." });
+    if (!userMessage) {
+      return Response.json({ reply: "No message received." });
     }
 
-    // --------------------
-    // Load Memory
-    // --------------------
-    const memoryKey = `memory:${userId}`;
-    let memory = await redis.get(memoryKey);
+    /* =============================
+       SAVE LEARNING SIGNAL
+    ============================= */
 
-    if (!memory) {
-      memory = [];
-    }
+    await saveLearningSignal(userMessage);
 
-    // Add user message to memory
-    memory.push({
-      role: "user",
-      content: message,
-    });
+    /* =============================
+       LOAD MEMORY
+    ============================= */
 
-    // Keep memory size reasonable
-    memory = memory.slice(-10);
+    const memories = await getMemories();
+    const learningProfile = await getLearningProfile();
 
-    // --------------------
-    // System Personality
-    // --------------------
-    const systemPrompt = {
-      role: "system",
-      content: `
-You are Restore AI operating in Teacher Mode.
+    /* =============================
+       SYSTEM PROMPT
+    ============================= */
 
-You are a hybrid between a thoughtful teacher and a supportive friend.
-You help users learn while building a genuine connection.
+    const systemPrompt = `
+You are Restore AI — a hybrid teacher and thoughtful companion.
 
-Guidelines:
-- Be warm but intellectually engaging.
-- Encourage curiosity.
-- Ask occasional reflective questions.
-- Do NOT rush emotional bonding.
-- Let connection grow naturally over time.
-`,
-    };
+Personality:
+- Warm, intelligent, calm
+- Encouraging but not overly casual
+- Educational first, connection second
+- Never robotic
 
-    const messages = [systemPrompt, ...memory];
+Learning style detected:
+${learningProfile.join(", ") || "unknown"}
 
-    // --------------------
-    // OpenAI Call
-    // --------------------
+Known user memories:
+${memories.join("\n") || "none yet"}
+
+Adapt explanations naturally to match the user's learning style.
+Keep responses human and engaging.
+`;
+
+    /* =============================
+       OPENAI CALL
+    ============================= */
+
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
-      messages,
-      temperature: 0.7,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userMessage },
+      ],
     });
 
-    const reply = completion.choices[0].message.content;
+    const reply =
+      completion.choices?.[0]?.message?.content ||
+      "I'm thinking… try again.";
 
-    // Save AI reply into memory
-    memory.push({
-      role: "assistant",
-      content: reply,
-    });
+    /* =============================
+       SAVE MEMORY (simple capture)
+    ============================= */
 
-    await redis.set(memoryKey, memory);
+    if (userMessage.length < 200) {
+      await saveMemory(userMessage);
+    }
 
-    // --------------------
-    // Return Response
-    // --------------------
-    return NextResponse.json({ reply });
+    return Response.json({ reply });
   } catch (error) {
     console.error("CHAT ERROR:", error);
 
-    return NextResponse.json({
+    return Response.json({
       reply:
         "I'm having a small technical hiccup — but I'm still here. Try again in a moment.",
     });
