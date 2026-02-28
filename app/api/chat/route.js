@@ -1,6 +1,12 @@
+// app/api/chat/route.js
+
 import OpenAI from "openai";
-import { saveMemory, getMemories } from "@/lib/memory";
-import { saveLearningSignal, getLearningProfile } from "@/lib/learningMemory";
+
+import { getMemories, addMemory } from "@/lib/memory";
+import { getLearningProfile } from "@/lib/learningProfile";
+import { extractIdentity } from "@/lib/extractIdentity";
+
+export const runtime = "edge";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -8,72 +14,93 @@ const openai = new OpenAI({
 
 export async function POST(req) {
   try {
-    const body = await req.json();
-    const userMessage = body.message;
+    const { message } = await req.json();
 
-    if (!userMessage) {
+    if (!message) {
       return Response.json({ reply: "No message received." });
     }
 
-    /* =============================
-       SAVE LEARNING SIGNAL
-    ============================= */
+    /* ===============================
+       LOAD MEMORY + PROFILE
+    =============================== */
 
-    await saveLearningSignal(userMessage);
-
-    /* =============================
-       LOAD MEMORY
-    ============================= */
-
-    const memories = await getMemories();
+    const rawMemories = await getMemories();
     const learningProfile = await getLearningProfile();
 
-    /* =============================
+    // 🔧 MEMORY SAFETY NORMALIZATION (fixes crashes)
+    const memories = Array.isArray(rawMemories)
+      ? rawMemories.map((m) =>
+          typeof m === "string"
+            ? m
+            : m?.text || JSON.stringify(m)
+        )
+      : [];
+
+    /* ===============================
+       IDENTITY EXTRACTION
+    =============================== */
+
+    const identity = extractIdentity(message);
+
+    if (identity) {
+      await addMemory(identity);
+    }
+
+    /* ===============================
        SYSTEM PROMPT
-    ============================= */
+    =============================== */
 
     const systemPrompt = `
-You are Restore AI — a hybrid teacher and thoughtful companion.
+You are Restore AI — a hybrid teacher and thoughtful conversational partner.
 
-Personality:
-- Warm, intelligent, calm
-- Encouraging but not overly casual
-- Educational first, connection second
+CORE GOAL:
+Learning comes FIRST.
+Personal connection develops naturally THROUGH learning.
+
+STYLE:
+- Clear teacher explanations
+- Warm but not overly casual
+- Curious and engaging
 - Never robotic
+- Avoid long lectures unless asked
 
-Learning style detected:
-${learningProfile.join(", ") || "unknown"}
+PACE:
+- Do not rush bonding.
+- Do not feel like school.
+- Teach simply, then invite reflection.
 
-Known user memories:
-${memories.join("\n") || "none yet"}
+KNOWN USER MEMORIES:
+${memories.length ? memories.join("\n") : "none yet"}
 
-Adapt explanations naturally to match the user's learning style.
-Keep responses human and engaging.
+LEARNING PROFILE:
+${learningProfile || "still forming"}
+
+RULES:
+- Explain concepts simply first.
+- Then optionally ask ONE reflective question.
+- Keep responses natural and human.
 `;
 
-    /* =============================
+    /* ===============================
        OPENAI CALL
-    ============================= */
+    =============================== */
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-4.1-mini",
       messages: [
         { role: "system", content: systemPrompt },
-        { role: "user", content: userMessage },
+        { role: "user", content: message },
       ],
+      temperature: 0.7,
     });
 
     const reply =
       completion.choices?.[0]?.message?.content ||
-      "I'm thinking… try again.";
+      "I'm not sure how to respond yet.";
 
-    /* =============================
-       SAVE MEMORY (simple capture)
-    ============================= */
-
-    if (userMessage.length < 200) {
-      await saveMemory(userMessage);
-    }
+    /* ===============================
+       RETURN RESPONSE
+    =============================== */
 
     return Response.json({ reply });
   } catch (error) {
