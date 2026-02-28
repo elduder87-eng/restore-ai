@@ -1,45 +1,31 @@
+// app/lib/memory.js
+
 import { Redis } from "@upstash/redis";
 
-/*
-  Restore AI — Memory Layer
-  Connects to Upstash Redis using Vercel environment variables
-*/
-
+// Create REST-based Redis client
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL,
   token: process.env.UPSTASH_REDIS_REST_TOKEN,
 });
 
-/* -----------------------------
-   Save Memory
---------------------------------*/
-export async function saveMemory(key, value) {
+// Save memory
+export async function saveMemory(userId, key, value) {
   try {
-    await redis.set(key, value);
-  } catch (error) {
-    console.error("Memory save error:", error);
+    await redis.hset(`memory:${userId}`, {
+      [key]: value,
+    });
+  } catch (err) {
+    console.error("Memory save error:", err);
   }
 }
 
-/* -----------------------------
-   Get Memory
---------------------------------*/
-export async function getMemory(key) {
+// Get memory
+export async function getMemory(userId) {
   try {
-    return await redis.get(key);
-  } catch (error) {
-    console.error("Memory read error:", error);
-    return null;
-  }
-}
-
-/* -----------------------------
-   Delete Memory (optional helper)
---------------------------------*/
-export async function deleteMemory(key) {
-  try {
-    await redis.del(key);
-  } catch (error) {
-    console.error("Memory delete error:", error);
+    const data = await redis.hgetall(`memory:${userId}`);
+    return data || {};
+  } catch (err) {
+    console.error("Memory fetch error:", err);
+    return {};
   }
 }
