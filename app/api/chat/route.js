@@ -1,62 +1,83 @@
-import { getMemory, saveMemory } from "@/lib/memory";
+import { loadMemory, saveMemory } from "@/lib/memory";
 
 export async function POST(req) {
   try {
     const body = await req.json();
-    const userMessage = body.message;
+    const message = body.message || "";
 
-    // Load memory
-    const memory = await getMemory();
+    const userId = "default";
 
-    const messages = [
-      {
-        role: "system",
-        content:
-          "You are Restore AI — a calm hybrid teacher and companion. Education leads naturally, but conversation follows the learner."
-      },
-      ...memory,
-      { role: "user", content: userMessage }
-    ];
+    // ✅ Load memory
+    const memory = await loadMemory(userId);
 
-    // Call OpenAI
+    // -------------------------
+    // SIMPLE MEMORY DETECTION
+    // -------------------------
+    const lower = message.toLowerCase();
+
+    if (lower.includes("i enjoy")) {
+      const interest = message.replace(/i enjoy/i, "").trim();
+
+      if (!memory.interests.includes(interest)) {
+        memory.interests.push(interest);
+        await saveMemory(userId, memory);
+      }
+    }
+
+    // -------------------------
+    // BUILD SYSTEM CONTEXT
+    // -------------------------
+    let memoryContext = "";
+
+    if (memory.interests.length > 0) {
+      memoryContext += `User interests: ${memory.interests.join(", ")}.\n`;
+    }
+
+    const systemPrompt = `
+You are Restore AI — a calm hybrid teacher and companion.
+
+Teach clearly and simply.
+Follow the direction of conversation naturally.
+Do not force topics.
+
+${memoryContext}
+`;
+
+    // -------------------------
+    // OPENAI CALL
+    // -------------------------
     const response = await fetch(
       "https://api.openai.com/v1/chat/completions",
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
         },
         body: JSON.stringify({
           model: "gpt-4o-mini",
-          messages,
-          temperature: 0.7
-        })
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: message },
+          ],
+          temperature: 0.7,
+        }),
       }
     );
 
     const data = await response.json();
 
-    const aiReply =
+    const reply =
       data?.choices?.[0]?.message?.content ||
-      "I'm having a small technical hiccup — but I'm still here.";
+      "I'm having a small technical hiccup — but I'm still here. Try again in a moment.";
 
-    // Save updated memory
-    const updatedMemory = [
-      ...memory,
-      { role: "user", content: userMessage },
-      { role: "assistant", content: aiReply }
-    ];
-
-    await saveMemory(updatedMemory);
-
-    return Response.json({ reply: aiReply });
+    return Response.json({ reply });
   } catch (error) {
     console.error("CHAT ERROR:", error);
 
     return Response.json({
       reply:
-        "I'm having a small technical hiccup — but I'm still here. Try again in a moment."
+        "I'm having a small technical hiccup — but I'm still here. Try again in a moment.",
     });
   }
 }
