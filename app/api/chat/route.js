@@ -1,17 +1,11 @@
-// app/api/chat/route.js
-
 import OpenAI from "openai";
 
-import { saveMemory, loadMemory } from "@/lib/memory";
-import { saveStudentMemory } from "@/lib/studentMemory";
-import {
-  analyzeConversation,
-  guidanceLevel,
-} from "@/lib/conversationState";
-import {
-  updateMomentum,
-  getMomentum,
-} from "@/lib/momentum";
+import { getIdentitySummary } from "@/lib/identity";
+import { updateStudentMemory } from "@/lib/studentMemory";
+import { updateLearningProfile } from "@/lib/learningProfile";
+import { updatePersonality } from "@/lib/personality";
+import { updateCuriosity } from "@/lib/curiosity";
+import { updateInsights } from "@/lib/insights";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -19,67 +13,103 @@ const openai = new OpenAI({
 
 export async function POST(req) {
   try {
-    const { message } = await req.json();
+    const { message, history = [], userId = "default-user" } =
+      await req.json();
 
-    // ✅ Analyze conversation
-    const signals = analyzeConversation(message);
-    const guidance = guidanceLevel(signals);
+    /* -----------------------------
+       LOAD USER IDENTITY
+    ------------------------------ */
 
-    // ✅ Update momentum
-    await updateMomentum(message);
-    const momentum = await getMomentum();
+    const identity = await getIdentitySummary(userId);
 
-    // ✅ Load memory
-    const memories = await loadMemory();
+    /* -----------------------------
+       UPDATE MEMORY SYSTEMS
+    ------------------------------ */
 
-    const memoryContext = memories
-      .map((m) => `User previously said: ${m.message}`)
-      .join("\n");
+    await Promise.all([
+      updateStudentMemory(userId, message),
+      updateLearningProfile(userId, message),
+      updatePersonality(userId, message),
+      updateCuriosity(userId, message),
+      updateInsights(userId, message),
+    ]);
 
-    // ✅ Generate AI response
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4.1-mini",
-      messages: [
-        {
-          role: "system",
-          content: `
-You are Restore — a hybrid teacher and supportive learning companion.
+    /* -----------------------------
+       RESTORE CORE SYSTEM PROMPT
+    ------------------------------ */
 
-Core Principles:
+    const systemPrompt = `
+You are Restore — an adaptive AI learning companion.
+
+Restore is NOT a chatbot.
+Restore is a hybrid teacher + thoughtful guide.
+
+GOAL:
+Help the user learn, grow curiosity, and build confidence through natural conversation.
+
+IDENTITY MEMORY:
+${identity || "No stored identity yet."}
+
+CORE PRINCIPLES:
 - The user leads the conversation.
-- Offer guidance invisibly.
-- Education leads, personality supports.
-- Never abruptly redirect topics.
+- Education is the primary focus.
+- Personal connection supports learning but never replaces it.
+- Conversations should feel natural and human.
+- Do not rush learning.
+- Do not slow learning unnecessarily.
+- Match the user's curiosity level.
+- Assume conversational context when obvious; avoid unnecessary clarification questions.
+- Never abruptly change subjects.
+- Offer exploration gently (ex: “If you’re interested, we could explore…”).
 
-Guidance Style: ${guidance}
+TEACHING STYLE:
+- Explain clearly and simply first.
+- Expand only if curiosity increases.
+- Use analogies when helpful.
+- Encourage thinking without sounding like school instruction.
+- Avoid lectures unless the user clearly wants depth.
 
-Conversation Momentum:
-Learning: ${momentum.learning}
-Curiosity: ${momentum.curiosity}
-Personal: ${momentum.personal}
+TONE:
+Warm, intelligent, calm, encouraging.
+Never robotic.
+Never overly casual.
+Never overly academic.
 
-Increase depth naturally as momentum grows.
+IMPORTANT:
+The conversation direction should emerge naturally from the user.
+`;
 
-Past Memory:
-${memoryContext}
-`,
-        },
-        {
-          role: "user",
-          content: message,
-        },
-      ],
+    /* -----------------------------
+       BUILD MESSAGE ARRAY
+    ------------------------------ */
+
+    const messages = [
+      { role: "system", content: systemPrompt },
+      ...history,
+      { role: "user", content: message },
+    ];
+
+    /* -----------------------------
+       OPENAI RESPONSE
+    ------------------------------ */
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages,
+      temperature: 0.7,
     });
 
     const reply = completion.choices[0].message.content;
 
-    // ✅ Save memories
-    await saveMemory(message);
-    await saveStudentMemory(message);
+    /* -----------------------------
+       RETURN RESPONSE
+    ------------------------------ */
 
-    return Response.json({ reply });
+    return Response.json({
+      reply,
+    });
   } catch (error) {
-    console.error("Chat Route Error:", error);
+    console.error("Restore Error:", error);
 
     return Response.json({
       reply:
