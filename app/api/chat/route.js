@@ -1,60 +1,74 @@
-import { getMemory, saveInterest } from "../../../lib/memory";
+import OpenAI from "openai";
+import { getMemory, saveInterest } from "@/lib/memory";
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
 
 export async function POST(req) {
   try {
-    const body = await req.json();
-    const message = body.message || "";
+    const { message } = await req.json();
 
     const userId = "default-user";
 
+    // --- MEMORY ---
     const memory = getMemory(userId);
 
     const lower = message.toLowerCase();
 
-    // Detect interests
-    if (lower.includes("i like")) {
-      const interest = lower.replace("i like", "").trim();
-      if (interest) saveInterest(userId, interest);
+    if (lower.includes("i enjoy") || lower.includes("i like")) {
+      const interest = message
+        .replace(/i enjoy|i like/gi, "")
+        .trim();
+
+      saveInterest(userId, interest);
     }
 
-    if (lower.includes("i enjoy")) {
-      const interest = lower.replace("i enjoy", "").trim();
-      if (interest) saveInterest(userId, interest);
+    // --- MEMORY CONTEXT ---
+    let memoryContext = "";
+
+    if (memory.interests.length > 0) {
+      memoryContext =
+        "The user has shown interest in: " +
+        memory.interests.join(", ") +
+        ".";
     }
 
-    // Memory recall
+    // --- AI CALL ---
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are Restore AI, a calm educational assistant focused on teaching clearly and encouraging curiosity."
+        },
+        {
+          role: "system",
+          content: memoryContext
+        },
+        {
+          role: "user",
+          content: message
+        }
+      ]
+    });
+
+    const reply = completion.choices[0].message.content;
+
+    // --- MEMORY QUESTION HANDLER ---
     if (lower.includes("what do you remember")) {
-      if (memory.interests.length === 0) {
-        return Response.json({
-          reply: "I'm still getting to know you!"
-        });
-      }
-
       return Response.json({
-        reply: `I remember that you're interested in ${memory.interests.join(", ")}.`
+        reply:
+          memory.interests.length > 0
+            ? `I remember that you're interested in ${memory.interests.join(
+                ", "
+              )}.`
+            : "I'm still getting to know you!"
       });
     }
 
-    // Simple teaching responses
-    let reply = "Tell me more!";
-
-    if (lower.includes("astronomy")) {
-      reply =
-        "Astronomy explores stars, planets, galaxies, and the universe itself. What part interests you most?";
-    }
-
-    if (lower.includes("biology")) {
-      reply =
-        "Biology studies living organisms — from tiny cells to entire ecosystems.";
-    }
-
-    if (lower.includes("gravity")) {
-      reply =
-        "Gravity is a force that pulls objects toward each other. Earth's gravity keeps us on the ground and planets in orbit.";
-    }
-
     return Response.json({ reply });
-
   } catch (error) {
     console.error("CHAT ERROR:", error);
 
