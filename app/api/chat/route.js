@@ -1,6 +1,5 @@
 import OpenAI from "openai";
-import { redis, saveMessage, getMessages, saveLearningStyle, getLearningStyle } from "@/lib/memory";
-import { detectLearningStyle } from "@/lib/learningStyle";
+import { saveMessage, getMessages } from "@/lib/memory";
 
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -12,56 +11,46 @@ export async function POST(req) {
 
     const userId = "default-user";
 
-    // --------------------
-    // SAVE USER MESSAGE
-    // --------------------
-    await saveMessage(userId, "user", message);
-
-    // --------------------
-    // UPDATE LEARNING STYLE
-    // --------------------
-    const existingStyle = await getLearningStyle(userId);
-    const updatedStyle = detectLearningStyle(message, existingStyle);
-    await saveLearningStyle(userId, updatedStyle);
-
-    // --------------------
-    // GET CHAT HISTORY
-    // --------------------
+    // Load memory
     const history = await getMessages(userId);
 
-    // --------------------
-    // SYSTEM PROMPT
-    // --------------------
-    const systemPrompt = {
-      role: "system",
-      content: `
-You are Restore AI — a hybrid teacher and learning companion.
-
-Goals:
-- Teach clearly and simply.
-- Adapt to the learner naturally.
-- Follow the user's conversational direction.
-- Be educational first, personal second.
-- Never rush or overwhelm.
-      `,
-    };
-
-    // --------------------
-    // OPENAI RESPONSE
-    // --------------------
-    const completion = await client.chat.completions.create({
-      model: "gpt-5-mini",
-      messages: [systemPrompt, ...history],
+    // Save user message
+    await saveMessage(userId, {
+      role: "user",
+      content: message,
     });
 
-    const reply = completion.choices[0].message.content;
+    const messages = [
+      {
+        role: "system",
+        content:
+          "You are Restore, a calm and encouraging AI teacher. Explain clearly and simply.",
+      },
+      ...history,
+      {
+        role: "user",
+        content: message,
+      },
+    ];
 
-    // save AI reply
-    await saveMessage(userId, "assistant", reply);
+    // ✅ NEW OPENAI CALL (IMPORTANT)
+    const completion = await client.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages,
+    });
+
+    const reply =
+      completion.choices[0].message.content;
+
+    // Save AI response
+    await saveMessage(userId, {
+      role: "assistant",
+      content: reply,
+    });
 
     return Response.json({ reply });
   } catch (error) {
-    console.error(error);
+    console.error("CHAT ERROR:", error);
 
     return Response.json({
       reply:
