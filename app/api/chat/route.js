@@ -1,8 +1,5 @@
 import OpenAI from "openai";
-
-import { getMemory, addMemory } from "@/lib/memory";
-import { getIdentity } from "@/lib/identity";
-import { detectSignals, storeSignals } from "@/lib/signals";
+import { getMemory, saveInterest } from "@/lib/memory";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -10,68 +7,76 @@ const openai = new OpenAI({
 
 export async function POST(req) {
   try {
-    const body = await req.json();
-    const userMessage = body.message;
+    const { message, history = [] } = await req.json();
 
-    const userId = "default-user";
+    const userId = "demo-user";
 
-    /* -----------------------------
-       Stage 20 — Learning Signals
-    ------------------------------ */
-    const signals = detectSignals(userMessage);
-    await storeSignals(userId, signals);
+    // -----------------------------
+    // MEMORY DETECTION
+    // -----------------------------
+    const interestMatch = message.match(/i (like|love|enjoy) (.+)/i);
 
-    /* -----------------------------
-       Memory + Identity
-    ------------------------------ */
-    const memory = await getMemory(userId);
-    const identity = await getIdentity(userId);
+    if (interestMatch) {
+      const interest = interestMatch[2];
+      saveInterest(userId, interest);
+    }
 
-    /* -----------------------------
-       Build system context
-    ------------------------------ */
-    const systemMessage = `
-You are Restore AI.
+    const memory = getMemory(userId);
 
-You are a calm hybrid between teacher and thoughtful learning companion.
+    // -----------------------------
+    // MEMORY RECALL
+    // -----------------------------
+    if (/what do you remember about me/i.test(message)) {
+      let memorySummary = "I'm still getting to know you.";
 
-User Identity:
-${identity || "None yet"}
+      if (memory.interests.length > 0) {
+        memorySummary =
+          "I remember that you're interested in " +
+          memory.interests.join(", ") +
+          ".";
+      }
 
-User Memory:
-${memory.join(", ") || "None yet"}
+      return Response.json({
+        reply: memorySummary,
+      });
+    }
 
-Guidelines:
-- Follow the conversation naturally
-- Teach when teaching is needed
-- Be conversational when appropriate
-- Encourage curiosity gently
+    // -----------------------------
+    // BUILD CONTEXT
+    // -----------------------------
+    const systemPrompt = `
+You are Restore AI, a calm educational companion.
+
+Teach simply.
+Be encouraging.
+Follow the user's curiosity naturally.
+
+Known user interests: ${
+      memory.interests.length
+        ? memory.interests.join(", ")
+        : "none yet"
+    }
 `;
 
-    /* -----------------------------
-       OpenAI Response
-    ------------------------------ */
+    const messages = [
+      { role: "system", content: systemPrompt },
+      ...history,
+      { role: "user", content: message },
+    ];
+
+    // -----------------------------
+    // OPENAI RESPONSE
+    // -----------------------------
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: systemMessage },
-        { role: "user", content: userMessage },
-      ],
+      messages,
+      temperature: 0.7,
     });
 
     const reply = completion.choices[0].message.content;
 
-    /* -----------------------------
-       Save memory automatically
-    ------------------------------ */
-    if (
-      userMessage.toLowerCase().includes("i like") ||
-      userMessage.toLowerCase().includes("i enjoy")
-    ) {
-      await addMemory(userId, userMessage);
-    }
-
     return Response.json({ reply });
+
   } catch (error) {
     console.error("CHAT ERROR:", error);
 
