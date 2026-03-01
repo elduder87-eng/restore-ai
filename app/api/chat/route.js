@@ -1,8 +1,7 @@
+// app/api/chat/route.js
+
 import OpenAI from "openai";
-import { saveMemory, getMemories } from "@/lib/memory";
-import { extractIdentity } from "@/lib/extractIdentity";
-import { buildPersonality } from "@/lib/personality";
-import { curiosityEngine } from "@/lib/curiosity";
+import { saveMemory, getHistory, getTopic } from "@/lib/memory";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -10,83 +9,59 @@ const openai = new OpenAI({
 
 export async function POST(req) {
   try {
-    const { message } = await req.json();
+    const { message, userId = "default-user" } = await req.json();
 
-    const userId = "default-user";
+    // Save user message
+    await saveMemory(userId, message);
 
-    // SAFE MEMORY LOAD
-    let memories = [];
-    try {
-      memories = await getMemories(userId);
-    } catch (e) {
-      console.log("Memory load failed:", e);
+    // Load memory
+    const history = await getHistory(userId);
+    const currentTopic = await getTopic(userId);
+
+    // Base Restore personality
+    let systemPrompt = `
+You are Restore, a hybrid teacher and companion AI.
+
+Core behavior:
+- Education is primary.
+- Conversation feels natural and human.
+- The user leads the direction.
+- Do not abruptly change subjects.
+- Teach simply when teaching is requested.
+`;
+
+    // Topic awareness (NEW)
+    if (currentTopic) {
+      systemPrompt += `
+The user is currently interested in ${currentTopic}.
+If teaching is requested, prefer examples from this topic.
+`;
     }
 
-    // SAFE IDENTITY EXTRACTION
-    try {
-      await extractIdentity(userId, message);
-    } catch (e) {
-      console.log("Identity extraction failed:", e);
-    }
-
-    // SAFE MEMORY SAVE
-    try {
-      await saveMemory(userId, message);
-    } catch (e) {
-      console.log("Memory save failed:", e);
-    }
-
-    // BUILD PERSONALITY
-    let personality = "";
-    try {
-      personality = await buildPersonality(userId);
-    } catch (e) {
-      console.log("Personality build failed:", e);
-    }
-
-    // CURIOSITY ENGINE
-    let curiosity = "";
-    try {
-      curiosity = await curiosityEngine(userId, message);
-    } catch (e) {
-      console.log("Curiosity failed:", e);
-    }
+    const messages = [
+      { role: "system", content: systemPrompt },
+      ...history.map((msg) => ({
+        role: "user",
+        content: msg,
+      })),
+      { role: "user", content: message },
+    ];
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content: `
-You are Restore AI — a hybrid teacher and companion.
-
-${personality}
-
-Known memories:
-${memories.join("\n")}
-
-Curiosity suggestions:
-${curiosity}
-
-Rules:
-- Follow user's direction
-- Teach when needed
-- Stay natural and calm
-          `,
-        },
-        {
-          role: "user",
-          content: message,
-        },
-      ],
+      messages,
+      temperature: 0.7,
     });
 
-    return Response.json({
-      reply: completion.choices[0].message.content,
-    });
+    const reply = completion.choices[0].message.content;
+
+    // Save AI reply too
+    await saveMemory(userId, reply);
+
+    return Response.json({ reply });
 
   } catch (error) {
-    console.error("CHAT ERROR:", error);
+    console.error(error);
 
     return Response.json({
       reply:
