@@ -1,13 +1,9 @@
 import OpenAI from "openai";
-import { Redis } from "@upstash/redis";
+import { redis, saveMessage, getMessages, saveLearningStyle, getLearningStyle } from "@/lib/memory";
+import { detectLearningStyle } from "@/lib/learningStyle";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
-
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN
+const client = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
 export async function POST(req) {
@@ -16,78 +12,60 @@ export async function POST(req) {
 
     const userId = "default-user";
 
-    // -------------------------
-    // Load remembered topic
-    // -------------------------
-    let topic = await redis.get(`topic:${userId}`);
+    // --------------------
+    // SAVE USER MESSAGE
+    // --------------------
+    await saveMessage(userId, "user", message);
 
-    // Detect interests
-    const interests = [
-      "astronomy",
-      "psychology",
-      "science",
-      "math",
-      "history",
-      "philosophy",
-      "biology"
-    ];
+    // --------------------
+    // UPDATE LEARNING STYLE
+    // --------------------
+    const existingStyle = await getLearningStyle(userId);
+    const updatedStyle = detectLearningStyle(message, existingStyle);
+    await saveLearningStyle(userId, updatedStyle);
 
-    const lower = message.toLowerCase();
+    // --------------------
+    // GET CHAT HISTORY
+    // --------------------
+    const history = await getMessages(userId);
 
-    for (const interest of interests) {
-      if (lower.includes(interest)) {
-        topic = interest;
-        await redis.set(`topic:${userId}`, interest);
-        break;
-      }
-    }
+    // --------------------
+    // SYSTEM PROMPT
+    // --------------------
+    const systemPrompt = {
+      role: "system",
+      content: `
+You are Restore AI — a hybrid teacher and learning companion.
 
-    // -------------------------
-    // SYSTEM PROMPT (Stage 18.5)
-    // -------------------------
-    const systemPrompt = `
-You are Restore AI — a hybrid teacher and conversational learning companion.
+Goals:
+- Teach clearly and simply.
+- Adapt to the learner naturally.
+- Follow the user's conversational direction.
+- Be educational first, personal second.
+- Never rush or overwhelm.
+      `,
+    };
 
-Personality:
-- Warm, calm, encouraging.
-- Intelligent but approachable.
-- Never robotic.
-
-Core Rules:
-- Education is the primary goal.
-- The user leads the conversation.
-- Do not force topic changes.
-- Follow curiosity naturally.
-- Teach clearly and simply when teaching is requested.
-
-Conversation Continuity Rule:
-If an active interest topic exists (${topic || "none"}),
-prefer teaching WITHIN that topic unless the user clearly changes subjects.
-
-Learning should feel natural, personal, and continuous.
-`;
-
-    // -------------------------
-    // OpenAI Call
-    // -------------------------
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: message }
-      ]
+    // --------------------
+    // OPENAI RESPONSE
+    // --------------------
+    const completion = await client.chat.completions.create({
+      model: "gpt-5-mini",
+      messages: [systemPrompt, ...history],
     });
 
     const reply = completion.choices[0].message.content;
 
-    return Response.json({ reply });
+    // save AI reply
+    await saveMessage(userId, "assistant", reply);
 
+    return Response.json({ reply });
   } catch (error) {
     console.error(error);
 
     return Response.json({
       reply:
-        "I'm having a small technical hiccup — but I'm still here. Try again in a moment."
+        "I'm having a small technical hiccup — but I'm still here. Try again in a moment.",
     });
   }
 }
