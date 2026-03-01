@@ -1,75 +1,75 @@
-import { loadMemory, saveMemory } from "@/lib/memory";
+import OpenAI from "openai";
+
+import { getMemory, addMemory } from "@/lib/memory";
+import { getIdentity } from "@/lib/identity";
+import { detectSignals, storeSignals } from "@/lib/signals";
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 export async function POST(req) {
   try {
     const body = await req.json();
-    const message = body.message || "";
+    const userMessage = body.message;
 
-    const userId = "default";
+    const userId = "default-user";
 
-    // ✅ Load memory
-    const memory = await loadMemory(userId);
+    /* -----------------------------
+       Stage 20 — Learning Signals
+    ------------------------------ */
+    const signals = detectSignals(userMessage);
+    await storeSignals(userId, signals);
 
-    // -------------------------
-    // SIMPLE MEMORY DETECTION
-    // -------------------------
-    const lower = message.toLowerCase();
+    /* -----------------------------
+       Memory + Identity
+    ------------------------------ */
+    const memory = await getMemory(userId);
+    const identity = await getIdentity(userId);
 
-    if (lower.includes("i enjoy")) {
-      const interest = message.replace(/i enjoy/i, "").trim();
+    /* -----------------------------
+       Build system context
+    ------------------------------ */
+    const systemMessage = `
+You are Restore AI.
 
-      if (!memory.interests.includes(interest)) {
-        memory.interests.push(interest);
-        await saveMemory(userId, memory);
-      }
-    }
+You are a calm hybrid between teacher and thoughtful learning companion.
 
-    // -------------------------
-    // BUILD SYSTEM CONTEXT
-    // -------------------------
-    let memoryContext = "";
+User Identity:
+${identity || "None yet"}
 
-    if (memory.interests.length > 0) {
-      memoryContext += `User interests: ${memory.interests.join(", ")}.\n`;
-    }
+User Memory:
+${memory.join(", ") || "None yet"}
 
-    const systemPrompt = `
-You are Restore AI — a calm hybrid teacher and companion.
-
-Teach clearly and simply.
-Follow the direction of conversation naturally.
-Do not force topics.
-
-${memoryContext}
+Guidelines:
+- Follow the conversation naturally
+- Teach when teaching is needed
+- Be conversational when appropriate
+- Encourage curiosity gently
 `;
 
-    // -------------------------
-    // OPENAI CALL
-    // -------------------------
-    const response = await fetch(
-      "https://api.openai.com/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        },
-        body: JSON.stringify({
-          model: "gpt-4o-mini",
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: message },
-          ],
-          temperature: 0.7,
-        }),
-      }
-    );
+    /* -----------------------------
+       OpenAI Response
+    ------------------------------ */
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: systemMessage },
+        { role: "user", content: userMessage },
+      ],
+    });
 
-    const data = await response.json();
+    const reply = completion.choices[0].message.content;
 
-    const reply =
-      data?.choices?.[0]?.message?.content ||
-      "I'm having a small technical hiccup — but I'm still here. Try again in a moment.";
+    /* -----------------------------
+       Save memory automatically
+    ------------------------------ */
+    if (
+      userMessage.toLowerCase().includes("i like") ||
+      userMessage.toLowerCase().includes("i enjoy")
+    ) {
+      await addMemory(userId, userMessage);
+    }
 
     return Response.json({ reply });
   } catch (error) {
