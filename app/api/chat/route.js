@@ -1,11 +1,8 @@
 import OpenAI from "openai";
-
-import { getIdentitySummary } from "@/lib/identity";
-import { updateStudentMemory } from "@/lib/studentMemory";
-import { updateLearningProfile } from "@/lib/learningProfile";
-import { updatePersonality } from "@/lib/personality";
-import { updateCuriosity } from "@/lib/curiosity";
-import { updateInsights } from "@/lib/insights";
+import { saveMemory, getMemories } from "@/lib/memory";
+import { extractIdentity } from "@/lib/extractIdentity";
+import { buildPersonality } from "@/lib/personality";
+import { curiosityEngine } from "@/lib/curiosity";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -13,103 +10,83 @@ const openai = new OpenAI({
 
 export async function POST(req) {
   try {
-    const { message, history = [], userId = "default-user" } =
-      await req.json();
+    const { message } = await req.json();
 
-    /* -----------------------------
-       LOAD USER IDENTITY
-    ------------------------------ */
+    const userId = "default-user";
 
-    const identity = await getIdentitySummary(userId);
+    // SAFE MEMORY LOAD
+    let memories = [];
+    try {
+      memories = await getMemories(userId);
+    } catch (e) {
+      console.log("Memory load failed:", e);
+    }
 
-    /* -----------------------------
-       UPDATE MEMORY SYSTEMS
-    ------------------------------ */
+    // SAFE IDENTITY EXTRACTION
+    try {
+      await extractIdentity(userId, message);
+    } catch (e) {
+      console.log("Identity extraction failed:", e);
+    }
 
-    await Promise.all([
-      updateStudentMemory(userId, message),
-      updateLearningProfile(userId, message),
-      updatePersonality(userId, message),
-      updateCuriosity(userId, message),
-      updateInsights(userId, message),
-    ]);
+    // SAFE MEMORY SAVE
+    try {
+      await saveMemory(userId, message);
+    } catch (e) {
+      console.log("Memory save failed:", e);
+    }
 
-    /* -----------------------------
-       RESTORE CORE SYSTEM PROMPT
-    ------------------------------ */
+    // BUILD PERSONALITY
+    let personality = "";
+    try {
+      personality = await buildPersonality(userId);
+    } catch (e) {
+      console.log("Personality build failed:", e);
+    }
 
-    const systemPrompt = `
-You are Restore — an adaptive AI learning companion.
-
-Restore is NOT a chatbot.
-Restore is a hybrid teacher + thoughtful guide.
-
-GOAL:
-Help the user learn, grow curiosity, and build confidence through natural conversation.
-
-IDENTITY MEMORY:
-${identity || "No stored identity yet."}
-
-CORE PRINCIPLES:
-- The user leads the conversation.
-- Education is the primary focus.
-- Personal connection supports learning but never replaces it.
-- Conversations should feel natural and human.
-- Do not rush learning.
-- Do not slow learning unnecessarily.
-- Match the user's curiosity level.
-- Assume conversational context when obvious; avoid unnecessary clarification questions.
-- Never abruptly change subjects.
-- Offer exploration gently (ex: “If you’re interested, we could explore…”).
-
-TEACHING STYLE:
-- Explain clearly and simply first.
-- Expand only if curiosity increases.
-- Use analogies when helpful.
-- Encourage thinking without sounding like school instruction.
-- Avoid lectures unless the user clearly wants depth.
-
-TONE:
-Warm, intelligent, calm, encouraging.
-Never robotic.
-Never overly casual.
-Never overly academic.
-
-IMPORTANT:
-The conversation direction should emerge naturally from the user.
-`;
-
-    /* -----------------------------
-       BUILD MESSAGE ARRAY
-    ------------------------------ */
-
-    const messages = [
-      { role: "system", content: systemPrompt },
-      ...history,
-      { role: "user", content: message },
-    ];
-
-    /* -----------------------------
-       OPENAI RESPONSE
-    ------------------------------ */
+    // CURIOSITY ENGINE
+    let curiosity = "";
+    try {
+      curiosity = await curiosityEngine(userId, message);
+    } catch (e) {
+      console.log("Curiosity failed:", e);
+    }
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
-      messages,
-      temperature: 0.7,
+      messages: [
+        {
+          role: "system",
+          content: `
+You are Restore AI — a hybrid teacher and companion.
+
+${personality}
+
+Known memories:
+${memories.join("\n")}
+
+Curiosity suggestions:
+${curiosity}
+
+Rules:
+- Follow user's direction
+- Teach when needed
+- Stay natural and calm
+          `,
+        },
+        {
+          role: "user",
+          content: message,
+        },
+      ],
     });
-
-    const reply = completion.choices[0].message.content;
-
-    /* -----------------------------
-       RETURN RESPONSE
-    ------------------------------ */
 
     return Response.json({
-      reply,
+      reply: completion.choices[0].message.content,
     });
+
   } catch (error) {
-    console.error("Restore Error:", error);
+    console.error("CHAT ERROR:", error);
 
     return Response.json({
       reply:
