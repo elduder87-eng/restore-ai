@@ -11,11 +11,11 @@ export default function Home() {
 
     const userMessage = { role: "user", text: input };
 
-    setMessages((m) => [...m, userMessage]);
-
     const res = await fetch("/api/chat", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json"
+      },
       body: JSON.stringify({ message: input })
     });
 
@@ -31,22 +31,22 @@ export default function Home() {
   }
 
   return (
-    <main style={{ padding: 20 }}>
+    <main>
       <h1>Restore AI — Teacher Mode</h1>
 
-      <div>
-        {messages.map((m, i) => (
-          <p key={i}>
-            <strong>{m.role === "user" ? "You" : "AI"}:</strong> {m.text}
-          </p>
-        ))}
-      </div>
+      {messages.map((msg, i) => (
+        <p key={i}>
+          <strong>{msg.role === "user" ? "You" : "AI"}:</strong>{" "}
+          {msg.text}
+        </p>
+      ))}
 
       <input
         value={input}
         onChange={(e) => setInput(e.target.value)}
         placeholder="Type message..."
       />
+
       <button onClick={sendMessage}>Send</button>
     </main>
   );
