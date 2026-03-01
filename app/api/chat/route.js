@@ -1,79 +1,57 @@
-import OpenAI from "openai";
-import { getMemory, saveInterest } from "@/lib/memory";
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+import { getMemory, saveInterest } from "../../../lib/memory";
 
 export async function POST(req) {
   try {
-    const { message, history = [] } = await req.json();
+    const body = await req.json();
+    const message = body.message || "";
 
-    const userId = "demo-user";
-
-    // -----------------------------
-    // MEMORY DETECTION
-    // -----------------------------
-    const interestMatch = message.match(/i (like|love|enjoy) (.+)/i);
-
-    if (interestMatch) {
-      const interest = interestMatch[2];
-      saveInterest(userId, interest);
-    }
+    const userId = "default-user";
 
     const memory = getMemory(userId);
 
-    // -----------------------------
-    // MEMORY RECALL
-    // -----------------------------
-    if (/what do you remember about me/i.test(message)) {
-      let memorySummary = "I'm still getting to know you.";
+    const lower = message.toLowerCase();
 
-      if (memory.interests.length > 0) {
-        memorySummary =
-          "I remember that you're interested in " +
-          memory.interests.join(", ") +
-          ".";
+    // Detect interests
+    if (lower.includes("i like")) {
+      const interest = lower.replace("i like", "").trim();
+      if (interest) saveInterest(userId, interest);
+    }
+
+    if (lower.includes("i enjoy")) {
+      const interest = lower.replace("i enjoy", "").trim();
+      if (interest) saveInterest(userId, interest);
+    }
+
+    // Memory recall
+    if (lower.includes("what do you remember")) {
+      if (memory.interests.length === 0) {
+        return Response.json({
+          reply: "I'm still getting to know you!"
+        });
       }
 
       return Response.json({
-        reply: memorySummary,
+        reply: `I remember that you're interested in ${memory.interests.join(", ")}.`
       });
     }
 
-    // -----------------------------
-    // BUILD CONTEXT
-    // -----------------------------
-    const systemPrompt = `
-You are Restore AI, a calm educational companion.
+    // Simple teaching responses
+    let reply = "Tell me more!";
 
-Teach simply.
-Be encouraging.
-Follow the user's curiosity naturally.
-
-Known user interests: ${
-      memory.interests.length
-        ? memory.interests.join(", ")
-        : "none yet"
+    if (lower.includes("astronomy")) {
+      reply =
+        "Astronomy explores stars, planets, galaxies, and the universe itself. What part interests you most?";
     }
-`;
 
-    const messages = [
-      { role: "system", content: systemPrompt },
-      ...history,
-      { role: "user", content: message },
-    ];
+    if (lower.includes("biology")) {
+      reply =
+        "Biology studies living organisms — from tiny cells to entire ecosystems.";
+    }
 
-    // -----------------------------
-    // OPENAI RESPONSE
-    // -----------------------------
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages,
-      temperature: 0.7,
-    });
-
-    const reply = completion.choices[0].message.content;
+    if (lower.includes("gravity")) {
+      reply =
+        "Gravity is a force that pulls objects toward each other. Earth's gravity keeps us on the ground and planets in orbit.";
+    }
 
     return Response.json({ reply });
 
@@ -82,7 +60,7 @@ Known user interests: ${
 
     return Response.json({
       reply:
-        "I'm having a small technical hiccup — but I'm still here. Try again in a moment.",
+        "I'm having a small technical hiccup — but I'm still here. Try again in a moment."
     });
   }
 }
