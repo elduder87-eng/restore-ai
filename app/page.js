@@ -9,41 +9,40 @@ export default function Home() {
   async function sendMessage() {
     if (!input) return;
 
-    const userMessage = { role: "user", text: input };
+    const userMessage = input;
+
+    setMessages(prev => [...prev, { role: "user", text: userMessage }]);
+    setInput("");
 
     const res = await fetch("/api/chat", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ message: input })
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: userMessage })
     });
 
     const data = await res.json();
 
-    setMessages((m) => [
-      ...m,
-      userMessage,
-      { role: "ai", text: data.reply }
+    setMessages(prev => [
+      ...prev,
+      { role: "assistant", text: data.reply }
     ]);
-
-    setInput("");
   }
 
   return (
-    <main>
+    <main style={{ padding: 40, fontFamily: "serif" }}>
       <h1>Restore AI — Teacher Mode</h1>
 
-      {messages.map((msg, i) => (
-        <p key={i}>
-          <strong>{msg.role === "user" ? "You" : "AI"}:</strong>{" "}
-          {msg.text}
-        </p>
-      ))}
+      <div>
+        {messages.map((m, i) => (
+          <p key={i}>
+            <strong>{m.role === "user" ? "You" : "AI"}:</strong> {m.text}
+          </p>
+        ))}
+      </div>
 
       <input
         value={input}
-        onChange={(e) => setInput(e.target.value)}
+        onChange={e => setInput(e.target.value)}
         placeholder="Type message..."
       />
 
