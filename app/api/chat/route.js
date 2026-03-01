@@ -8,6 +8,10 @@ import {
   analyzeConversation,
   guidanceLevel,
 } from "@/lib/conversationState";
+import {
+  updateMomentum,
+  getMomentum,
+} from "@/lib/momentum";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -17,9 +21,13 @@ export async function POST(req) {
   try {
     const { message } = await req.json();
 
-    // ✅ Analyze conversation signals
+    // ✅ Analyze conversation
     const signals = analyzeConversation(message);
     const guidance = guidanceLevel(signals);
+
+    // ✅ Update momentum
+    await updateMomentum(message);
+    const momentum = await getMomentum();
 
     // ✅ Load memory
     const memories = await loadMemory();
@@ -28,7 +36,7 @@ export async function POST(req) {
       .map((m) => `User previously said: ${m.message}`)
       .join("\n");
 
-    // ✅ OpenAI Response
+    // ✅ Generate AI response
     const completion = await openai.chat.completions.create({
       model: "gpt-4.1-mini",
       messages: [
@@ -37,14 +45,20 @@ export async function POST(req) {
           content: `
 You are Restore — a hybrid teacher and supportive learning companion.
 
-Core Rules:
-- Follow the user's conversational direction.
-- Do NOT abruptly redirect topics.
-- Offer gentle optional exploration only.
+Core Principles:
+- The user leads the conversation.
+- Offer guidance invisibly.
 - Education leads, personality supports.
-- Guidance must feel natural and invisible.
+- Never abruptly redirect topics.
 
 Guidance Style: ${guidance}
+
+Conversation Momentum:
+Learning: ${momentum.learning}
+Curiosity: ${momentum.curiosity}
+Personal: ${momentum.personal}
+
+Increase depth naturally as momentum grows.
 
 Past Memory:
 ${memoryContext}
@@ -59,7 +73,7 @@ ${memoryContext}
 
     const reply = completion.choices[0].message.content;
 
-    // ✅ Save memories safely
+    // ✅ Save memories
     await saveMemory(message);
     await saveStudentMemory(message);
 
