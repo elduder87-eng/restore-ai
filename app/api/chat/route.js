@@ -1,7 +1,9 @@
 // app/api/chat/route.js
 
 import OpenAI from "openai";
-import { saveMemory, getHistory, getTopic } from "@/lib/memory";
+import { NextResponse } from "next/server";
+import { getMemory, saveMemory } from "@/lib/memory";
+import { addCuriositySeed } from "@/lib/curiosity";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -9,61 +11,73 @@ const openai = new OpenAI({
 
 export async function POST(req) {
   try {
-    const { message, userId = "default-user" } = await req.json();
+    const { message, userId = "default-user" } =
+      await req.json();
 
-    // Save user message
-    await saveMemory(userId, message);
+    // -------------------------
+    // LOAD MEMORY
+    // -------------------------
+    const memory = await getMemory(userId);
 
-    // Load memory
-    const history = await getHistory(userId);
-    const currentTopic = await getTopic(userId);
+    // Detect interests (simple topic detection)
+    let topic = memory?.topic || null;
 
-    // Base Restore personality
-    let systemPrompt = `
-You are Restore, a hybrid teacher and companion AI.
+    const lower = message.toLowerCase();
 
-Core behavior:
-- Education is primary.
-- Conversation feels natural and human.
-- The user leads the direction.
-- Do not abruptly change subjects.
-- Teach simply when teaching is requested.
+    if (lower.includes("astronomy") || lower.includes("space"))
+      topic = "astronomy";
+
+    if (lower.includes("psychology") || lower.includes("mind"))
+      topic = "psychology";
+
+    if (lower.includes("science"))
+      topic = "science";
+
+    // Save updated topic
+    await saveMemory(userId, { topic });
+
+    // -------------------------
+    // SYSTEM PROMPT
+    // -------------------------
+    const systemPrompt = `
+You are Restore AI — a hybrid teacher and conversational learning companion.
+
+Guidelines:
+- Education comes first.
+- Be warm, calm, and encouraging.
+- Explain clearly and simply.
+- Follow the user's curiosity naturally.
+- Never force topic changes.
+- Let the user lead the direction of learning.
 `;
 
-    // Topic awareness (NEW)
-    if (currentTopic) {
-      systemPrompt += `
-The user is currently interested in ${currentTopic}.
-If teaching is requested, prefer examples from this topic.
-`;
-    }
+    // -------------------------
+    // OPENAI RESPONSE
+    // -------------------------
+    const completion =
+      await openai.chat.completions.create({
+        model: "gpt-4.1-mini",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: message },
+        ],
+      });
 
-    const messages = [
-      { role: "system", content: systemPrompt },
-      ...history.map((msg) => ({
-        role: "user",
-        content: msg,
-      })),
-      { role: "user", content: message },
-    ];
+    let aiReply =
+      completion.choices[0].message.content;
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages,
-      temperature: 0.7,
+    // -------------------------
+    // CURIOSITY ENGINE (Stage 18)
+    // -------------------------
+    aiReply = addCuriositySeed(aiReply, topic);
+
+    return NextResponse.json({
+      reply: aiReply,
     });
-
-    const reply = completion.choices[0].message.content;
-
-    // Save AI reply too
-    await saveMemory(userId, reply);
-
-    return Response.json({ reply });
-
   } catch (error) {
-    console.error(error);
+    console.error("CHAT ERROR:", error);
 
-    return Response.json({
+    return NextResponse.json({
       reply:
         "I'm having a small technical hiccup — but I'm still here. Try again in a moment.",
     });
