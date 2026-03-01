@@ -7,43 +7,46 @@ export default function Home() {
   const [input, setInput] = useState("");
 
   async function sendMessage() {
-    if (!input.trim()) return;
+    if (!input) return;
 
-    const newMessages = [...messages, { role: "user", content: input }];
-    setMessages(newMessages);
+    const userMessage = { role: "user", text: input };
+
+    setMessages((m) => [...m, userMessage]);
 
     const res = await fetch("/api/chat", {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message: input })
     });
 
     const data = await res.json();
 
-    setMessages([
-      ...newMessages,
-      { role: "assistant", content: data.reply }
+    setMessages((m) => [
+      ...m,
+      userMessage,
+      { role: "ai", text: data.reply }
     ]);
 
     setInput("");
   }
 
   return (
-    <main style={{ padding: 40, fontFamily: "serif" }}>
+    <main style={{ padding: 20 }}>
       <h1>Restore AI — Teacher Mode</h1>
 
-      {messages.map((m, i) => (
-        <p key={i}>
-          <strong>{m.role === "user" ? "You" : "AI"}:</strong>{" "}
-          {m.content}
-        </p>
-      ))}
+      <div>
+        {messages.map((m, i) => (
+          <p key={i}>
+            <strong>{m.role === "user" ? "You" : "AI"}:</strong> {m.text}
+          </p>
+        ))}
+      </div>
 
       <input
         value={input}
         onChange={(e) => setInput(e.target.value)}
         placeholder="Type message..."
       />
-
       <button onClick={sendMessage}>Send</button>
     </main>
   );
