@@ -7,37 +7,34 @@ export default function Home() {
   const [input, setInput] = useState("");
 
   async function sendMessage() {
-    if (!input) return;
+    if (!input.trim()) return;
 
-    const newMessages = [...messages, { role: "user", text: input }];
+    const newMessages = [...messages, { role: "user", content: input }];
     setMessages(newMessages);
 
     const res = await fetch("/api/chat", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ message: input }),
+      body: JSON.stringify({ message: input })
     });
 
     const data = await res.json();
 
     setMessages([
       ...newMessages,
-      { role: "ai", text: data.reply },
+      { role: "assistant", content: data.reply }
     ]);
 
     setInput("");
   }
 
   return (
-    <main style={{ padding: 20, fontFamily: "serif" }}>
+    <main style={{ padding: 40, fontFamily: "serif" }}>
       <h1>Restore AI — Teacher Mode</h1>
 
       {messages.map((m, i) => (
         <p key={i}>
           <strong>{m.role === "user" ? "You" : "AI"}:</strong>{" "}
-          {m.text}
+          {m.content}
         </p>
       ))}
 
@@ -46,6 +43,7 @@ export default function Home() {
         onChange={(e) => setInput(e.target.value)}
         placeholder="Type message..."
       />
+
       <button onClick={sendMessage}>Send</button>
     </main>
   );
