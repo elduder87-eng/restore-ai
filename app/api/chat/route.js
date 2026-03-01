@@ -1,132 +1,84 @@
-import { getMemory, addInterest } from "@/lib/memory";
-import {
-  updateLearning,
-  summarizeLearning
-} from "@/lib/learning";
+// app/api/chat/route.js
+
+import { getMemory, updateMemory, buildProgressSummary } from "@/lib/memory";
+
+function detectIntent(message) {
+  const text = message.toLowerCase();
+
+  if (text.includes("what do you remember"))
+    return "memory";
+
+  if (text.includes("how am i doing") || text.includes("progress"))
+    return "progress";
+
+  if (
+    text.startsWith("so ") ||
+    text.includes("that means") ||
+    text.includes("does that mean")
+  )
+    return "confirm";
+
+  if (text.startsWith("why") || text.startsWith("how"))
+    return "deepen";
+
+  if (text.includes("explain"))
+    return "teach";
+
+  return "chat";
+}
 
 export async function POST(req) {
   try {
-    const body = await req.json();
-    const message = body.message || "";
+    const { message } = await req.json();
 
-    const userId = "default-user";
-    const lower = message.toLowerCase();
+    const memory = getMemory();
+    updateMemory(message);
 
-    const memory = getMemory(userId);
+    const intent = detectIntent(message);
+    let reply = "";
 
-    // -----------------------------
-    // MEMORY DETECTION
-    // -----------------------------
-    if (lower.includes("i enjoy") || lower.includes("i like")) {
-      const interest = message
-        .replace(/i enjoy|i like/gi, "")
-        .trim()
-        .toLowerCase();
+    // ---------- RESPONSES ----------
 
-      if (interest) {
-        addInterest(userId, interest);
+    if (intent === "teach") {
+      if (message.toLowerCase().includes("gravity")) {
+        reply =
+          "Gravity is a force that pulls objects toward each other. Massive objects like Earth pull things toward them.";
+      } else if (message.toLowerCase().includes("cells")) {
+        reply =
+          "Cells are the basic building blocks of life. Think of them as tiny machines that keep organisms functioning.";
+      } else {
+        reply = "Sure! Tell me what you'd like explained.";
       }
     }
 
-    // -----------------------------
-    // LEARNING STATE DETECTION
-    // -----------------------------
-    let detectedTopic = null;
-    let learningStage = null;
-
-    if (lower.includes("i enjoy") || lower.includes("i like")) {
-      detectedTopic = message.replace(/i enjoy|i like/gi, "").trim();
-      learningStage = "curious";
+    else if (intent === "confirm") {
+      reply =
+        "Yes — exactly! According to Einstein’s theory, gravity bends space itself. Objects follow that curved space, which is why planets orbit stars.";
     }
 
-    if (lower.startsWith("explain")) {
-      detectedTopic = message.replace(/explain/gi, "").trim();
-      learningStage = "learning";
+    else if (intent === "deepen") {
+      reply =
+        "Great question. Mass changes the geometry of spacetime itself — the more mass an object has, the more space curves around it.";
     }
 
-    if (
-      lower.includes("so that means") ||
-      lower.includes("does that mean")
-    ) {
-      detectedTopic = "current topic";
-      learningStage = "understanding";
+    else if (intent === "memory") {
+      reply =
+        memory.interests.length > 0
+          ? `I remember that you're interested in ${memory.interests.join(", ")}.`
+          : "I'm still learning about you!";
     }
 
-    if (
-      lower.includes("that connects") ||
-      lower.includes("that relates")
-    ) {
-      detectedTopic = "current topic";
-      learningStage = "reflecting";
+    else if (intent === "progress") {
+      reply = buildProgressSummary(memory);
     }
 
-    if (detectedTopic && learningStage) {
-      updateLearning(userId, detectedTopic, learningStage);
-    }
-
-    // -----------------------------
-    // PROGRESS REQUEST
-    // -----------------------------
-    if (
-      lower.includes("how am i doing") ||
-      lower.includes("my progress")
-    ) {
-      const progress = summarizeLearning(userId);
-
-      const summary =
-        Object.keys(progress).length === 0
-          ? "You're just getting started!"
-          : Object.entries(progress)
-              .map(
-                ([topic, data]) => `${topic}: ${data.stage}`
-              )
-              .join("\n");
-
-      return Response.json({
-        reply: "Here’s your learning progress:\n" + summary
-      });
-    }
-
-    // -----------------------------
-    // MEMORY RECALL
-    // -----------------------------
-    if (lower.includes("what do you remember")) {
-      if (memory.interests.length === 0) {
-        return Response.json({
-          reply: "I'm still getting to know you!"
-        });
-      }
-
-      return Response.json({
-        reply:
-          "I remember that you're interested in " +
-          memory.interests.join(", ") +
-          "."
-      });
-    }
-
-    // -----------------------------
-    // SIMPLE TEACHER RESPONSE
-    // -----------------------------
-    let reply = "Tell me more!";
-
-    if (lower.includes("hello")) {
+    else {
       reply = "Hello! How can I help you learn today?";
-    } else if (lower.includes("astronomy")) {
-      reply =
-        "Astronomy explores stars, planets, galaxies, and the universe.";
-    } else if (lower.includes("biology")) {
-      reply =
-        "Biology studies living organisms — from tiny cells to entire ecosystems.";
-    } else if (lower.includes("gravity")) {
-      reply =
-        "Gravity is a force that pulls objects toward each other. Massive objects like Earth pull things toward them.";
     }
 
     return Response.json({ reply });
   } catch (error) {
     console.error("CHAT ERROR:", error);
-
     return Response.json({
       reply:
         "I'm having a small technical hiccup — but I'm still here. Try again in a moment."
