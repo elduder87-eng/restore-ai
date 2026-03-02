@@ -1,97 +1,61 @@
-import { NextResponse } from "next/server";
-import OpenAI from "openai";
 import { Redis } from "@upstash/redis";
 
-// ---------- OpenAI ----------
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+const redis = Redis.fromEnv();
 
-// ---------- Redis ----------
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN,
-});
-
-// ---------- POST ----------
 export async function POST(req) {
   try {
     const { message } = await req.json();
 
-    // =============================
-    // LOAD MEMORY SAFELY
-    // =============================
-    let pastMemories = await redis.get("memory");
+    const userId = "default-user";
+    const memoryKey = `restore:memory:${userId}`;
 
-    // 🔥 CRASH FIX
-    if (!Array.isArray(pastMemories)) {
-      pastMemories = [];
+    // ✅ Safely get memory
+    let history = await redis.get(memoryKey);
+
+    if (!Array.isArray(history)) {
+      history = [];
     }
 
-    const memoryText =
-      pastMemories.length > 0
-        ? `Here is what you remember about the user:\n${pastMemories.join(
-            "\n"
-          )}`
-        : "You do not yet have memories about this user.";
-
-    // =============================
-    // AI RESPONSE
-    // =============================
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content: `
-You are Restore, a friendly AI teacher.
-
-Goals:
-- Explain clearly and simply
-- Adapt to user interests
-- Encourage curiosity
-- Speak naturally and warmly
-
-${memoryText}
-`,
-        },
-        {
-          role: "user",
-          content: message,
-        },
-      ],
+    // Add user message
+    history.push({
+      role: "user",
+      content: message,
     });
 
-    const reply = completion.choices[0].message.content;
-
-    // =============================
-    // SIMPLE MEMORY DETECTION
-    // =============================
-    const lower = message.toLowerCase();
-
-    if (
-      lower.includes("i like") ||
-      lower.includes("i enjoy") ||
-      lower.includes("i love") ||
-      lower.includes("i prefer")
-    ) {
-      pastMemories.push(message);
-
-      // keep memory small + clean
-      pastMemories = pastMemories.slice(-20);
-
-      await redis.set("memory", pastMemories);
-    }
-
-    // =============================
-    // SUCCESS RESPONSE
-    // =============================
-    return NextResponse.json({ reply });
-  } catch (error) {
-    console.error("API ERROR:", error);
-
-    return NextResponse.json({
-      reply: "Something went wrong.",
+    // Call OpenAI
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: history,
+      }),
     });
+
+    const data = await response.json();
+
+    const reply =
+      data?.choices?.[0]?.message?.content ||
+      "I'm having trouble responding right now.";
+
+    // Add AI response
+    history.push({
+      role: "assistant",
+      content: reply,
+    });
+
+    // Save memory
+    await redis.set(memoryKey, history);
+
+    return Response.json({ reply });
+  } catch (err) {
+    console.error("API ERROR:", err);
+    return Response.json(
+      { reply: "Something went wrong." },
+      { status: 500 }
+    );
   }
 }
