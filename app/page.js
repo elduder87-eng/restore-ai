@@ -10,8 +10,6 @@ export default function Home() {
     if (!input) return;
 
     const userMessage = { role: "user", content: input };
-
-    // Add user message once
     setMessages((m) => [...m, userMessage]);
 
     const res = await fetch("/api/chat", {
@@ -25,17 +23,25 @@ export default function Home() {
 
     const data = await res.json();
 
-    // Add AI reply only
-    setMessages((m) => [
-      ...m,
-      { role: "ai", content: data.reply },
-    ]);
+    const aiMessage = { role: "ai", content: data.reply };
+
+    setMessages((m) => [...m, aiMessage]);
+
+    speak(data.reply);
 
     setInput("");
   }
 
+  // 🎙️ TEXT TO SPEECH
+  function speak(text) {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 1;
+    utterance.pitch = 1;
+    speechSynthesis.speak(utterance);
+  }
+
   return (
-    <main style={{ padding: 20, fontFamily: "serif" }}>
+    <main style={{ padding: "40px", fontFamily: "serif" }}>
       <h1>Restore AI — Teacher Mode</h1>
 
       {messages.map((msg, i) => (
@@ -50,6 +56,7 @@ export default function Home() {
         onChange={(e) => setInput(e.target.value)}
         placeholder="Type message..."
       />
+
       <button onClick={sendMessage}>Send</button>
     </main>
   );
