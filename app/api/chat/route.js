@@ -1,82 +1,38 @@
-import OpenAI from "openai";
-import { redis } from "@/lib/redis";
-import { getIdentity, updateIdentity } from "@/lib/identity";
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-const MEMORY_KEY = "memory:default-user";
+import { NextResponse } from "next/server"
+import { updateIdentity, getIdentity } from "@/lib/identity"
 
 export async function POST(req) {
   try {
-    const body = await req.json();
-    const userMessage = body.message;
+    const { message } = await req.json()
 
-    // -----------------------------
-    // Update Identity
-    // -----------------------------
-    await updateIdentity(userMessage);
-    const identity = await getIdentity();
+    // Update identity if user shares info
+    await updateIdentity(message)
 
-    // -----------------------------
-    // Get conversation memory
-    // -----------------------------
-    let history = await redis.get(MEMORY_KEY);
+    const identity = await getIdentity()
 
-    if (!history) {
-      history = [];
+    let reply = "I understand."
+
+    if (message.toLowerCase().includes("what do you know about me")) {
+      const parts = []
+
+      if (identity.favoriteColor)
+        parts.push(`Your favorite color is ${identity.favoriteColor}.`)
+
+      if (identity.favoriteAnimal)
+        parts.push(`Your favorite animal is ${identity.favoriteAnimal}.`)
+
+      reply = parts.length > 0
+        ? parts.join(" ")
+        : "I don't know much about you yet."
     }
 
-    // Add user message
-    history.push({
-      role: "user",
-      content: userMessage,
-    });
+    return NextResponse.json({ reply })
 
-    // Keep last 10 messages
-    history = history.slice(-10);
-
-    // -----------------------------
-    // AI Response
-    // -----------------------------
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content: `
-You are Restore AI, a personalized learning companion.
-
-User Identity Profile:
-Preferences: ${identity.preferences.join(", ")}
-Interests: ${identity.interests.join(", ")}
-Learning Style: ${identity.learningStyle}
-Traits: ${identity.traits.join(", ")}
-
-Use this information naturally to personalize responses.
-`,
-        },
-        ...history,
-      ],
-    });
-
-    const reply = completion.choices[0].message.content;
-
-    // Save assistant reply
-    history.push({
-      role: "assistant",
-      content: reply,
-    });
-
-    await redis.set(MEMORY_KEY, history);
-
-    return Response.json({ reply });
   } catch (error) {
-    console.error("API ERROR:", error);
-    return Response.json(
+    console.error("API ERROR:", error)
+    return NextResponse.json(
       { reply: "Something went wrong." },
       { status: 500 }
-    );
+    )
   }
 }
