@@ -1,87 +1,82 @@
 import OpenAI from "openai";
 import { redis } from "@/lib/redis";
-import { shouldRemember } from "@/lib/memoryJudge";
-import { updateLearningProfile } from "@/lib/learningProfile";
-import { scoreMemory } from "@/lib/memoryScore";
+import { getIdentity, updateIdentity } from "@/lib/identity";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+const MEMORY_KEY = "memory:default-user";
+
 export async function POST(req) {
   try {
-    const { message } = await req.json();
+    const body = await req.json();
+    const userMessage = body.message;
 
-    // ✅ Multi-user support
-    const userId =
-      req.headers.get("x-user-id") || "default-user";
+    // -----------------------------
+    // Update Identity
+    // -----------------------------
+    await updateIdentity(userMessage);
+    const identity = await getIdentity();
 
-    const memoryKey = `memory:${userId}`;
+    // -----------------------------
+    // Get conversation memory
+    // -----------------------------
+    let history = await redis.get(MEMORY_KEY);
 
-    // ✅ SAFE memory read (fixes WRONGTYPE error)
-    let memories = [];
-    try {
-      memories = await redis.lrange(memoryKey, 0, -1);
-    } catch {
-      memories = [];
+    if (!history) {
+      history = [];
     }
 
-    const memoryContext = memories.join("\n");
+    // Add user message
+    history.push({
+      role: "user",
+      content: userMessage,
+    });
 
-    // ===== AI RESPONSE =====
-    const completion =
-      await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [
-          {
-            role: "system",
-            content: `
-You are Restore AI.
+    // Keep last 10 messages
+    history = history.slice(-10);
 
-Known user memories:
-${memoryContext}
+    // -----------------------------
+    // AI Response
+    // -----------------------------
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: `
+You are Restore AI, a personalized learning companion.
 
-Use memories naturally when helpful.
-`
-          },
-          {
-            role: "user",
-            content: message
-          }
-        ]
-      });
+User Identity Profile:
+Preferences: ${identity.preferences.join(", ")}
+Interests: ${identity.interests.join(", ")}
+Learning Style: ${identity.learningStyle}
+Traits: ${identity.traits.join(", ")}
 
-    const reply =
-      completion.choices[0].message.content;
+Use this information naturally to personalize responses.
+`,
+        },
+        ...history,
+      ],
+    });
 
-    // ===== INTELLIGENT MEMORY =====
-    const remember = await shouldRemember(
-      openai,
-      message
-    );
+    const reply = completion.choices[0].message.content;
 
-    if (remember) {
-      await redis.rpush(memoryKey, message);
+    // Save assistant reply
+    history.push({
+      role: "assistant",
+      content: reply,
+    });
 
-      // learning profile example topic
-      await updateLearningProfile(
-        redis,
-        userId,
-        "general"
-      );
-
-      await scoreMemory(
-        redis,
-        userId,
-        message
-      );
-    }
+    await redis.set(MEMORY_KEY, history);
 
     return Response.json({ reply });
-  } catch (err) {
-    console.error(err);
-    return Response.json({
-      reply: "Something went wrong."
-    });
+  } catch (error) {
+    console.error("API ERROR:", error);
+    return Response.json(
+      { reply: "Something went wrong." },
+      { status: 500 }
+    );
   }
 }
