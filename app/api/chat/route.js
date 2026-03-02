@@ -1,58 +1,59 @@
+import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { Redis } from "@upstash/redis";
 
-export const runtime = "nodejs"; // IMPORTANT: fixes Redis crash
-
-// OpenAI setup
+// ---------- OpenAI ----------
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Upstash Redis setup
+// ---------- Redis ----------
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL,
   token: process.env.UPSTASH_REDIS_REST_TOKEN,
 });
 
+// ---------- POST ----------
 export async function POST(req) {
   try {
     const { message } = await req.json();
 
-    const userId = "default-user";
+    // =============================
+    // LOAD MEMORY SAFELY
+    // =============================
+    let pastMemories = await redis.get("memory");
 
-    // ---------- GET MEMORY ----------
-    let memory = await redis.get(`memory:${userId}`);
-
-    if (!memory) {
-      memory = [];
+    // 🔥 CRASH FIX
+    if (!Array.isArray(pastMemories)) {
+      pastMemories = [];
     }
 
-    // ---------- SIMPLE MEMORY RULE ----------
-    // store interests automatically
-    if (
-      message.toLowerCase().includes("i enjoy") ||
-      message.toLowerCase().includes("i like") ||
-      message.toLowerCase().includes("i love")
-    ) {
-      memory.push(message);
-      await redis.set(`memory:${userId}`, memory);
-    }
+    const memoryText =
+      pastMemories.length > 0
+        ? `Here is what you remember about the user:\n${pastMemories.join(
+            "\n"
+          )}`
+        : "You do not yet have memories about this user.";
 
-    // ---------- BUILD SYSTEM CONTEXT ----------
-    const memoryContext =
-      memory.length > 0
-        ? `Things I remember about the user: ${memory.join(", ")}`
-        : "I do not yet know anything about the user.";
-
-    // ---------- OPENAI RESPONSE ----------
+    // =============================
+    // AI RESPONSE
+    // =============================
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
-          content: `You are Restore AI, a friendly teacher AI.
-Use simple explanations.
-${memoryContext}`,
+          content: `
+You are Restore, a friendly AI teacher.
+
+Goals:
+- Explain clearly and simply
+- Adapt to user interests
+- Encourage curiosity
+- Speak naturally and warmly
+
+${memoryText}
+`,
         },
         {
           role: "user",
@@ -63,11 +64,33 @@ ${memoryContext}`,
 
     const reply = completion.choices[0].message.content;
 
-    // ---------- RETURN RESPONSE ----------
-    return Response.json({ reply });
+    // =============================
+    // SIMPLE MEMORY DETECTION
+    // =============================
+    const lower = message.toLowerCase();
+
+    if (
+      lower.includes("i like") ||
+      lower.includes("i enjoy") ||
+      lower.includes("i love") ||
+      lower.includes("i prefer")
+    ) {
+      pastMemories.push(message);
+
+      // keep memory small + clean
+      pastMemories = pastMemories.slice(-20);
+
+      await redis.set("memory", pastMemories);
+    }
+
+    // =============================
+    // SUCCESS RESPONSE
+    // =============================
+    return NextResponse.json({ reply });
   } catch (error) {
     console.error("API ERROR:", error);
-    return Response.json({
+
+    return NextResponse.json({
       reply: "Something went wrong.",
     });
   }
