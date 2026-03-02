@@ -17,7 +17,7 @@ export async function POST(req) {
     const userId = "default-user";
     const memoryKey = `memory:${userId}`;
 
-    // ✅ Read memory list correctly
+    // ✅ Get stored memories (LIST type)
     const pastMemories = await redis.lrange(memoryKey, 0, -1);
 
     const memoryContext =
@@ -25,14 +25,14 @@ export async function POST(req) {
         ? `User facts:\n${pastMemories.join("\n")}`
         : "";
 
-    // ✅ NEW OpenAI API (this fixes crash)
+    // ✅ OpenAI call
     const response = await openai.responses.create({
       model: "gpt-4.1-mini",
       input: [
         {
           role: "system",
           content:
-            "You are Restore, a helpful adaptive learning AI. Remember user facts when provided.",
+            "You are Restore, an adaptive learning AI that remembers user facts.",
         },
         {
           role: "system",
@@ -45,12 +45,22 @@ export async function POST(req) {
       ],
     });
 
-    const reply = response.output_text;
+    // ✅ SAFE text extraction (this fixes crash)
+    let reply = "";
 
-    // ✅ Save message into memory list
+    if (response.output_text) {
+      reply = response.output_text;
+    } else if (response.output?.[0]?.content?.[0]?.text) {
+      reply = response.output[0].content[0].text;
+    } else {
+      reply = "I'm thinking, but couldn't form a response.";
+    }
+
+    // ✅ Store new memory
     await redis.rpush(memoryKey, message);
 
     return Response.json({ reply });
+
   } catch (error) {
     console.error("API ERROR:", error);
     return Response.json(
