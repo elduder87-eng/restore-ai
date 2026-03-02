@@ -1,67 +1,71 @@
+import { NextResponse } from "next/server";
 import OpenAI from "openai";
+
 import {
-  getMemory,
+  loadMemory,
   saveMemory,
-  updateMemoryFromMessage,
-  buildMemorySummary,
+  updateMemoryFromMessage
 } from "@/lib/memory";
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.OPENAI_API_KEY
 });
 
 export async function POST(req) {
   try {
-    const { message } = await req.json();
+    const body = await req.json();
+    const message = body.message;
 
-    // ----------------------------
-    // Load Memory
-    // ----------------------------
-    let memory = getMemory();
+    /* -------------------------
+       LOAD MEMORY
+    ------------------------- */
+    let memory = loadMemory();
 
-    // Update memory from user input
+    /* -------------------------
+       UPDATE MEMORY
+    ------------------------- */
     memory = updateMemoryFromMessage(message, memory);
-
-    // Save updated memory
     saveMemory(memory);
 
-    // Build memory context
-    const memorySummary = buildMemorySummary(memory);
+    /* -------------------------
+       BUILD MEMORY CONTEXT
+    ------------------------- */
+    const interests =
+      memory.identity?.interests?.length > 0
+        ? `The learner is interested in: ${memory.identity.interests.join(
+            ", "
+          )}.`
+        : "";
 
-    // ----------------------------
-    // AI Response
-    // ----------------------------
+    const systemPrompt = `
+You are Restore AI, an adaptive teacher.
+
+${interests}
+
+Speak naturally, warmly, and like a supportive educator.
+Keep responses concise but thoughtful.
+`;
+
+    /* -------------------------
+       AI RESPONSE
+    ------------------------- */
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
-        {
-          role: "system",
-          content: `
-You are Restore AI, a calm adaptive teacher.
-
-User Memory:
-${memorySummary}
-
-Use this memory naturally when answering.
-Do NOT explicitly mention "memory".
-        `,
-        },
-        {
-          role: "user",
-          content: message,
-        },
-      ],
+        { role: "system", content: systemPrompt },
+        { role: "user", content: message }
+      ]
     });
 
     const reply = completion.choices[0].message.content;
 
-    return Response.json({ reply });
+    return NextResponse.json({ reply });
   } catch (error) {
-    console.error(error);
+    console.error("CHAT ERROR:", error);
 
-    return Response.json({
+    return NextResponse.json({
       reply:
-        "I'm having a small technical hiccup — but I'm still here. Try again in a moment.",
+        "I'm having a small technical hiccup — but I'm still here. Try again in a moment."
     });
   }
 }
