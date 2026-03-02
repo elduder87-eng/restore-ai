@@ -1,84 +1,65 @@
 import OpenAI from "openai";
-import { NextResponse } from "next/server";
+import {
+  loadMemory,
+  saveMemory,
+  updateMemoryFromMessage,
+} from "@/lib/memory";
 
-import { loadMemory, saveMemory } from "@/lib/memory";
-import { updateMemoryFromMessage } from "@/lib/memory";
-
-const client = new OpenAI({
+const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
 export async function POST(req) {
   try {
-    const body = await req.json();
-    const message = body.message || "";
+    const { message, history } = await req.json();
 
     /* -------------------------
        LOAD MEMORY
     ------------------------- */
-
     let memory = await loadMemory();
 
     /* -------------------------
-       UPDATE MEMORY FROM MESSAGE
+       UPDATE MEMORY
     ------------------------- */
-
     memory = updateMemoryFromMessage(message, memory);
-
     await saveMemory(memory);
 
     /* -------------------------
        BUILD MEMORY CONTEXT
     ------------------------- */
-
-    let memoryContext = "";
-
-    if (memory.identity?.interests?.length > 0) {
-      memoryContext += `
-Known learner interests:
-${memory.identity.interests.map(i => "- " + i).join("\n")}
-`;
-    }
-
-    /* -------------------------
-       SYSTEM PROMPT
-    ------------------------- */
+    const interests =
+      memory.identity?.interests?.length > 0
+        ? `Student interests: ${memory.identity.interests.join(", ")}`
+        : "Student interests unknown.";
 
     const systemPrompt = `
-You are Restore AI, an adaptive AI teacher.
+You are Restore AI — a supportive adaptive teacher.
 
-IMPORTANT RULES:
-- You DO have long-term memory about this learner.
-- Never say conversations reset.
-- Never say you lack memory.
-- Use remembered interests naturally in conversation.
+${interests}
 
-${memoryContext}
-
-Be warm, encouraging, and educational.
-Keep responses concise but thoughtful.
+Use this knowledge naturally when helping the learner.
+Be encouraging, curious, and educational.
 `;
 
     /* -------------------------
-       AI RESPONSE
+       CALL OPENAI
     ------------------------- */
-
-    const completion = await client.chat.completions.create({
+    const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         { role: "system", content: systemPrompt },
+        ...(history || []),
         { role: "user", content: message },
       ],
     });
 
     const reply = completion.choices[0].message.content;
 
-    return NextResponse.json({ reply });
-
+    return Response.json({ reply });
   } catch (error) {
-    console.error(error);
+    console.error("CHAT ERROR:", error);
 
-    return NextResponse.json({
+    return Response.json({
       reply:
         "I'm having a small technical hiccup — but I'm still here. Try again in a moment.",
     });
