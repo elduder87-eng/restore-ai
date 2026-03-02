@@ -1,109 +1,78 @@
-// app/api/chat/route.js
+import OpenAI from "openai";
+import { getMemory, updateMemory } from "@/lib/memory";
 
-import {
-  getMemory,
-  updateMemory,
-  buildProgressSummary
-} from "@/lib/memory";
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
-function detectIntent(message) {
-  const text = message.toLowerCase();
+function buildAdaptiveSystemPrompt(memory) {
 
-  if (text.includes("i enjoy") || text.includes("i like"))
-    return "share_interest";
+  let teachingStyle = "clear and friendly";
 
-  if (text.includes("what do you remember"))
-    return "memory";
+  if (memory.confidence < 0.4)
+    teachingStyle = "gentle, simple, encouraging, beginner-friendly";
 
-  if (text.includes("how am i doing") || text.includes("progress"))
-    return "progress";
+  if (memory.confidence > 0.7)
+    teachingStyle = "deeper, more conceptual, and thought-provoking";
 
-  if (
-    text.startsWith("so ") ||
-    text.includes("that means") ||
-    text.includes("does that mean")
-  )
-    return "confirm";
+  return `
+You are Restore AI, an adaptive learning companion.
 
-  if (text.startsWith("why") || text.startsWith("how"))
-    return "deepen";
+Teaching style:
+${teachingStyle}
 
-  if (text.includes("explain"))
-    return "teach";
+Learner state: ${memory.learningState}
+Confidence level: ${memory.confidence}
 
-  return "chat";
-}
+Known interests: ${memory.interests.join(", ") || "none yet"}
 
-function generateTeachingResponse(message) {
-  if (message.toLowerCase().includes("gravity")) {
-    return "Gravity is a force that pulls objects toward each other. Massive objects like Earth pull things toward them.";
-  }
-
-  if (message.toLowerCase().includes("cells")) {
-    return "Cells are the basic building blocks of life. They act like tiny factories that keep organisms alive.";
-  }
-
-  return "Let's explore that topic together.";
+Rules:
+- Adjust explanation complexity automatically.
+- Encourage curiosity.
+- Help the learner connect ideas.
+- Be concise but warm.
+- Never mention memory tracking.
+`;
 }
 
 export async function POST(req) {
   try {
     const { message } = await req.json();
 
-    updateMemory(message);
-    const memory = getMemory();
+    const memory = updateMemory("default", message);
 
-    const intent = detectIntent(message);
-
-    let reply = "";
-
-    // -------- SHARE INTEREST --------
-    if (intent === "share_interest") {
-      reply = "Nice! I'll remember that — we can explore that together.";
+    // Reflection request
+    if (message.toLowerCase().includes("how am i doing")) {
+      return Response.json({
+        reply: `Here’s your learning progress:\n
+State: ${memory.learningState}
+Confidence: ${(memory.confidence * 100).toFixed(0)}%
+Interests: ${memory.interests.join(", ") || "still discovering"}`
+      });
     }
 
-    // -------- MEMORY --------
-    else if (intent === "memory") {
-      if (memory.interests.length === 0) {
-        reply = "I'm still learning about your interests.";
-      } else {
-        reply = `I remember that you're interested in ${memory.interests.join(", ")}.`;
-      }
-    }
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: buildAdaptiveSystemPrompt(memory)
+        },
+        {
+          role: "user",
+          content: message
+        }
+      ],
+    });
 
-    // -------- PROGRESS --------
-    else if (intent === "progress") {
-      reply = buildProgressSummary(memory);
-    }
+    return Response.json({
+      reply: completion.choices[0].message.content,
+    });
 
-    // -------- CONFIRMATION --------
-    else if (intent === "confirm") {
-      reply =
-        "Yes — exactly! You're connecting ideas together, which is a great sign of understanding.";
-    }
-
-    // -------- TEACH --------
-    else if (intent === "teach") {
-      reply = generateTeachingResponse(message);
-    }
-
-    // -------- DEEPEN --------
-    else if (intent === "deepen") {
-      reply =
-        "Great question — thinking deeper helps build real understanding. Let's explore that further.";
-    }
-
-    // -------- GENERAL CHAT --------
-    else {
-      reply = "Hello! How can I help you learn today?";
-    }
-
-    return Response.json({ reply });
   } catch (error) {
     console.error("CHAT ERROR:", error);
     return Response.json({
-      reply:
-        "I'm having a small technical hiccup — but I'm still here. Try again in a moment."
+      reply: "I'm having a small technical hiccup — but I'm still here. Try again in a moment."
     });
   }
 }
