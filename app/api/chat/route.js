@@ -1,6 +1,5 @@
 import OpenAI from "openai";
 import { getMemory, updateMemory } from "@/lib/memory";
-import { generateSuggestion } from "@/lib/suggestions";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -8,63 +7,24 @@ const openai = new OpenAI({
 
 export async function POST(req) {
   try {
-    const { message, userId = "default-user" } = await req.json();
+    const { message, userId } = await req.json();
 
-    // =====================
-    // LOAD MEMORY
-    // =====================
-    let memory = await getMemory(userId);
+    // Update memory first
+    await updateMemory(userId, message);
 
-    const lower = message.toLowerCase();
+    // Load memory
+    const memory = await getMemory(userId);
 
-    let detectedInterests = [];
-
-    if (lower.includes("astronomy")) detectedInterests.push("astronomy");
-    if (lower.includes("biology")) detectedInterests.push("biology");
-
-    if (detectedInterests.length > 0) {
-      memory = await updateMemory(userId, {
-        interests: detectedInterests,
-      });
-    }
-
-    // learning style detection
-    let learningStyle = memory.learningStyle;
-
-    if (lower.includes("simply") || lower.includes("simple")) {
-      learningStyle = "simple";
-      memory = await updateMemory(userId, { learningStyle });
-    }
-
-    // =====================
-    // SUGGESTIONS
-    // =====================
-    const suggestion = generateSuggestion(memory);
-
-    // =====================
-    // SYSTEM PROMPT
-    // =====================
     const systemPrompt = `
-You are Restore AI, a calm and encouraging adaptive teacher.
+You are Restore AI, a supportive teaching assistant.
 
-Learner Profile:
-Interests: ${memory.interests.join(", ") || "unknown"}
-Learning Style: ${memory.learningStyle}
+User interests: ${memory.interests.join(", ") || "unknown"}.
+Learning style: ${memory.learningStyle}.
 
-Teaching Rules:
-- Adapt explanations to learning style.
-- Be encouraging and educational.
-- Let the learner lead the conversation.
-- Keep responses natural and human.
-- Occasionally suggest future topics gently.
+If learning style is "simple", explain concepts clearly and simply.
+Reference remembered interests naturally when relevant.
+    `;
 
-Suggested Exploration:
-${suggestion || "None right now."}
-`;
-
-    // =====================
-    // OPENAI CALL
-    // =====================
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
@@ -76,8 +36,10 @@ ${suggestion || "None right now."}
     const reply = completion.choices[0].message.content;
 
     return Response.json({ reply });
+
   } catch (error) {
     console.error(error);
+
     return Response.json({
       reply:
         "I'm having a small technical hiccup — but I'm still here. Try again in a moment.",
