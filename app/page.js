@@ -10,6 +10,8 @@ export default function Home() {
     if (!input) return;
 
     const userMessage = { role: "user", content: input };
+
+    // Add user message once
     setMessages((m) => [...m, userMessage]);
 
     const res = await fetch("/api/chat", {
@@ -23,9 +25,9 @@ export default function Home() {
 
     const data = await res.json();
 
+    // Add AI reply only
     setMessages((m) => [
       ...m,
-      userMessage,
       { role: "ai", content: data.reply },
     ]);
 
@@ -33,17 +35,15 @@ export default function Home() {
   }
 
   return (
-    <main style={{ padding: 40 }}>
+    <main style={{ padding: 20, fontFamily: "serif" }}>
       <h1>Restore AI — Teacher Mode</h1>
 
-      <div>
-        {messages.map((m, i) => (
-          <p key={i}>
-            <strong>{m.role === "user" ? "You" : "AI"}:</strong>{" "}
-            {m.content}
-          </p>
-        ))}
-      </div>
+      {messages.map((msg, i) => (
+        <p key={i}>
+          <strong>{msg.role === "user" ? "You" : "AI"}:</strong>{" "}
+          {msg.content}
+        </p>
+      ))}
 
       <input
         value={input}
