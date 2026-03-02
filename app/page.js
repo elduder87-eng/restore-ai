@@ -1,4 +1,5 @@
 "use client";
+
 import { useState } from "react";
 
 export default function Home() {
@@ -6,47 +7,45 @@ export default function Home() {
   const [input, setInput] = useState("");
 
   async function sendMessage() {
-    if (!input.trim()) return;
+    if (!input) return;
 
-    const userMessage = { role: "user", text: input };
+    const userMessage = { role: "user", content: input };
 
-    setMessages((prev) => [...prev, userMessage]);
+    const updated = [...messages, userMessage];
+    setMessages(updated);
     setInput("");
 
     const res = await fetch("/api/chat", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: input }),
+      body: JSON.stringify({ messages: updated })
     });
 
     const data = await res.json();
 
-    const aiMessage = { role: "ai", text: data.reply };
-
-    setMessages((prev) => [...prev, aiMessage]);
+    setMessages([
+      ...updated,
+      { role: "assistant", content: data.reply }
+    ]);
   }
 
   return (
-    <main style={{ padding: 40, fontFamily: "serif" }}>
+    <main style={{ padding: 40 }}>
       <h1>Restore AI — Teacher Mode</h1>
 
-      <div style={{ marginTop: 20 }}>
-        {messages.map((msg, i) => (
-          <p key={i}>
-            <strong>{msg.role === "user" ? "You" : "AI"}:</strong>{" "}
-            {msg.text}
-          </p>
-        ))}
-      </div>
+      {messages.map((m, i) => (
+        <p key={i}>
+          <strong>{m.role === "user" ? "You" : "AI"}:</strong>{" "}
+          {m.content}
+        </p>
+      ))}
 
-      <div style={{ marginTop: 20 }}>
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Type message..."
-        />
-        <button onClick={sendMessage}>Send</button>
-      </div>
+      <input
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        placeholder="Type message..."
+      />
+
+      <button onClick={sendMessage}>Send</button>
     </main>
   );
 }
