@@ -1,14 +1,14 @@
 import OpenAI from "openai";
 import { Redis } from "@upstash/redis";
 
-export const runtime = "edge";
+export const runtime = "nodejs"; // IMPORTANT: fixes Redis crash
 
-// OpenAI
+// OpenAI setup
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Upstash Redis
+// Upstash Redis setup
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL,
   token: process.env.UPSTASH_REDIS_REST_TOKEN,
@@ -18,42 +18,40 @@ export async function POST(req) {
   try {
     const { message } = await req.json();
 
-    const userId = "default-user"; // later we upgrade to real users
+    const userId = "default-user";
 
-    // ✅ GET MEMORY
-    let memories = await redis.get(`memory:${userId}`);
+    // ---------- GET MEMORY ----------
+    let memory = await redis.get(`memory:${userId}`);
 
-    if (!memories) memories = [];
-
-    // ✅ SAVE NEW INTERESTS AUTOMATICALLY
-    const lower = message.toLowerCase();
-
-    if (
-      lower.includes("i enjoy") ||
-      lower.includes("i like") ||
-      lower.includes("i love")
-    ) {
-      memories.push(message);
-
-      // store updated memory
-      await redis.set(`memory:${userId}`, memories);
+    if (!memory) {
+      memory = [];
     }
 
-    // ✅ BUILD MEMORY CONTEXT
-    const memoryContext =
-      memories.length > 0
-        ? `User facts: ${memories.join(", ")}`
-        : "No stored memories yet.";
+    // ---------- SIMPLE MEMORY RULE ----------
+    // store interests automatically
+    if (
+      message.toLowerCase().includes("i enjoy") ||
+      message.toLowerCase().includes("i like") ||
+      message.toLowerCase().includes("i love")
+    ) {
+      memory.push(message);
+      await redis.set(`memory:${userId}`, memory);
+    }
 
-    // ✅ AI RESPONSE
+    // ---------- BUILD SYSTEM CONTEXT ----------
+    const memoryContext =
+      memory.length > 0
+        ? `Things I remember about the user: ${memory.join(", ")}`
+        : "I do not yet know anything about the user.";
+
+    // ---------- OPENAI RESPONSE ----------
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
-          content: `You are Restore AI, a personalized teacher.
-Use stored memories to tailor responses.
-
+          content: `You are Restore AI, a friendly teacher AI.
+Use simple explanations.
 ${memoryContext}`,
         },
         {
@@ -65,16 +63,12 @@ ${memoryContext}`,
 
     const reply = completion.choices[0].message.content;
 
-    return new Response(
-      JSON.stringify({ reply }),
-      { headers: { "Content-Type": "application/json" } }
-    );
+    // ---------- RETURN RESPONSE ----------
+    return Response.json({ reply });
   } catch (error) {
-    console.error(error);
-
-    return new Response(
-      JSON.stringify({ reply: "Something went wrong." }),
-      { status: 500 }
-    );
+    console.error("API ERROR:", error);
+    return Response.json({
+      reply: "Something went wrong.",
+    });
   }
 }
