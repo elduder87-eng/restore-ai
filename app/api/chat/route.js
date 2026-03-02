@@ -1,53 +1,64 @@
 import OpenAI from "openai";
-import { getMemory, updateMemory } from "@/lib/memory";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-function buildAdaptiveSystemPrompt(memory) {
+let learnerMemory = {
+  interests: [],
+  topics: {},
+};
 
-  let teachingStyle = "clear and friendly";
+function updateMemory(message) {
+  const lower = message.toLowerCase();
 
-  if (memory.confidence < 0.4)
-    teachingStyle = "gentle, simple, encouraging, beginner-friendly";
+  if (lower.includes("i enjoy") || lower.includes("i like")) {
+    const interest = lower.replace("i enjoy", "")
+      .replace("i like", "")
+      .trim();
 
-  if (memory.confidence > 0.7)
-    teachingStyle = "deeper, more conceptual, and thought-provoking";
+    if (interest && !learnerMemory.interests.includes(interest)) {
+      learnerMemory.interests.push(interest);
+    }
+  }
 
-  return `
-You are Restore AI, an adaptive learning companion.
+  if (lower.includes("explain")) {
+    const topic = lower.replace("explain", "").trim();
+    learnerMemory.topics[topic] = "learning";
+  }
+}
 
-Teaching style:
-${teachingStyle}
+function progressSummary() {
+  const interests =
+    learnerMemory.interests.join(", ") || "exploring";
 
-Learner state: ${memory.learningState}
-Confidence level: ${memory.confidence}
+  const topics = Object.entries(learnerMemory.topics)
+    .map(([t, s]) => `${t}: ${s}`)
+    .join(", ");
 
-Known interests: ${memory.interests.join(", ") || "none yet"}
-
-Rules:
-- Adjust explanation complexity automatically.
-- Encourage curiosity.
-- Help the learner connect ideas.
-- Be concise but warm.
-- Never mention memory tracking.
-`;
+  return `Here’s your learning progress — Interests: ${interests}. Topics: ${topics || "starting journey"}.`;
 }
 
 export async function POST(req) {
   try {
     const { message } = await req.json();
 
-    const memory = updateMemory("default", message);
+    updateMemory(message);
 
-    // Reflection request
     if (message.toLowerCase().includes("how am i doing")) {
       return Response.json({
-        reply: `Here’s your learning progress:\n
-State: ${memory.learningState}
-Confidence: ${(memory.confidence * 100).toFixed(0)}%
-Interests: ${memory.interests.join(", ") || "still discovering"}`
+        reply: progressSummary(),
+      });
+    }
+
+    if (message.toLowerCase().includes("what do you remember")) {
+      return Response.json({
+        reply:
+          learnerMemory.interests.length > 0
+            ? `I remember that you're interested in ${learnerMemory.interests.join(
+                ", "
+              )}.`
+            : "I'm still learning about you!",
       });
     }
 
@@ -56,23 +67,25 @@ Interests: ${memory.interests.join(", ") || "still discovering"}`
       messages: [
         {
           role: "system",
-          content: buildAdaptiveSystemPrompt(memory)
+          content:
+            "You are Restore AI, a supportive adaptive teacher helping a learner understand concepts clearly and encouraging curiosity.",
         },
         {
           role: "user",
-          content: message
-        }
+          content: message,
+        },
       ],
     });
 
     return Response.json({
       reply: completion.choices[0].message.content,
     });
-
   } catch (error) {
-    console.error("CHAT ERROR:", error);
+    console.error(error);
+
     return Response.json({
-      reply: "I'm having a small technical hiccup — but I'm still here. Try again in a moment."
+      reply:
+        "I'm having a small technical hiccup — but I'm still here. Try again in a moment.",
     });
   }
 }
