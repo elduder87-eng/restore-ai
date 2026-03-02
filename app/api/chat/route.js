@@ -1,96 +1,79 @@
-import { NextResponse } from "next/server";
 import OpenAI from "openai";
-import { kv } from "@vercel/kv";
+import { Redis } from "@upstash/redis";
 
+export const runtime = "edge";
+
+// OpenAI
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
+});
+
+// Upstash Redis
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN,
 });
 
 export async function POST(req) {
   try {
     const { message } = await req.json();
 
-    // -----------------------------
-    // LOAD MEMORY
-    // -----------------------------
-    let memory = await kv.get("memory");
+    const userId = "default-user"; // later we upgrade to real users
 
-    if (!memory) {
-      memory = {
-        interests: [],
-        learningStyle: "clear and simple explanations",
-      };
-    }
+    // ✅ GET MEMORY
+    let memories = await redis.get(`memory:${userId}`);
 
-    // -----------------------------
-    // UPDATE INTERESTS (simple AI detection)
-    // -----------------------------
+    if (!memories) memories = [];
+
+    // ✅ SAVE NEW INTERESTS AUTOMATICALLY
     const lower = message.toLowerCase();
 
-    if (lower.includes("astronomy") && !memory.interests.includes("astronomy")) {
-      memory.interests.push("astronomy");
-    }
-
-    if (lower.includes("biology") && !memory.interests.includes("biology")) {
-      memory.interests.push("biology");
-    }
-
-    if (lower.includes("weather") && !memory.interests.includes("weather")) {
-      memory.interests.push("weather");
-    }
-
     if (
-      lower.includes("simple") ||
-      lower.includes("easy") ||
-      lower.includes("explain simply")
+      lower.includes("i enjoy") ||
+      lower.includes("i like") ||
+      lower.includes("i love")
     ) {
-      memory.learningStyle = "prefers simple explanations";
+      memories.push(message);
+
+      // store updated memory
+      await redis.set(`memory:${userId}`, memories);
     }
 
-    // SAVE MEMORY
-    await kv.set("memory", memory);
+    // ✅ BUILD MEMORY CONTEXT
+    const memoryContext =
+      memories.length > 0
+        ? `User facts: ${memories.join(", ")}`
+        : "No stored memories yet.";
 
-    // -----------------------------
-    // BUILD SYSTEM PROMPT
-    // -----------------------------
-    const systemPrompt = `
-You are Restore AI, a supportive educational teacher.
-
-User Interests: ${memory.interests.join(", ") || "unknown"}
-Learning Style: ${memory.learningStyle}
-
-Rules:
-- Teach clearly and simply.
-- Personalize explanations to interests.
-- Encourage curiosity.
-- Keep tone friendly and educational.
-`;
-
-    // -----------------------------
-    // OPENAI RESPONSE
-    // -----------------------------
+    // ✅ AI RESPONSE
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: message },
+        {
+          role: "system",
+          content: `You are Restore AI, a personalized teacher.
+Use stored memories to tailor responses.
+
+${memoryContext}`,
+        },
+        {
+          role: "user",
+          content: message,
+        },
       ],
     });
 
     const reply = completion.choices[0].message.content;
 
-    // -----------------------------
-    // RETURN RESPONSE
-    // -----------------------------
-    return NextResponse.json({
-      reply,
-      memory,
-    });
+    return new Response(
+      JSON.stringify({ reply }),
+      { headers: { "Content-Type": "application/json" } }
+    );
   } catch (error) {
     console.error(error);
 
-    return NextResponse.json(
-      { reply: "Something went wrong." },
+    return new Response(
+      JSON.stringify({ reply: "Something went wrong." }),
       { status: 500 }
     );
   }
