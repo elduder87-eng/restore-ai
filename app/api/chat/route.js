@@ -1,55 +1,76 @@
 import OpenAI from "openai";
-import { saveMemory, getMemory } from "@/lib/memory";
-import {
-  updateLearningProfile,
-  getLearningProfile
-} from "@/lib/profile";
+import { getMemory, updateMemory } from "@/lib/memory";
+import { generateSuggestion } from "@/lib/suggestions";
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
 export async function POST(req) {
   try {
-    const { message } = await req.json();
+    const { message, userId = "default-user" } = await req.json();
 
-    const userId = "default-user";
+    // =====================
+    // LOAD MEMORY
+    // =====================
+    let memory = await getMemory(userId);
 
-    // Save memory
-    await saveMemory(userId, message);
+    const lower = message.toLowerCase();
 
-    // Update learning profile
-    await updateLearningProfile(userId, message);
+    let detectedInterests = [];
 
-    // Retrieve stored data
-    const memory = await getMemory(userId);
-    const profile = await getLearningProfile(userId);
+    if (lower.includes("astronomy")) detectedInterests.push("astronomy");
+    if (lower.includes("biology")) detectedInterests.push("biology");
 
-    const memoryContext = memory
-      ? `User interests: ${memory.interests.join(", ")}`
-      : "No stored interests yet.";
+    if (detectedInterests.length > 0) {
+      memory = await updateMemory(userId, {
+        interests: detectedInterests,
+      });
+    }
 
+    // learning style detection
+    let learningStyle = memory.learningStyle;
+
+    if (lower.includes("simply") || lower.includes("simple")) {
+      learningStyle = "simple";
+      memory = await updateMemory(userId, { learningStyle });
+    }
+
+    // =====================
+    // SUGGESTIONS
+    // =====================
+    const suggestion = generateSuggestion(memory);
+
+    // =====================
+    // SYSTEM PROMPT
+    // =====================
     const systemPrompt = `
-You are Restore AI, a personalized teacher.
+You are Restore AI, a calm and encouraging adaptive teacher.
 
-Learner Memory:
-${memoryContext}
-
-Learning Profile:
-${JSON.stringify(profile)}
+Learner Profile:
+Interests: ${memory.interests.join(", ") || "unknown"}
+Learning Style: ${memory.learningStyle}
 
 Teaching Rules:
-- Adapt explanations to curiosity and depth preference.
+- Adapt explanations to learning style.
 - Be encouraging and educational.
-- Act like a supportive teacher.
+- Let the learner lead the conversation.
+- Keep responses natural and human.
+- Occasionally suggest future topics gently.
+
+Suggested Exploration:
+${suggestion || "None right now."}
 `;
 
+    // =====================
+    // OPENAI CALL
+    // =====================
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         { role: "system", content: systemPrompt },
-        { role: "user", content: message }
-      ]
+        { role: "user", content: message },
+      ],
     });
 
     const reply = completion.choices[0].message.content;
@@ -57,10 +78,9 @@ Teaching Rules:
     return Response.json({ reply });
   } catch (error) {
     console.error(error);
-
     return Response.json({
       reply:
-        "I'm having a small technical hiccup — but I'm still here. Try again in a moment."
+        "I'm having a small technical hiccup — but I'm still here. Try again in a moment.",
     });
   }
 }
