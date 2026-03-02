@@ -1,9 +1,5 @@
 import OpenAI from "openai";
-import {
-  loadMemory,
-  saveMemory,
-  updateMemoryFromMessage,
-} from "@/lib/memory";
+import { kv } from "@vercel/kv";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -11,45 +7,45 @@ const openai = new OpenAI({
 
 export async function POST(req) {
   try {
-    const { message, history } = await req.json();
+    const { message } = await req.json();
 
-    /* -------------------------
-       LOAD MEMORY
-    ------------------------- */
-    let memory = await loadMemory();
+    // ---------- LOAD MEMORY ----------
+    let memory = [];
 
-    /* -------------------------
-       UPDATE MEMORY
-    ------------------------- */
-    memory = updateMemoryFromMessage(message, memory);
-    await saveMemory(memory);
+    try {
+      memory = (await kv.get("memory")) || [];
+    } catch (err) {
+      console.log("KV read failed:", err);
+    }
 
-    /* -------------------------
-       BUILD MEMORY CONTEXT
-    ------------------------- */
-    const interests =
-      memory.identity?.interests?.length > 0
-        ? `Student interests: ${memory.identity.interests.join(", ")}`
-        : "Student interests unknown.";
+    // ---------- UPDATE MEMORY ----------
+    if (
+      message.toLowerCase().includes("i enjoy") ||
+      message.toLowerCase().includes("i like")
+    ) {
+      memory.push(message);
+      await kv.set("memory", memory);
+    }
 
-    const systemPrompt = `
-You are Restore AI — a supportive adaptive teacher.
+    // ---------- BUILD CONTEXT ----------
+    const memoryContext =
+      memory.length > 0
+        ? `User facts: ${memory.join(", ")}`
+        : "No stored memories.";
 
-${interests}
-
-Use this knowledge naturally when helping the learner.
-Be encouraging, curious, and educational.
-`;
-
-    /* -------------------------
-       CALL OPENAI
-    ------------------------- */
+    // ---------- OPENAI CALL ----------
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
-        { role: "system", content: systemPrompt },
-        ...(history || []),
-        { role: "user", content: message },
+        {
+          role: "system",
+          content: `You are Restore AI, a personalized teacher.
+${memoryContext}`,
+        },
+        {
+          role: "user",
+          content: message,
+        },
       ],
     });
 
@@ -57,7 +53,7 @@ Be encouraging, curious, and educational.
 
     return Response.json({ reply });
   } catch (error) {
-    console.error("CHAT ERROR:", error);
+    console.error(error);
 
     return Response.json({
       reply:
