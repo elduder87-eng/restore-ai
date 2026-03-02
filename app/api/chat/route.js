@@ -1,151 +1,159 @@
 // app/api/chat/route.js
 
 import OpenAI from "openai";
+import { readMemory, writeMemory } from "@/memory/memory";
 
-const client = new OpenAI({
+const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
 
 // =============================
-// MEMORY (Stage 23)
+// TOPIC DETECTION
 // =============================
-let memory = {
-  interests: {},
-  topics: [],
-  stage: "starting"
-};
+function detectTopic(message) {
+  const text = message.toLowerCase();
 
+  if (text.includes("astronomy")) return "astronomy";
+  if (text.includes("biology")) return "biology";
+  if (text.includes("gravity")) return "gravity";
+  if (text.includes("physics")) return "physics";
+  if (text.includes("music")) return "music";
+  if (text.includes("language")) return "language";
 
-// =============================
-// UPDATE INTERESTS
-// =============================
-function updateInterests(message, memory) {
-
-  const subjects = [
-    "astronomy",
-    "biology",
-    "physics",
-    "psychology",
-    "math",
-    "history",
-    "chemistry",
-    "language",
-    "music"
-  ];
-
-  const lower = message.toLowerCase();
-
-  subjects.forEach(subject => {
-    if (lower.includes(subject)) {
-      if (!memory.interests[subject]) {
-        memory.interests[subject] = 0;
-      }
-      memory.interests[subject] += 1;
-    }
-  });
+  return null;
 }
 
 
 // =============================
-// MAIN CHAT ROUTE
+// MAIN ROUTE
 // =============================
 export async function POST(req) {
-
   try {
+    const { message } = await req.json();
+    const lower = message.toLowerCase();
 
-    const body = await req.json();
-    const userMessage = body.message || "";
+    // -------------------------
+    // LOAD MEMORY FILES
+    // -------------------------
+    const identity = readMemory("identity.json");
+    const curiosity = readMemory("curiosity.json");
+    const learningPath = readMemory("learningPath.json");
 
-    // update learner memory
-    updateInterests(userMessage, memory);
+    const topic = detectTopic(message);
 
-    const lower = userMessage.toLowerCase();
+    // -------------------------
+    // UPDATE MEMORY
+    // -------------------------
+    if (topic) {
 
-    let reply = "";
-
-    // =============================
-    // MEMORY RECALL
-    // =============================
-    if (lower.includes("remember")) {
-
-      const interests = Object.keys(memory.interests);
-
-      if (interests.length === 0) {
-        reply = "I'm still learning about your interests.";
-      } else {
-        reply =
-          "I remember that you're interested in " +
-          interests.join(", ") +
-          ".";
+      // identity memory
+      if (!identity.interests.includes(topic)) {
+        identity.interests.push(topic);
       }
 
-      return Response.json({ reply });
+      // curiosity tracking
+      if (!curiosity.topics[topic]) {
+        curiosity.topics[topic] = 1;
+      } else {
+        curiosity.topics[topic]++;
+      }
+
+      // learning path tracking
+      if (!learningPath.paths[topic]) {
+        learningPath.paths[topic] = {
+          mentions: 1,
+          suggested: false,
+        };
+      } else {
+        learningPath.paths[topic].mentions++;
+      }
+
+      writeMemory("identity.json", identity);
+      writeMemory("curiosity.json", curiosity);
+      writeMemory("learningPath.json", learningPath);
     }
 
+    // -------------------------
+    // MEMORY RECALL
+    // -------------------------
+    if (lower.includes("what do you remember")) {
+      const interests = identity.interests.length
+        ? identity.interests.join(", ")
+        : "still learning about you";
 
-    // =============================
-    // PROGRESS CHECK
-    // =============================
+      return Response.json({
+        reply: `I remember that you're interested in ${interests}.`,
+      });
+    }
+
+    // -------------------------
+    // PROGRESS REFLECTION
+    // -------------------------
     if (lower.includes("how am i doing")) {
+      const progress =
+        identity.interests.length > 0
+          ? identity.interests
+              .map(i => `${i}: growing interest`)
+              .join(", ")
+          : "just getting started.";
 
-      const summary = Object.entries(memory.interests)
-        .map(([k, v]) =>
-          `${k}: ${v > 2 ? "strong interest" : "growing interest"}`
-        )
-        .join(", ");
-
-      reply =
-        summary.length > 0
-          ? `Here’s your learning progress — ${summary}.`
-          : "You're just getting started. Tell me what you're curious about!";
-
-      return Response.json({ reply });
+      return Response.json({
+        reply: `Here’s your learning progress — ${progress}`,
+      });
     }
 
-
-    // =============================
-    // SIMPLE ACKNOWLEDGEMENTS
-    // (prevents repeated greetings)
-    // =============================
-    if (lower.includes("i enjoy") || lower.includes("i like")) {
-
-      reply =
-        "Nice! I'll remember that — we can explore it together.";
-
-      return Response.json({ reply });
-    }
-
-
-    // =============================
-    // OPENAI RESPONSE
-    // =============================
-    const completion = await client.chat.completions.create({
+    // -------------------------
+    // AI RESPONSE
+    // -------------------------
+    const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
           content:
-            "You are Restore AI, a calm educational guide. Teach clearly, simply, and encourage curiosity. Keep answers concise and supportive."
+            "You are Restore AI, a calm educational learning companion. Encourage curiosity, teach clearly, and guide gently without forcing direction.",
         },
         {
           role: "user",
-          content: userMessage
-        }
-      ]
+          content: message,
+        },
+      ],
     });
 
-    reply = completion.choices[0].message.content;
+    let aiResponse = completion.choices[0].message.content;
 
-    return Response.json({ reply });
+    // -------------------------
+    // STAGE 24 GUIDED SUGGESTION
+    // -------------------------
+    let suggestion = null;
+
+    for (const t in learningPath.paths) {
+      const entry = learningPath.paths[t];
+
+      if (entry.mentions >= 2 && !entry.suggested) {
+        entry.suggested = true;
+        suggestion = t;
+        break;
+      }
+    }
+
+    if (suggestion) {
+      writeMemory("learningPath.json", learningPath);
+
+      aiResponse += `
+
+If you're interested, we could explore ${suggestion} more deeply sometime — it connects nicely with what you've been learning.`;
+    }
+
+    return Response.json({ reply: aiResponse });
 
   } catch (error) {
-
     console.error("CHAT ERROR:", error);
 
     return Response.json({
       reply:
-        "I'm having a small technical hiccup — but I'm still here. Try again in a moment."
+        "I'm having a small technical hiccup — but I'm still here. Try again in a moment.",
     });
   }
 }
