@@ -3,28 +3,33 @@
 import { useState } from "react";
 
 export default function Home() {
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState([
+    { role: "assistant", content: "Hello! How can I help you learn today?" }
+  ]);
   const [input, setInput] = useState("");
 
   async function sendMessage() {
     if (!input) return;
 
-    const userMessage = { role: "user", content: input };
+    const newMessages = [
+      ...messages,
+      { role: "user", content: input }
+    ];
 
-    const updated = [...messages, userMessage];
-    setMessages(updated);
+    setMessages(newMessages);
     setInput("");
 
     const res = await fetch("/api/chat", {
       method: "POST",
-      body: JSON.stringify({ messages: updated })
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages: newMessages })
     });
 
     const data = await res.json();
 
     setMessages([
-      ...updated,
-      { role: "assistant", content: data.reply }
+      ...newMessages,
+      { role: "assistant", content: data.message }
     ]);
   }
 
@@ -34,8 +39,7 @@ export default function Home() {
 
       {messages.map((m, i) => (
         <p key={i}>
-          <strong>{m.role === "user" ? "You" : "AI"}:</strong>{" "}
-          {m.content}
+          <b>{m.role === "user" ? "You" : "AI"}:</b> {m.content}
         </p>
       ))}
 
