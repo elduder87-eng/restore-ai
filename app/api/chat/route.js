@@ -1,57 +1,61 @@
-import OpenAI from "openai";
-import { kv } from "@vercel/kv";
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+import { loadMemory, saveMemory } from "@/lib/memory";
 
 export async function POST(req) {
   try {
-    const { message } = await req.json();
+    const body = await req.json();
+    const message = body.message;
 
-    // ---------- LOAD MEMORY ----------
-    let memory = [];
+    // Simple fixed user for now
+    const userId = "default-user";
 
-    try {
-      memory = (await kv.get("memory")) || [];
-    } catch (err) {
-      console.log("KV read failed:", err);
+    /* ===========================
+       LOAD MEMORY
+    =========================== */
+    const memory = await loadMemory(userId);
+
+    let rememberedTopics = [];
+
+    if (memory.astronomy) rememberedTopics.push("astronomy");
+    if (memory.biology) rememberedTopics.push("biology");
+
+    /* ===========================
+       LEARN FROM USER MESSAGE
+    =========================== */
+    const lower = message.toLowerCase();
+
+    if (lower.includes("astronomy")) {
+      await saveMemory(userId, "astronomy", true);
     }
 
-    // ---------- UPDATE MEMORY ----------
-    if (
-      message.toLowerCase().includes("i enjoy") ||
-      message.toLowerCase().includes("i like")
-    ) {
-      memory.push(message);
-      await kv.set("memory", memory);
+    if (lower.includes("biology")) {
+      await saveMemory(userId, "biology", true);
     }
 
-    // ---------- BUILD CONTEXT ----------
-    const memoryContext =
-      memory.length > 0
-        ? `User facts: ${memory.join(", ")}`
-        : "No stored memories.";
+    /* ===========================
+       MEMORY RESPONSE
+    =========================== */
+    if (lower.includes("what do you remember")) {
+      if (rememberedTopics.length === 0) {
+        return Response.json({
+          reply:
+            "I don’t have any stored memories about you yet, but I’m learning as we talk.",
+        });
+      }
 
-    // ---------- OPENAI CALL ----------
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content: `You are Restore AI, a personalized teacher.
-${memoryContext}`,
-        },
-        {
-          role: "user",
-          content: message,
-        },
-      ],
+      return Response.json({
+        reply: `I remember that you're interested in ${rememberedTopics.join(
+          " and "
+        )}!`,
+      });
+    }
+
+    /* ===========================
+       NORMAL RESPONSE
+    =========================== */
+    return Response.json({
+      reply:
+        "That's interesting! Tell me more about what you'd like to learn.",
     });
-
-    const reply = completion.choices[0].message.content;
-
-    return Response.json({ reply });
   } catch (error) {
     console.error(error);
 
