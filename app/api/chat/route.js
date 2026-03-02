@@ -17,19 +17,18 @@ export async function POST(req) {
     const userId = "default-user";
     const memoryKey = `memory:${userId}`;
 
-    // ✅ GET MEMORY LIST (correct Redis type)
+    // ✅ Read memory list correctly
     const pastMemories = await redis.lrange(memoryKey, 0, -1);
 
-    // Build memory context
     const memoryContext =
       pastMemories.length > 0
         ? `User facts:\n${pastMemories.join("\n")}`
         : "";
 
-    // ✅ Call OpenAI
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
+    // ✅ NEW OpenAI API (this fixes crash)
+    const response = await openai.responses.create({
+      model: "gpt-4.1-mini",
+      input: [
         {
           role: "system",
           content:
@@ -46,9 +45,9 @@ export async function POST(req) {
       ],
     });
 
-    const reply = completion.choices[0].message.content;
+    const reply = response.output_text;
 
-    // ✅ STORE NEW MEMORY (append to list)
+    // ✅ Save message into memory list
     await redis.rpush(memoryKey, message);
 
     return Response.json({ reply });
