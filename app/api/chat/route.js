@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import OpenAI from "openai";
 import {
   getMemory,
   saveMemory,
@@ -6,43 +6,60 @@ import {
   buildMemorySummary,
 } from "@/lib/memory";
 
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
 export async function POST(req) {
   try {
     const { message } = await req.json();
 
-    // Load memory
+    // ----------------------------
+    // Load Memory
+    // ----------------------------
     let memory = getMemory();
 
-    // Update memory from user message
+    // Update memory from user input
     memory = updateMemoryFromMessage(message, memory);
 
-    // Save memory
+    // Save updated memory
     saveMemory(memory);
 
-    // Simple teaching responses
-    let reply = "Tell me more.";
+    // Build memory context
+    const memorySummary = buildMemorySummary(memory);
 
-    const text = message.toLowerCase();
+    // ----------------------------
+    // AI Response
+    // ----------------------------
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: `
+You are Restore AI, a calm adaptive teacher.
 
-    if (text.includes("hello")) {
-      reply = "Hello! How can I help you learn today?";
-    } else if (text.includes("remember")) {
-      reply = `I remember that you're interested in ${memory.identity.interests?.join(", ") || "learning new things"}.`;
-    } else if (text.includes("how am i doing")) {
-      reply = buildMemorySummary(memory);
-    } else if (text.includes("astronomy")) {
-      reply =
-        "Astronomy explores stars, planets, galaxies, and the universe.";
-    } else if (text.includes("biology")) {
-      reply =
-        "Biology studies living organisms — from tiny cells to ecosystems.";
-    }
+User Memory:
+${memorySummary}
 
-    return NextResponse.json({ reply });
+Use this memory naturally when answering.
+Do NOT explicitly mention "memory".
+        `,
+        },
+        {
+          role: "user",
+          content: message,
+        },
+      ],
+    });
+
+    const reply = completion.choices[0].message.content;
+
+    return Response.json({ reply });
   } catch (error) {
     console.error(error);
 
-    return NextResponse.json({
+    return Response.json({
       reply:
         "I'm having a small technical hiccup — but I'm still here. Try again in a moment.",
     });
