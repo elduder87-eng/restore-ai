@@ -1,15 +1,38 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export default function Home() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
+  const [speechEnabled, setSpeechEnabled] = useState(true);
 
+  const bottomRef = useRef(null);
+
+  // Auto scroll
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  // 🔊 Speech function
+  function speak(text) {
+    if (!speechEnabled) return;
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 1;
+    utterance.pitch = 1;
+
+    speechSynthesis.cancel(); // prevent overlap
+    speechSynthesis.speak(utterance);
+  }
+
+  // Send message
   async function sendMessage() {
-    if (!input) return;
+    if (!input.trim()) return;
 
     const userMessage = { role: "user", content: input };
+
+    // Add user message once
     setMessages((m) => [...m, userMessage]);
 
     const res = await fetch("/api/chat", {
@@ -32,32 +55,53 @@ export default function Home() {
     setInput("");
   }
 
-  // 🎙️ TEXT TO SPEECH
-  function speak(text) {
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 1;
-    utterance.pitch = 1;
-    speechSynthesis.speak(utterance);
-  }
-
   return (
-    <main style={{ padding: "40px", fontFamily: "serif" }}>
-      <h1>Restore AI — Teacher Mode</h1>
+    <main style={{ padding: "40px", fontFamily: "serif", maxWidth: "700px", margin: "auto" }}>
+      <h1>Restore AI</h1>
 
-      {messages.map((msg, i) => (
-        <p key={i}>
-          <strong>{msg.role === "user" ? "You" : "AI"}:</strong>{" "}
-          {msg.content}
-        </p>
-      ))}
+      {/* Speech Toggle */}
+      <button
+        onClick={() => setSpeechEnabled(!speechEnabled)}
+        style={{ marginBottom: "20px" }}
+      >
+        {speechEnabled ? "🔊 Voice ON" : "🔇 Voice OFF"}
+      </button>
 
-      <input
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        placeholder="Type message..."
-      />
+      {/* Messages */}
+      <div>
+        {messages.map((msg, i) => (
+          <div key={i} style={{ marginBottom: "15px" }}>
+            <strong>{msg.role === "user" ? "You" : "Restore"}:</strong>
+            <p>{msg.content}</p>
 
-      <button onClick={sendMessage}>Send</button>
+            {/* Replay voice for AI */}
+            {msg.role === "ai" && (
+              <button onClick={() => speak(msg.content)}>
+                🔊 Play Voice
+              </button>
+            )}
+          </div>
+        ))}
+        <div ref={bottomRef} />
+      </div>
+
+      {/* Input */}
+      <div style={{ marginTop: "20px" }}>
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="What do you want to learn about?"
+          style={{ width: "70%", padding: "10px" }}
+          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+        />
+
+        <button
+          onClick={sendMessage}
+          style={{ padding: "10px", marginLeft: "10px" }}
+        >
+          Send
+        </button>
+      </div>
     </main>
   );
 }
