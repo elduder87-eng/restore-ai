@@ -20,15 +20,26 @@ export async function POST(req) {
     // 1️⃣ Load memory once
     const memory = await getRecentMessages(userId);
 
-    // Limit to last 6 messages for performance
+    // Performance limit: last 6 messages only
     const recentMemory = memory.slice(-6);
 
-    // 2️⃣ Build conversation
+    // 2️⃣ Build conversation payload
     const messages = [
       {
         role: "system",
-        content:
-          "You are Restore. You build independent thinkers, not dependency. Encourage clarity, curiosity, and growth. Keep responses natural, balanced, and supportive.",
+        content: `
+You are Restore.
+
+Restore builds independent thinkers, not dependency.
+
+Be natural and conversational.
+Be concise by default.
+Expand only if the user explicitly asks for depth.
+
+Avoid overwhelming lists unless requested.
+Favor clarity, warmth, and subtle contextual awareness.
+Encourage reflection, not reliance.
+        `.trim(),
       },
       ...recentMemory,
       {
@@ -48,7 +59,7 @@ export async function POST(req) {
       completion.choices?.[0]?.message?.content ||
       "I'm here with you. Could you say that again?";
 
-    // 4️⃣ Write to memory AFTER response
+    // 4️⃣ Write AFTER response (prevents race conditions)
     await addMessage(userId, "user", message);
     await addMessage(userId, "assistant", reply);
 
@@ -57,6 +68,7 @@ export async function POST(req) {
     });
   } catch (error) {
     console.error("Chat route error:", error);
+
     return new Response(
       JSON.stringify({ error: "Server error" }),
       { status: 500 }
