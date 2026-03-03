@@ -1,107 +1,111 @@
-"use client";
+"use client"
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react"
 
-export default function Home() {
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState("");
-  const [speechEnabled, setSpeechEnabled] = useState(true);
+function getOrCreateUserId() {
+  let userId = localStorage.getItem("restore_user_id")
 
-  const bottomRef = useRef(null);
-
-  // Auto scroll
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
-  // 🔊 Speech function
-  function speak(text) {
-    if (!speechEnabled) return;
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 1;
-    utterance.pitch = 1;
-
-    speechSynthesis.cancel(); // prevent overlap
-    speechSynthesis.speak(utterance);
+  if (!userId) {
+    userId = crypto.randomUUID()
+    localStorage.setItem("restore_user_id", userId)
   }
 
-  // Send message
+  return userId
+}
+
+export default function Home() {
+  const [input, setInput] = useState("")
+  const [messages, setMessages] = useState([])
+  const [loading, setLoading] = useState(false)
+  const bottomRef = useRef(null)
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" })
+  }, [messages])
+
   async function sendMessage() {
-    if (!input.trim()) return;
+    if (!input.trim()) return
 
-    const userMessage = { role: "user", content: input };
+    const userId = getOrCreateUserId()
 
-    // Add user message once
-    setMessages((m) => [...m, userMessage]);
+    const userMessage = { role: "user", content: input }
+    setMessages(prev => [...prev, userMessage])
+    setInput("")
+    setLoading(true)
 
-    const res = await fetch("/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        message: input,
-        userId: "default-user",
-      }),
-    });
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: input,
+          userId,
+        }),
+      })
 
-    const data = await res.json();
+      const data = await res.json()
 
-    const aiMessage = { role: "ai", content: data.reply };
+      setMessages(prev => [
+        ...prev,
+        { role: "assistant", content: data.reply },
+      ])
+    } catch (error) {
+      setMessages(prev => [
+        ...prev,
+        { role: "assistant", content: "Something went wrong." },
+      ])
+    }
 
-    setMessages((m) => [...m, aiMessage]);
-
-    speak(data.reply);
-
-    setInput("");
+    setLoading(false)
   }
 
   return (
-    <main style={{ padding: "40px", fontFamily: "serif", maxWidth: "700px", margin: "auto" }}>
+    <main style={{ padding: "20px", maxWidth: "700px", margin: "0 auto" }}>
       <h1>Restore AI</h1>
 
-      {/* Speech Toggle */}
-      <button
-        onClick={() => setSpeechEnabled(!speechEnabled)}
-        style={{ marginBottom: "20px" }}
-      >
-        {speechEnabled ? "🔊 Voice ON" : "🔇 Voice OFF"}
-      </button>
-
-      {/* Messages */}
-      <div>
+      <div style={{ marginBottom: "20px" }}>
         {messages.map((msg, i) => (
-          <div key={i} style={{ marginBottom: "15px" }}>
-            <strong>{msg.role === "user" ? "You" : "Restore"}:</strong>
-            <p>{msg.content}</p>
-
-            {/* Replay voice for AI */}
-            {msg.role === "ai" && (
-              <button onClick={() => speak(msg.content)}>
-                🔊 Play Voice
-              </button>
-            )}
+          <div
+            key={i}
+            style={{
+              textAlign: msg.role === "user" ? "right" : "left",
+              marginBottom: "10px",
+            }}
+          >
+            <div
+              style={{
+                display: "inline-block",
+                padding: "10px 14px",
+                borderRadius: "16px",
+                background:
+                  msg.role === "user" ? "#0070f3" : "#e5e5ea",
+                color: msg.role === "user" ? "white" : "black",
+                maxWidth: "80%",
+              }}
+            >
+              {msg.content}
+            </div>
           </div>
         ))}
+
+        {loading && <div>Restore is thinking...</div>}
         <div ref={bottomRef} />
       </div>
 
-      {/* Input */}
-      <div style={{ marginTop: "20px" }}>
+      <div style={{ display: "flex", gap: "10px" }}>
         <input
+          style={{ flex: 1, padding: "10px" }}
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="What do you want to learn about?"
-          style={{ width: "70%", padding: "10px" }}
-          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+          placeholder="Ask Restore something..."
+          onKeyDown={(e) => {
+            if (e.key === "Enter") sendMessage()
+          }}
         />
-
-        <button
-          onClick={sendMessage}
-          style={{ padding: "10px", marginLeft: "10px" }}
-        >
-          Send
-        </button>
+        <button onClick={sendMessage}>Send</button>
       </div>
     </main>
-  );
+  )
 }
