@@ -19,14 +19,10 @@ export async function POST(req) {
       return new Response("Missing message or userId", { status: 400 });
     }
 
-    // -------------------------
-    // Save User Message
-    // -------------------------
+    // Save user message
     await addMessage(userId, "user", message);
 
-    // -------------------------
-    // Identity Extraction
-    // -------------------------
+    // Identity extraction
     const extraction = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
@@ -49,22 +45,16 @@ export async function POST(req) {
       extractedData = {};
     }
 
-    // -------------------------
-    // Update Learning Profile
-    // -------------------------
+    // Update profile
     await updateLearningProfile(userId, message, extractedData);
 
     const profile = await getLearningProfile(userId);
     const identitySummary = buildIdentitySummary(profile);
 
-    // -------------------------
-    // Retrieve Conversation Memory
-    // -------------------------
+    // Retrieve memory
     const memory = await getRecentMessages(userId);
 
-    // -------------------------
-    // Main Completion
-    // -------------------------
+    // Main response
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
@@ -93,7 +83,6 @@ Be conversational and intelligent.
 
     const reply = completion.choices[0].message.content;
 
-    // Save assistant reply
     await addMessage(userId, "assistant", reply);
 
     return Response.json({ reply });
