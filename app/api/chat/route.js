@@ -13,10 +13,11 @@ const openai = new OpenAI({
 export async function POST(req) {
   try {
     const body = await req.json();
-    const { message, userId } = body;
+    const message = body.message;
+    const userId = body.userId || "default-user";
 
-    if (!message || !userId) {
-      return new Response("Missing message or userId", { status: 400 });
+    if (!message) {
+      return new Response("Missing message", { status: 400 });
     }
 
     // Save user message
@@ -51,10 +52,10 @@ export async function POST(req) {
     const profile = await getLearningProfile(userId);
     const identitySummary = buildIdentitySummary(profile);
 
-    // Retrieve memory
+    // Get conversation memory
     const memory = await getRecentMessages(userId);
 
-    // Main response
+    // Main completion
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
