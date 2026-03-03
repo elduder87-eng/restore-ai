@@ -17,11 +17,23 @@ export default function Home() {
   const [input, setInput] = useState("")
   const [messages, setMessages] = useState([])
   const [loading, setLoading] = useState(false)
+  const [voiceOn, setVoiceOn] = useState(true)
   const bottomRef = useRef(null)
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
+
+  function speak(text) {
+    if (!voiceOn) return
+
+    window.speechSynthesis.cancel()
+
+    const utterance = new SpeechSynthesisUtterance(text)
+    utterance.rate = 1
+    utterance.pitch = 1
+    window.speechSynthesis.speak(utterance)
+  }
 
   async function sendMessage() {
     if (!input.trim()) return
@@ -47,10 +59,14 @@ export default function Home() {
 
       const data = await res.json()
 
-      setMessages(prev => [
-        ...prev,
-        { role: "assistant", content: data.reply },
-      ])
+      const assistantMessage = {
+        role: "assistant",
+        content: data.reply,
+      }
+
+      setMessages(prev => [...prev, assistantMessage])
+
+      speak(data.reply)
     } catch (error) {
       setMessages(prev => [
         ...prev,
@@ -64,6 +80,17 @@ export default function Home() {
   return (
     <main style={{ padding: "20px", maxWidth: "700px", margin: "0 auto" }}>
       <h1>Restore AI</h1>
+
+      <button
+        onClick={() => setVoiceOn(!voiceOn)}
+        style={{
+          marginBottom: "15px",
+          padding: "6px 12px",
+          cursor: "pointer",
+        }}
+      >
+        Voice: {voiceOn ? "ON" : "OFF"}
+      </button>
 
       <div style={{ marginBottom: "20px" }}>
         {messages.map((msg, i) => (
