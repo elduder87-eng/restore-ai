@@ -1,77 +1,74 @@
-import OpenAI from "openai";
-import { getRecentMessages, addMessage } from "@/lib/memory";
+import OpenAI from "openai"
+import { addMessage, getRecentMessages } from "@/lib/memory"
+import { updateLearningProfile } from "@/lib/profile"
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
-});
+})
 
 export async function POST(req) {
   try {
-    const body = await req.json();
-    const { message, userId } = body;
+    const { message, userId } = await req.json()
 
     if (!message || !userId) {
-      return new Response(
-        JSON.stringify({ error: "Missing message or userId" }),
-        { status: 400 }
-      );
+      return Response.json({
+        reply: "I need a message and user ID to continue."
+      })
     }
 
-    // 1️⃣ Load memory once
-    const memory = await getRecentMessages(userId);
+    // ---------- SAFE MEMORY LOAD ----------
+    let history = []
+    try {
+      history = await getRecentMessages(userId)
+    } catch (err) {
+      console.error("Memory Load Error:", err)
+    }
 
-    // Performance limit: last 6 messages only
-    const recentMemory = memory.slice(-6);
+    // ---------- SAFE PROFILE UPDATE ----------
+    try {
+      await updateLearningProfile(userId, message)
+    } catch (err) {
+      console.error("Profile Update Error:", err)
+    }
 
-    // 2️⃣ Build conversation payload
-    const messages = [
-      {
-        role: "system",
-        content: `
-You are Restore.
+    // ---------- SAFE OPENAI CALL ----------
+    let aiResponse = "I'm here — something small glitched. Let's try that again."
 
-Restore builds independent thinkers, not dependency.
+    try {
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are Restore — warm, intelligent, supportive, never overbearing. Encourage deeper thinking naturally."
+          },
+          ...history,
+          { role: "user", content: message }
+        ],
+      })
 
-Be natural and conversational.
-Be concise by default.
-Expand only if the user explicitly asks for depth.
+      aiResponse = completion.choices[0].message.content
+    } catch (err) {
+      console.error("OpenAI Error:", err)
+    }
 
-Avoid overwhelming lists unless requested.
-Favor clarity, warmth, and subtle contextual awareness.
-Encourage reflection, not reliance.
-        `.trim(),
-      },
-      ...recentMemory,
-      {
-        role: "user",
-        content: message,
-      },
-    ];
+    // ---------- SAFE MEMORY SAVE ----------
+    try {
+      await addMessage(userId, "user", message)
+      await addMessage(userId, "assistant", aiResponse)
+    } catch (err) {
+      console.error("Memory Save Error:", err)
+    }
 
-    // 3️⃣ Call OpenAI
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages,
-      temperature: 0.7,
-    });
+    return Response.json({ reply: aiResponse })
 
-    const reply =
-      completion.choices?.[0]?.message?.content ||
-      "I'm here with you. Could you say that again?";
+  } catch (err) {
+    console.error("Critical Chat Error:", err)
 
-    // 4️⃣ Write AFTER response (prevents race conditions)
-    await addMessage(userId, "user", message);
-    await addMessage(userId, "assistant", reply);
-
-    return new Response(JSON.stringify({ reply }), {
-      status: 200,
-    });
-  } catch (error) {
-    console.error("Chat route error:", error);
-
-    return new Response(
-      JSON.stringify({ error: "Server error" }),
-      { status: 500 }
-    );
+    return Response.json({
+      reply:
+        "I hit a small technical hiccup, but I’m still here. Let’s try that again."
+    })
   }
 }
