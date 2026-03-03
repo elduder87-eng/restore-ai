@@ -1,27 +1,32 @@
-import OpenAI from "openai"
-import { addMessage, getRecentMessages } from "@/lib/memory"
-import { updateLearningProfile, getLearningProfile } from "@/lib/profile"
+import OpenAI from "openai";
+import { addMessage, getRecentMessages } from "@/lib/memory";
+import {
+  updateLearningProfile,
+  getLearningProfile,
+  buildIdentitySummary
+} from "@/lib/profile";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
-})
+});
 
 export async function POST(req) {
   try {
-    const body = await req.json()
-    const { message, userId } = body
+    const body = await req.json();
+    const { message, userId } = body;
 
     if (!message || !userId) {
-      return new Response("Missing message or userId", { status: 400 })
+      return new Response("Missing message or userId", { status: 400 });
     }
 
-    // Save user message to memory
-    await addMessage(userId, "user", message)
+    // -------------------------
+    // Save User Message
+    // -------------------------
+    await addMessage(userId, "user", message);
 
     // -------------------------
     // Identity Extraction
     // -------------------------
-
     const extraction = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
@@ -32,31 +37,34 @@ export async function POST(req) {
         },
         { role: "user", content: message },
       ],
-    })
+    });
 
-    let extractedData = {}
+    let extractedData = {};
 
     try {
       extractedData = JSON.parse(
         extraction.choices[0].message.content
-      )
+      );
     } catch {
-      extractedData = {}
+      extractedData = {};
     }
 
-    // Update learning profile (behavior + identity)
-    await updateLearningProfile(userId, message, extractedData)
+    // -------------------------
+    // Update Learning Profile
+    // -------------------------
+    await updateLearningProfile(userId, message, extractedData);
 
-    // Retrieve updated profile
-    const profile = await getLearningProfile(userId)
-
-    // Retrieve memory
-    const memory = await getRecentMessages(userId)
+    const profile = await getLearningProfile(userId);
+    const identitySummary = buildIdentitySummary(profile);
 
     // -------------------------
-    // Main AI Response
+    // Retrieve Conversation Memory
     // -------------------------
+    const memory = await getRecentMessages(userId);
 
+    // -------------------------
+    // Main Completion
+    // -------------------------
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
@@ -68,24 +76,30 @@ You are Restore AI.
 User behavioral profile:
 ${JSON.stringify(profile)}
 
-Use identity and behavioral signals subtly.
-Do NOT list stored data unless directly asked.
-Be natural.
+User identity evolution:
+${identitySummary}
+
+If preferences change over time:
+- Acknowledge evolution naturally.
+- Be subtle unless directly asked.
+- Do not list stored data mechanically.
+
+Be conversational and intelligent.
 `,
         },
         ...memory,
       ],
-    })
+    });
 
-    const reply = completion.choices[0].message.content
+    const reply = completion.choices[0].message.content;
 
     // Save assistant reply
-    await addMessage(userId, "assistant", reply)
+    await addMessage(userId, "assistant", reply);
 
-    return Response.json({ reply })
+    return Response.json({ reply });
 
   } catch (error) {
-    console.error("API ERROR:", error)
-    return new Response("Something went wrong.", { status: 500 })
+    console.error("API ERROR:", error);
+    return new Response("Something went wrong.", { status: 500 });
   }
 }
