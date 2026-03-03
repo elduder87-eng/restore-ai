@@ -16,19 +16,19 @@ export async function POST(req) {
       })
     }
 
-    // ---------- LOAD MEMORY (parallel) ----------
+    // -------- LOAD MEMORY (parallel) --------
     let history = []
     const memoryPromise = getRecentMessages(userId)
       .then(data => { history = data })
       .catch(err => console.error("Memory Load Error:", err))
 
-    // ---------- UPDATE PROFILE (background) ----------
+    // -------- UPDATE PROFILE (background) --------
     updateLearningProfile(userId, message)
       .catch(err => console.error("Profile Update Error:", err))
 
     await memoryPromise
 
-    // ---------- OPENAI ----------
+    // -------- OPENAI CALL --------
     let aiResponse = "I'm here — something small glitched. Let's try that again."
 
     try {
@@ -38,7 +38,7 @@ export async function POST(req) {
           {
             role: "system",
             content:
-              "You are Restore — warm, intelligent, supportive, never overbearing. Encourage deeper thinking naturally."
+              "You are Restore: warm, intelligent, supportive. Encourage deeper thinking naturally without being overbearing."
           },
           ...history,
           { role: "user", content: message }
@@ -50,7 +50,7 @@ export async function POST(req) {
       console.error("OpenAI Error:", err)
     }
 
-    // ---------- SAVE MEMORY (background, non-blocking) ----------
+    // -------- SAVE MEMORY (non-blocking) --------
     addMessage(userId, "user", message)
       .catch(err => console.error("Memory Save Error:", err))
 
