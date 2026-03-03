@@ -3,7 +3,7 @@ import { addMessage, getRecentMessages } from "@/lib/memory";
 import {
   updateLearningProfile,
   getLearningProfile,
-  buildIdentitySummary
+  shouldResurface
 } from "@/lib/profile";
 
 const openai = new OpenAI({
@@ -30,18 +30,15 @@ export async function POST(req) {
         {
           role: "system",
           content:
-            "Extract user identity attributes from this message. Return ONLY valid JSON. If nothing extractable, return {}.",
+            "Extract identity attributes from this message as JSON. If none, return {}.",
         },
         { role: "user", content: message },
       ],
     });
 
     let extractedData = {};
-
     try {
-      extractedData = JSON.parse(
-        extraction.choices[0].message.content
-      );
+      extractedData = JSON.parse(extraction.choices[0].message.content);
     } catch {
       extractedData = {};
     }
@@ -50,12 +47,16 @@ export async function POST(req) {
     await updateLearningProfile(userId, message, extractedData);
 
     const profile = await getLearningProfile(userId);
-    const identitySummary = buildIdentitySummary(profile);
+    const resurfaced = shouldResurface(profile, message);
 
     // Get conversation memory
     const memory = await getRecentMessages(userId);
 
-    // Main completion
+    // Optional resurfacing instruction
+    const resurfacingInstruction = resurfaced
+      ? `You may subtly reference that the user previously showed strong interest in ${resurfaced.value}.`
+      : "";
+
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
@@ -67,19 +68,18 @@ You are Restore AI.
 User behavioral profile:
 ${JSON.stringify(profile)}
 
-User identity evolution:
-${identitySummary}
+${resurfacingInstruction}
 
-If preferences change over time:
-- Acknowledge evolution naturally.
-- Be subtle unless directly asked.
-- Do not list stored data mechanically.
+If resurfacing:
+- Be subtle
+- Do not overemphasize
+- Avoid repetition
 
 Be conversational and intelligent.
-`,
+`
         },
-        ...memory,
-      ],
+        ...memory
+      ]
     });
 
     const reply = completion.choices[0].message.content;
