@@ -46,6 +46,16 @@ export async function POST(req) {
       })
 
       aiResponse = completion.choices[0].message.content
+
+      // -------- REFLECTION MODE (Subtle 30% Trigger) --------
+      const shouldReflect =
+        aiResponse.length > 300 && Math.random() < 0.3
+
+      if (shouldReflect) {
+        aiResponse +=
+          "\n\nBefore we move on — what part of this stood out most to you?"
+      }
+
     } catch (err) {
       console.error("OpenAI Error:", err)
     }
