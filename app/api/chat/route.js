@@ -16,22 +16,19 @@ export async function POST(req) {
       })
     }
 
-    // ---------- SAFE MEMORY LOAD ----------
+    // ---------- LOAD MEMORY (parallel) ----------
     let history = []
-    try {
-      history = await getRecentMessages(userId)
-    } catch (err) {
-      console.error("Memory Load Error:", err)
-    }
+    const memoryPromise = getRecentMessages(userId)
+      .then(data => { history = data })
+      .catch(err => console.error("Memory Load Error:", err))
 
-    // ---------- SAFE PROFILE UPDATE ----------
-    try {
-      await updateLearningProfile(userId, message)
-    } catch (err) {
-      console.error("Profile Update Error:", err)
-    }
+    // ---------- UPDATE PROFILE (background) ----------
+    updateLearningProfile(userId, message)
+      .catch(err => console.error("Profile Update Error:", err))
 
-    // ---------- SAFE OPENAI CALL ----------
+    await memoryPromise
+
+    // ---------- OPENAI ----------
     let aiResponse = "I'm here — something small glitched. Let's try that again."
 
     try {
@@ -53,13 +50,12 @@ export async function POST(req) {
       console.error("OpenAI Error:", err)
     }
 
-    // ---------- SAFE MEMORY SAVE ----------
-    try {
-      await addMessage(userId, "user", message)
-      await addMessage(userId, "assistant", aiResponse)
-    } catch (err) {
-      console.error("Memory Save Error:", err)
-    }
+    // ---------- SAVE MEMORY (background, non-blocking) ----------
+    addMessage(userId, "user", message)
+      .catch(err => console.error("Memory Save Error:", err))
+
+    addMessage(userId, "assistant", aiResponse)
+      .catch(err => console.error("Memory Save Error:", err))
 
     return Response.json({ reply: aiResponse })
 
