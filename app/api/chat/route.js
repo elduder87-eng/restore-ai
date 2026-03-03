@@ -20,7 +20,6 @@ export async function POST(req) {
       return new Response("Missing message", { status: 400 });
     }
 
-    // Save user message
     await addMessage(userId, "user", message);
 
     // Identity extraction
@@ -30,10 +29,10 @@ export async function POST(req) {
         {
           role: "system",
           content:
-            "Extract identity attributes from this message as JSON. If none, return {}.",
+            "Extract identity attributes from this message as JSON. Example: {\"favorite_food\":\"tacos\"}. If none, return {}."
         },
-        { role: "user", content: message },
-      ],
+        { role: "user", content: message }
+      ]
     });
 
     let extractedData = {};
@@ -43,18 +42,21 @@ export async function POST(req) {
       extractedData = {};
     }
 
-    // Update profile
     await updateLearningProfile(userId, message, extractedData);
 
     const profile = await getLearningProfile(userId);
     const resurfaced = shouldResurface(profile, message);
 
-    // Get conversation memory
     const memory = await getRecentMessages(userId);
 
-    // Optional resurfacing instruction
     const resurfacingInstruction = resurfaced
-      ? `You may subtly reference that the user previously showed strong interest in ${resurfaced.value}.`
+      ? `
+The user previously showed strong interest in ${resurfaced.value}.
+If appropriate, you may subtly reference this and optionally offer a branch:
+For example:
+"You mentioned enjoying ${resurfaced.value} before — would you like to explore that, or try something different?"
+Be subtle. Not repetitive. Not forceful.
+`
       : "";
 
     const completion = await openai.chat.completions.create({
@@ -65,17 +67,12 @@ export async function POST(req) {
           content: `
 You are Restore AI.
 
-User behavioral profile:
+User profile:
 ${JSON.stringify(profile)}
 
 ${resurfacingInstruction}
 
-If resurfacing:
-- Be subtle
-- Do not overemphasize
-- Avoid repetition
-
-Be conversational and intelligent.
+Be natural, intelligent, and conversational.
 `
         },
         ...memory
