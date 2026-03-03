@@ -1,53 +1,45 @@
-import { NextResponse } from "next/server"
-import { updateIdentity, getIdentity } from "@/lib/identity"
+import OpenAI from "openai"
 import { addMessage, getRecentMessages } from "@/lib/memory"
-import { detectLearningStyle, updateLearningStyle, getLearningStyle } from "@/lib/learning"
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+})
 
 export async function POST(req) {
   try {
-    const { message } = await req.json()
+    const body = await req.json()
+    const { message } = body
 
+    if (!message) {
+      return new Response("No message provided", { status: 400 })
+    }
+
+    // Save user message
     await addMessage("user", message)
-    await updateIdentity(message)
 
-    const style = detectLearningStyle(message)
-    await updateLearningStyle(style)
+    // Get recent memory
+    const memory = await getRecentMessages()
 
-    const identity = await getIdentity()
-    const history = await getRecentMessages()
-    const learning = await getLearningStyle()
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are Restore AI. You remember details about the user and answer helpfully.",
+        },
+        ...memory,
+      ],
+    })
 
-    let reply = "I understand."
+    const reply = completion.choices[0].message.content
 
-    if (message.toLowerCase().includes("what do you know about me")) {
-      const parts = []
-
-      if (identity.favoriteColor)
-        parts.push(`Your favorite color is ${identity.favoriteColor}.`)
-      if (identity.favoriteAnimal)
-        parts.push(`Your favorite animal is ${identity.favoriteAnimal}.`)
-      if (identity.favoriteFood)
-        parts.push(`Your favorite food is ${identity.favoriteFood}.`)
-      if (identity.hobby)
-        parts.push(`Your hobby is ${identity.hobby}.`)
-      if (identity.goal)
-        parts.push(`Your goal is ${identity.goal}.`)
-
-      reply = parts.length > 0
-        ? parts.join(" ")
-        : "I don't know much about you yet."
-    }
-
-    if (learning !== "neutral") {
-      reply += ` (Responding in ${learning} style.)`
-    }
-
+    // Save assistant reply
     await addMessage("assistant", reply)
 
-    return NextResponse.json({ reply })
-
+    return Response.json({ reply })
   } catch (error) {
     console.error("API ERROR:", error)
-    return NextResponse.json({ reply: "Something went wrong." }, { status: 500 })
+    return new Response("Something went wrong.", { status: 500 })
   }
 }
