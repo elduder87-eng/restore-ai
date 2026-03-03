@@ -8,17 +8,15 @@ const openai = new OpenAI({
 export async function POST(req) {
   try {
     const body = await req.json()
-    const { message } = body
+    const { message, userId } = body
 
-    if (!message) {
-      return new Response("No message provided", { status: 400 })
+    if (!message || !userId) {
+      return new Response("Missing data", { status: 400 })
     }
 
-    // Save user message
-    await addMessage("user", message)
+    await addMessage(userId, "user", message)
 
-    // Get recent memory
-    const memory = await getRecentMessages()
+    const memory = await getRecentMessages(userId)
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
@@ -26,7 +24,7 @@ export async function POST(req) {
         {
           role: "system",
           content:
-            "You are Restore AI. You remember details about the user and answer helpfully.",
+            "You are Restore AI. You remember user details and respond helpfully.",
         },
         ...memory,
       ],
@@ -34,8 +32,7 @@ export async function POST(req) {
 
     const reply = completion.choices[0].message.content
 
-    // Save assistant reply
-    await addMessage("assistant", reply)
+    await addMessage(userId, "assistant", reply)
 
     return Response.json({ reply })
   } catch (error) {
