@@ -14,11 +14,11 @@ export default function CuriosityMap() {
     nodes: [
       { id: "Learning", type: "main", x: 0, y: 0 },
 
-      { id: "Science", type: "main", x: -500, y: 150 },
+      { id: "Science", type: "main", x: -600, y: 150 },
 
-      { id: "Psychology", type: "main", x: 500, y: -150 },
+      { id: "Psychology", type: "main", x: 600, y: -150 },
 
-      { id: "Philosophy", type: "main", x: 500, y: 150 }
+      { id: "Philosophy", type: "main", x: 600, y: 150 }
     ],
     links: [
       { source: "Learning", target: "Science" },
@@ -27,21 +27,24 @@ export default function CuriosityMap() {
     ]
   })
 
-  const createRadialNodes = (parent, labels, radius = 420) => {
+  const createBranchNodes = (parent, labels, radius = 450) => {
+
+    const spread = Math.PI / 1.5
 
     return labels.map((label, i) => {
 
-      const angle = (i / labels.length) * Math.PI * 2
+      const angle =
+        -spread / 2 +
+        (i / (labels.length - 1 || 1)) * spread
 
       return {
         id: label,
         type: "sub",
-        x: parent.x + radius * Math.cos(angle),
+        x: parent.x - radius * Math.cos(angle),
         y: parent.y + radius * Math.sin(angle)
       }
 
     })
-
   }
 
   const expandNode = (node) => {
@@ -56,7 +59,7 @@ export default function CuriosityMap() {
 
     if (labels.length === 0) return
 
-    const newNodes = createRadialNodes(node, labels)
+    const newNodes = createBranchNodes(node, labels)
 
     const newLinks = labels.map(label => ({
       source: node.id,
@@ -80,12 +83,11 @@ export default function CuriosityMap() {
         graphData={graphData}
 
         cooldownTicks={0}
-
         d3VelocityDecay={1}
 
         nodePointerAreaPaint={(node, color, ctx) => {
 
-          const size = node.type === "main" ? 30 : 18
+          const size = node.type === "main" ? 34 : 16
 
           ctx.fillStyle = color
           ctx.beginPath()
@@ -97,10 +99,11 @@ export default function CuriosityMap() {
         nodeCanvasObject={(node, ctx, globalScale) => {
 
           const label = node.id
-          const fontSize = 20 / globalScale
+          const fontSize = 22 / globalScale
+
           ctx.font = `${fontSize}px Sans-Serif`
 
-          const size = node.type === "main" ? 28 : 12
+          const size = node.type === "main" ? 30 : 12
 
           ctx.beginPath()
           ctx.arc(node.x, node.y, size, 0, 2 * Math.PI)
