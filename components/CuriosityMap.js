@@ -32,9 +32,9 @@ export default function CuriosityMap() {
     if (node.id === "Science") {
 
       newNodes = [
-        { id: "Physics", type: "sub" },
-        { id: "Biology", type: "sub" },
-        { id: "Chemistry", type: "sub" }
+        { id: "Physics", type: "sub", x: node.x - 120, y: node.y - 80 },
+        { id: "Biology", type: "sub", x: node.x - 160, y: node.y + 20 },
+        { id: "Chemistry", type: "sub", x: node.x - 80, y: node.y + 100 }
       ]
 
       newLinks = [
@@ -42,21 +42,19 @@ export default function CuriosityMap() {
         { source: "Science", target: "Biology" },
         { source: "Science", target: "Chemistry" }
       ]
-
     }
 
     if (node.id === "Philosophy") {
 
       newNodes = [
-        { id: "Free Will", type: "sub" },
-        { id: "Consciousness", type: "sub" }
+        { id: "Free Will", type: "sub", x: node.x + 120, y: node.y - 80 },
+        { id: "Consciousness", type: "sub", x: node.x + 120, y: node.y + 80 }
       ]
 
       newLinks = [
         { source: "Philosophy", target: "Free Will" },
         { source: "Philosophy", target: "Consciousness" }
       ]
-
     }
 
     if (newNodes.length === 0) return
