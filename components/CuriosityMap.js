@@ -13,7 +13,6 @@ export default function CuriosityMap() {
   const [graphData, setGraphData] = useState(null)
 
   useEffect(() => {
-
     setGraphData({
       nodes: [
         { id: "Science" },
@@ -30,17 +29,18 @@ export default function CuriosityMap() {
         { source: "Learning", target: "Psychology" }
       ]
     })
-
   }, [])
 
   if (!graphData) return <p>Loading curiosity map...</p>
 
   return (
-    <div style={{ height: "500px", width: "100%", marginTop: "20px" }}>
+    <div style={{ height: "700px", width: "100%", marginTop: "30px" }}>
       <ForceGraph2D
         graphData={graphData}
         nodeLabel="id"
         nodeAutoColorBy="id"
+        linkDirectionalParticles={2}
+        linkDirectionalParticleSpeed={0.005}
       />
     </div>
   )
