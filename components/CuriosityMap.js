@@ -12,10 +12,10 @@ export default function CuriosityMap() {
 
   const [graphData, setGraphData] = useState({
     nodes: [
-      { id: "Learning", type: "main" },
-      { id: "Science", type: "main" },
-      { id: "Psychology", type: "main" },
-      { id: "Philosophy", type: "main" }
+      { id: "Learning", type: "main", fx: 0, fy: 0 },
+      { id: "Science", type: "main", fx: -300, fy: 150 },
+      { id: "Psychology", type: "main", fx: 300, fy: -150 },
+      { id: "Philosophy", type: "main", fx: 300, fy: 150 }
     ],
     links: [
       { source: "Learning", target: "Science" },
@@ -90,21 +90,17 @@ export default function CuriosityMap() {
       <ForceGraph2D
         graphData={graphData}
 
-        nodeLabel="id"
+        nodeRelSize={10}
 
-        enableZoomInteraction={true}
-        enablePanInteraction={true}
-
-        linkDistance={220}
-        chargeStrength={-500}
+        cooldownTicks={100}
 
         nodeCanvasObject={(node, ctx, globalScale) => {
 
           const label = node.id
-          const fontSize = 22 / globalScale
+          const fontSize = 20 / globalScale
           ctx.font = `${fontSize}px Sans-Serif`
 
-          const size = node.type === "main" ? 16 : 9
+          const size = node.type === "main" ? 18 : 10
 
           ctx.beginPath()
           ctx.arc(node.x, node.y, size, 0, 2 * Math.PI)
@@ -117,7 +113,7 @@ export default function CuriosityMap() {
           ctx.fill()
 
           ctx.fillStyle = "#000"
-          ctx.fillText(label, node.x + size + 6, node.y + 6)
+          ctx.fillText(label, node.x + size + 6, node.y + 4)
 
         }}
 
