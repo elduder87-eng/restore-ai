@@ -1,47 +1,47 @@
-"use client"
-
-import CuriosityMap from "../../components/CuriosityMap"
+import CuriosityMap from "@/components/CuriosityMap"
 
 export default function Dashboard() {
-
-  const thinkingData = {
-    curiosityLevel: "emerging",
-    engagementMode: "guided",
-    growthSignals: ["Steady engagement pattern"],
-    emotionalTone: "curious"
-  }
-
   return (
-    <div style={{ padding: "40px", fontFamily: "sans-serif" }}>
+    <main style={{ padding: "40px", maxWidth: "1100px", margin: "0 auto" }}>
 
-      <h1>Thinking Overview</h1>
+      <h1 style={{ fontSize: "28px", marginBottom: "25px" }}>
+        Thinking Overview
+      </h1>
 
-      <div style={{ marginBottom: "40px" }}>
+      <div style={{ lineHeight: "1.8", marginBottom: "40px" }}>
 
-        <p><strong>Curiosity Level</strong></p>
-        <p>{thinkingData.curiosityLevel}</p>
+        <div style={{ marginBottom: "15px" }}>
+          <strong>Curiosity Level</strong>
+          <div>emerging</div>
+        </div>
 
-        <p><strong>Engagement Mode</strong></p>
-        <p>{thinkingData.engagementMode}</p>
+        <div style={{ marginBottom: "15px" }}>
+          <strong>Engagement Mode</strong>
+          <div>guided</div>
+        </div>
 
-        <p><strong>Growth Signals</strong></p>
-        <ul>
-          {thinkingData.growthSignals.map((signal, i) => (
-            <li key={i}>{signal}</li>
-          ))}
-        </ul>
+        <div style={{ marginBottom: "15px" }}>
+          <strong>Growth Signals</strong>
+          <ul style={{ marginTop: "5px" }}>
+            <li>Steady engagement pattern</li>
+          </ul>
+        </div>
 
-        <p><strong>Emotional Climate</strong></p>
-        <p>{thinkingData.emotionalTone}</p>
+        <div style={{ marginBottom: "15px" }}>
+          <strong>Emotional Climate</strong>
+          <div>curious</div>
+        </div>
 
       </div>
 
-      <hr />
+      <hr style={{ margin: "40px 0" }} />
 
-      <h2>Curiosity Map</h2>
+      <h2 style={{ marginBottom: "20px" }}>
+        Curiosity Map
+      </h2>
 
       <CuriosityMap />
 
-    </div>
+    </main>
   )
 }
