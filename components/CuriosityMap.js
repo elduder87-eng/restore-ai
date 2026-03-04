@@ -13,9 +13,9 @@ export default function CuriosityMap() {
   const [graphData, setGraphData] = useState({
     nodes: [
       { id: "Learning", type: "main", fx: 0, fy: 0 },
-      { id: "Science", type: "main", fx: -400, fy: 120 },
-      { id: "Psychology", type: "main", fx: 400, fy: -120 },
-      { id: "Philosophy", type: "main", fx: 400, fy: 120 }
+      { id: "Science", type: "main", fx: -450, fy: 150 },
+      { id: "Psychology", type: "main", fx: 450, fy: -150 },
+      { id: "Philosophy", type: "main", fx: 450, fy: 150 }
     ],
     links: [
       { source: "Learning", target: "Science" },
@@ -75,21 +75,21 @@ export default function CuriosityMap() {
       <ForceGraph2D
         graphData={graphData}
 
-        cooldownTicks={100}
+        cooldownTicks={120}
 
-        /* THIS SPREADS NODES OUT */
-        d3VelocityDecay={0.4}
+        /* Physics tuning */
+        d3VelocityDecay={0.3}
         d3AlphaDecay={0.02}
 
-        /* STRONG REPULSION BETWEEN NODES */
         d3Force={(d3) => {
-          d3.force("charge").strength(-300)
-          d3.force("link").distance(140)
+          d3.force("charge").strength(-700)
+          d3.force("link").distance(260)
         }}
 
+        /* Larger click area */
         nodePointerAreaPaint={(node, color, ctx) => {
 
-          const size = node.type === "main" ? 24 : 16
+          const size = node.type === "main" ? 26 : 18
 
           ctx.fillStyle = color
           ctx.beginPath()
@@ -98,6 +98,7 @@ export default function CuriosityMap() {
 
         }}
 
+        /* Node rendering */
         nodeCanvasObject={(node, ctx, globalScale) => {
 
           const label = node.id
