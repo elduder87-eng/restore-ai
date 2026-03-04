@@ -3,98 +3,39 @@
 import CuriosityMap from "@/components/CuriosityMap"
 
 export default function Dashboard() {
+  const thinkingData = {
+    curiosityLevel: "emerging",
+    engagementMode: "guided",
+    growthSignals: ["Steady engagement pattern"],
+    emotionalTone: "curious"
+  }
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "#0f172a",
-        color: "white",
-        padding: "30px",
-        fontFamily: "sans-serif"
-      }}
-    >
+    <div style={{ padding: "40px", fontFamily: "sans-serif" }}>
+      
+      <h1>Thinking Overview</h1>
 
-      <h1
-        style={{
-          fontSize: "32px",
-          marginBottom: "10px"
-        }}
-      >
-        Restore Dashboard
-      </h1>
+      <div style={{ marginBottom: "40px" }}>
+        <p><strong>Curiosity Level</strong></p>
+        <p>{thinkingData.curiosityLevel}</p>
 
-      <p
-        style={{
-          opacity: 0.7,
-          marginBottom: "40px"
-        }}
-      >
-        Explore how your curiosity connects ideas over time.
-      </p>
+        <p><strong>Engagement Mode</strong></p>
+        <p>{thinkingData.engagementMode}</p>
 
+        <p><strong>Growth Signals</strong></p>
+        <ul>
+          {thinkingData.growthSignals.map((signal, i) => (
+            <li key={i}>{signal}</li>
+          ))}
+        </ul>
 
-      {/* Curiosity Map Section */}
-
-      <div
-        style={{
-          background: "#111827",
-          padding: "20px",
-          borderRadius: "12px"
-        }}
-      >
-
-        <h2
-          style={{
-            marginBottom: "20px"
-          }}
-        >
-          Curiosity Map
-        </h2>
-
-        <CuriosityMap />
-
+        <p><strong>Emotional Climate</strong></p>
+        <p>{thinkingData.emotionalTone}</p>
       </div>
 
+      <h2>Curiosity Map</h2>
 
-      {/* Future sections */}
-
-      <div
-        style={{
-          marginTop: "40px",
-          display: "grid",
-          gap: "20px"
-        }}
-      >
-
-        <div
-          style={{
-            background: "#111827",
-            padding: "20px",
-            borderRadius: "12px"
-          }}
-        >
-          <h3>Recent Curiosity</h3>
-          <p style={{ opacity: 0.7 }}>
-            Topics you've recently explored will appear here.
-          </p>
-        </div>
-
-
-        <div
-          style={{
-            background: "#111827",
-            padding: "20px",
-            borderRadius: "12px"
-          }}
-        >
-          <h3>Thinking Insights</h3>
-          <p style={{ opacity: 0.7 }}>
-            Restore will reflect patterns in how you think and explore ideas.
-          </p>
-        </div>
-
-      </div>
+      <CuriosityMap />
 
     </div>
   )
