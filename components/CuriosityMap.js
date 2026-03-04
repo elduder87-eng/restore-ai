@@ -16,7 +16,7 @@ export default function CuriosityMap() {
 
       { id: "Science", type: "main", x: -650, y: 150 },
 
-      { id: "Psychology", type: "main", x: 650, y: -420 },
+      { id: "Psychology", type: "main", x: 0, y: -450 },
 
       { id: "Philosophy", type: "main", x: 650, y: 150 }
     ],
