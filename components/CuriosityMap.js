@@ -32,9 +32,9 @@ export default function CuriosityMap() {
     if (node.id === "Science") {
 
       newNodes = [
-        { id: "Physics", type: "sub", x: node.x - 220, y: node.y - 120 },
-        { id: "Biology", type: "sub", x: node.x - 220, y: node.y + 120 },
-        { id: "Chemistry", type: "sub", x: node.x - 350, y: node.y }
+        { id: "Physics", type: "sub", x: node.x - 400, y: node.y - 180 },
+        { id: "Biology", type: "sub", x: node.x - 400, y: node.y + 180 },
+        { id: "Chemistry", type: "sub", x: node.x - 520, y: node.y }
       ]
 
       newLinks = [
@@ -47,8 +47,8 @@ export default function CuriosityMap() {
     if (node.id === "Philosophy") {
 
       newNodes = [
-        { id: "Free Will", type: "sub", x: node.x + 220, y: node.y + 120 },
-        { id: "Consciousness", type: "sub", x: node.x + 220, y: node.y - 120 }
+        { id: "Free Will", type: "sub", x: node.x + 400, y: node.y + 180 },
+        { id: "Consciousness", type: "sub", x: node.x + 400, y: node.y - 180 }
       ]
 
       newLinks = [
@@ -86,7 +86,7 @@ export default function CuriosityMap() {
 
         nodePointerAreaPaint={(node, color, ctx) => {
 
-          const size = node.type === "main" ? 26 : 18
+          const size = node.type === "main" ? 30 : 18
 
           ctx.fillStyle = color
           ctx.beginPath()
@@ -101,7 +101,7 @@ export default function CuriosityMap() {
           const fontSize = 20 / globalScale
           ctx.font = `${fontSize}px Sans-Serif`
 
-          const size = node.type === "main" ? 18 : 10
+          const size = node.type === "main" ? 28 : 12
 
           ctx.beginPath()
           ctx.arc(node.x, node.y, size, 0, 2 * Math.PI)
@@ -117,6 +117,9 @@ export default function CuriosityMap() {
           ctx.fillText(label, node.x + size + 6, node.y + 4)
 
         }}
+
+        linkDirectionalParticles={2}
+        linkDirectionalParticleSpeed={0.004}
 
         onNodeClick={expandNode}
 
