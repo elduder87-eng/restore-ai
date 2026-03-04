@@ -72,4 +72,54 @@ export default function CuriosityMap() {
 
   return (
 
-    <div style={{ height: "
+    <div style={{ height: "1200px", width: "100%" }}>
+
+      <ForceGraph2D
+        graphData={graphData}
+
+        nodeRelSize={10}
+
+        nodePointerAreaPaint={(node, color, ctx) => {
+
+          const size = node.type === "main" ? 24 : 16
+
+          ctx.fillStyle = color
+          ctx.beginPath()
+          ctx.arc(node.x, node.y, size, 0, 2 * Math.PI)
+          ctx.fill()
+
+        }}
+
+        nodeCanvasObject={(node, ctx, globalScale) => {
+
+          const label = node.id
+          const fontSize = 20 / globalScale
+          ctx.font = `${fontSize}px Sans-Serif`
+
+          const size = node.type === "main" ? 18 : 10
+
+          ctx.beginPath()
+          ctx.arc(node.x, node.y, size, 0, 2 * Math.PI)
+
+          ctx.fillStyle =
+            node.type === "main"
+              ? "#2b6cb0"
+              : "#38a169"
+
+          ctx.fill()
+
+          ctx.fillStyle = "#000"
+          ctx.fillText(label, node.x + size + 6, node.y + 4)
+
+        }}
+
+        linkDirectionalParticles={2}
+        linkDirectionalParticleSpeed={0.004}
+
+        onNodeClick={expandNode}
+
+      />
+
+    </div>
+  )
+}
