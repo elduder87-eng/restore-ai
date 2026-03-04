@@ -1,7 +1,7 @@
 "use client"
 
 import dynamic from "next/dynamic"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 
 const ForceGraph2D = dynamic(
   () => import("react-force-graph-2d"),
@@ -30,20 +30,21 @@ export default function CuriosityMap() {
     let newLinks = []
 
     if (node.id === "Science") {
+
       newNodes = [
         { id: "Physics" },
-        { id: "Biology" },
-        { id: "Chemistry" }
+        { id: "Biology" }
       ]
 
       newLinks = [
         { source: "Science", target: "Physics" },
-        { source: "Science", target: "Biology" },
-        { source: "Science", target: "Chemistry" }
+        { source: "Science", target: "Biology" }
       ]
+
     }
 
     if (node.id === "Philosophy") {
+
       newNodes = [
         { id: "Free Will" },
         { id: "Consciousness" }
@@ -53,18 +54,36 @@ export default function CuriosityMap() {
         { source: "Philosophy", target: "Free Will" },
         { source: "Philosophy", target: "Consciousness" }
       ]
+
+    }
+
+    // CROSS CONNECTION EXAMPLE
+
+    if (node.id === "Physics") {
+
+      newNodes = [
+        { id: "Time" }
+      ]
+
+      newLinks = [
+        { source: "Physics", target: "Time" },
+        { source: "Philosophy", target: "Time" } // cross branch
+      ]
+
     }
 
     if (newNodes.length === 0) return
 
     setGraphData(prev => ({
-      nodes: [...prev.nodes, ...newNodes],
+      nodes: [...prev.nodes, ...newNodes.filter(n => !prev.nodes.find(p => p.id === n.id))],
       links: [...prev.links, ...newLinks]
     }))
   }
 
   return (
+
     <div style={{ height: "700px", width: "100%" }}>
+
       <ForceGraph2D
         graphData={graphData}
         nodeAutoColorBy="id"
@@ -73,6 +92,8 @@ export default function CuriosityMap() {
         linkDirectionalParticleSpeed={0.004}
         onNodeClick={expandNode}
       />
+
     </div>
+
   )
 }
