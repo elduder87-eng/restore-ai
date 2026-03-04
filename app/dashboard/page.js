@@ -1,45 +1,101 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import CuriosityMap from "@/components/CuriosityMap"
 
 export default function Dashboard() {
-  const [data, setData] = useState(null)
-
-  useEffect(() => {
-    fetch("/api/dashboard")
-      .then(res => res.json())
-      .then(setData)
-  }, [])
-
-  if (!data) return <div style={{ padding: 40 }}>Loading insights...</div>
 
   return (
-    <div style={{ padding: 40, fontFamily: "serif" }}>
-      <h1>Thinking Overview</h1>
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "#0f172a",
+        color: "white",
+        padding: "30px",
+        fontFamily: "sans-serif"
+      }}
+    >
 
-      <div style={{ marginTop: 30 }}>
-        <h3>Curiosity Level</h3>
-        <p>{data.curiosityLevel}</p>
+      <h1
+        style={{
+          fontSize: "32px",
+          marginBottom: "10px"
+        }}
+      >
+        Restore Dashboard
+      </h1>
+
+      <p
+        style={{
+          opacity: 0.7,
+          marginBottom: "40px"
+        }}
+      >
+        Explore how your curiosity connects ideas over time.
+      </p>
+
+
+      {/* Curiosity Map Section */}
+
+      <div
+        style={{
+          background: "#111827",
+          padding: "20px",
+          borderRadius: "12px"
+        }}
+      >
+
+        <h2
+          style={{
+            marginBottom: "20px"
+          }}
+        >
+          Curiosity Map
+        </h2>
+
+        <CuriosityMap />
+
       </div>
 
-      <div style={{ marginTop: 30 }}>
-        <h3>Engagement Mode</h3>
-        <p>{data.engagementMode}</p>
+
+      {/* Future sections */}
+
+      <div
+        style={{
+          marginTop: "40px",
+          display: "grid",
+          gap: "20px"
+        }}
+      >
+
+        <div
+          style={{
+            background: "#111827",
+            padding: "20px",
+            borderRadius: "12px"
+          }}
+        >
+          <h3>Recent Curiosity</h3>
+          <p style={{ opacity: 0.7 }}>
+            Topics you've recently explored will appear here.
+          </p>
+        </div>
+
+
+        <div
+          style={{
+            background: "#111827",
+            padding: "20px",
+            borderRadius: "12px"
+          }}
+        >
+          <h3>Thinking Insights</h3>
+          <p style={{ opacity: 0.7 }}>
+            Restore will reflect patterns in how you think and explore ideas.
+          </p>
+        </div>
+
       </div>
 
-      <div style={{ marginTop: 30 }}>
-        <h3>Growth Signals</h3>
-        <ul>
-          {data.growthSignals.map((signal, i) => (
-            <li key={i}>{signal}</li>
-          ))}
-        </ul>
-      </div>
-
-      <div style={{ marginTop: 30 }}>
-        <h3>Emotional Climate</h3>
-        <p>{data.emotionalTone}</p>
-      </div>
     </div>
   )
 }
