@@ -16,7 +16,7 @@ export default function CuriosityMap() {
 
       { id: "Science", type: "main", x: -600, y: 120 },
 
-      { id: "Psychology", type: "main", x: 600, y: -120 },
+      { id: "Psychology", type: "main", x: 600, y: -320 },
 
       { id: "Philosophy", type: "main", x: 600, y: 120 }
     ],
@@ -56,6 +56,9 @@ export default function CuriosityMap() {
 
     if (node.id === "Philosophy")
       labels = ["Free Will", "Consciousness"]
+
+    if (node.id === "Psychology")
+      labels = ["Cognition", "Emotion", "Behavior"]
 
     if (labels.length === 0) return
 
@@ -121,7 +124,6 @@ export default function CuriosityMap() {
         }}
 
         linkColor={() => "#cccccc"}
-
         linkWidth={1.5}
 
         onNodeClick={expandNode}
