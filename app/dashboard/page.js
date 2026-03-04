@@ -3,19 +3,21 @@
 import CuriosityMap from "../../components/CuriosityMap"
 
 export default function Dashboard() {
+
   const thinkingData = {
     curiosityLevel: "emerging",
     engagementMode: "guided",
     growthSignals: ["Steady engagement pattern"],
-    emotionalTone: "curious",
+    emotionalTone: "curious"
   }
 
   return (
     <div style={{ padding: "40px", fontFamily: "sans-serif" }}>
-      
+
       <h1>Thinking Overview</h1>
 
       <div style={{ marginBottom: "40px" }}>
+
         <p><strong>Curiosity Level</strong></p>
         <p>{thinkingData.curiosityLevel}</p>
 
@@ -31,9 +33,10 @@ export default function Dashboard() {
 
         <p><strong>Emotional Climate</strong></p>
         <p>{thinkingData.emotionalTone}</p>
+
       </div>
 
-      <hr style={{ margin: "40px 0" }} />
+      <hr />
 
       <h2>Curiosity Map</h2>
 
