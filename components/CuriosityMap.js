@@ -85,7 +85,7 @@ export default function CuriosityMap() {
 
   return (
 
-    <div style={{ height: "1100px", width: "100%" }}>
+    <div style={{ height: "1200px", width: "100%" }}>
 
       <ForceGraph2D
         graphData={graphData}
@@ -95,13 +95,16 @@ export default function CuriosityMap() {
         enableZoomInteraction={true}
         enablePanInteraction={true}
 
+        linkDistance={220}
+        chargeStrength={-500}
+
         nodeCanvasObject={(node, ctx, globalScale) => {
 
           const label = node.id
-          const fontSize = 12 / globalScale
+          const fontSize = 22 / globalScale
           ctx.font = `${fontSize}px Sans-Serif`
 
-          const size = node.type === "main" ? 20 : 10
+          const size = node.type === "main" ? 16 : 9
 
           ctx.beginPath()
           ctx.arc(node.x, node.y, size, 0, 2 * Math.PI)
@@ -114,7 +117,7 @@ export default function CuriosityMap() {
           ctx.fill()
 
           ctx.fillStyle = "#000"
-          ctx.fillText(label, node.x + size + 4, node.y + 4)
+          ctx.fillText(label, node.x + size + 6, node.y + 6)
 
         }}
 
