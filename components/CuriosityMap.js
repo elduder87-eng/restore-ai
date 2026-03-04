@@ -29,7 +29,6 @@ export default function CuriosityMap() {
     let newNodes = []
     let newLinks = []
 
-    // SCIENCE BRANCH
     if (node.id === "Science") {
 
       newNodes = [
@@ -46,7 +45,6 @@ export default function CuriosityMap() {
 
     }
 
-    // PHILOSOPHY BRANCH
     if (node.id === "Philosophy") {
 
       newNodes = [
@@ -61,7 +59,6 @@ export default function CuriosityMap() {
 
     }
 
-    // CROSS CONNECTION EXAMPLE
     if (node.id === "Physics") {
 
       newNodes = [
@@ -88,13 +85,12 @@ export default function CuriosityMap() {
 
   return (
 
-    <div style={{ height: "900px", width: "100%" }}>
+    <div style={{ height: "1100px", width: "100%" }}>
 
       <ForceGraph2D
         graphData={graphData}
 
         nodeLabel="id"
-        nodeAutoColorBy="type"
 
         enableZoomInteraction={true}
         enablePanInteraction={true}
@@ -105,19 +101,20 @@ export default function CuriosityMap() {
           const fontSize = 12 / globalScale
           ctx.font = `${fontSize}px Sans-Serif`
 
-          const size = node.type === "main" ? 14 : 7
+          const size = node.type === "main" ? 20 : 10
 
           ctx.beginPath()
           ctx.arc(node.x, node.y, size, 0, 2 * Math.PI)
 
-          ctx.fillStyle = node.type === "main"
-            ? "#2b6cb0"
-            : "#38a169"
+          ctx.fillStyle =
+            node.type === "main"
+              ? "#2b6cb0"
+              : "#38a169"
 
           ctx.fill()
 
           ctx.fillStyle = "#000"
-          ctx.fillText(label, node.x + size + 3, node.y + 4)
+          ctx.fillText(label, node.x + size + 4, node.y + 4)
 
         }}
 
