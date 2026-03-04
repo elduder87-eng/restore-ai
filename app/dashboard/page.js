@@ -1,13 +1,13 @@
 "use client"
 
-import CuriosityMap from "@/components/CuriosityMap"
+import CuriosityMap from "../../components/CuriosityMap"
 
 export default function Dashboard() {
   const thinkingData = {
     curiosityLevel: "emerging",
     engagementMode: "guided",
     growthSignals: ["Steady engagement pattern"],
-    emotionalTone: "curious"
+    emotionalTone: "curious",
   }
 
   return (
@@ -32,6 +32,8 @@ export default function Dashboard() {
         <p><strong>Emotional Climate</strong></p>
         <p>{thinkingData.emotionalTone}</p>
       </div>
+
+      <hr style={{ margin: "40px 0" }} />
 
       <h2>Curiosity Map</h2>
 
