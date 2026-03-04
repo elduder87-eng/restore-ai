@@ -29,7 +29,9 @@ export default function CuriosityMap() {
     let newNodes = []
     let newLinks = []
 
+    // SCIENCE BRANCH
     if (node.id === "Science") {
+
       newNodes = [
         { id: "Physics", type: "sub" },
         { id: "Biology", type: "sub" },
@@ -41,9 +43,12 @@ export default function CuriosityMap() {
         { source: "Science", target: "Biology" },
         { source: "Science", target: "Chemistry" }
       ]
+
     }
 
+    // PHILOSOPHY BRANCH
     if (node.id === "Philosophy") {
+
       newNodes = [
         { id: "Free Will", type: "sub" },
         { id: "Consciousness", type: "sub" }
@@ -53,46 +58,72 @@ export default function CuriosityMap() {
         { source: "Philosophy", target: "Free Will" },
         { source: "Philosophy", target: "Consciousness" }
       ]
+
+    }
+
+    // CROSS CONNECTION EXAMPLE
+    if (node.id === "Physics") {
+
+      newNodes = [
+        { id: "Time", type: "sub" }
+      ]
+
+      newLinks = [
+        { source: "Physics", target: "Time" },
+        { source: "Philosophy", target: "Time" }
+      ]
+
     }
 
     if (newNodes.length === 0) return
 
     setGraphData(prev => ({
-      nodes: [...prev.nodes, ...newNodes.filter(n => !prev.nodes.find(p => p.id === n.id))],
+      nodes: [
+        ...prev.nodes,
+        ...newNodes.filter(n => !prev.nodes.find(p => p.id === n.id))
+      ],
       links: [...prev.links, ...newLinks]
     }))
   }
 
   return (
 
-    <div style={{ height: "700px", width: "100%" }}>
+    <div style={{ height: "900px", width: "100%" }}>
 
       <ForceGraph2D
         graphData={graphData}
+
         nodeLabel="id"
         nodeAutoColorBy="type"
-        nodeRelSize={8}
+
+        enableZoomInteraction={true}
+        enablePanInteraction={true}
+
         nodeCanvasObject={(node, ctx, globalScale) => {
 
           const label = node.id
-          const fontSize = 12/globalScale
-
+          const fontSize = 12 / globalScale
           ctx.font = `${fontSize}px Sans-Serif`
 
-          const size = node.type === "main" ? 12 : 6
+          const size = node.type === "main" ? 14 : 7
 
           ctx.beginPath()
           ctx.arc(node.x, node.y, size, 0, 2 * Math.PI)
-          ctx.fillStyle = node.type === "main" ? "#2b6cb0" : "#38a169"
+
+          ctx.fillStyle = node.type === "main"
+            ? "#2b6cb0"
+            : "#38a169"
+
           ctx.fill()
 
           ctx.fillStyle = "#000"
-          ctx.fillText(label, node.x + size + 2, node.y + 4)
+          ctx.fillText(label, node.x + size + 3, node.y + 4)
 
         }}
 
         linkDirectionalParticles={2}
         linkDirectionalParticleSpeed={0.004}
+
         onNodeClick={expandNode}
 
       />
