@@ -13,11 +13,8 @@ export default function CuriosityMap() {
   const [graphData, setGraphData] = useState({
     nodes: [
       { id: "Learning", type: "main", fx: 0, fy: 0 },
-
       { id: "Science", type: "main", fx: -500, fy: 150 },
-
       { id: "Psychology", type: "main", fx: 500, fy: -150 },
-
       { id: "Philosophy", type: "main", fx: 500, fy: 150 }
     ],
     links: [
@@ -27,40 +24,38 @@ export default function CuriosityMap() {
     ]
   })
 
+  const createRadialNodes = (parent, labels, radius = 350) => {
+    return labels.map((label, i) => {
+
+      const angle = (i / labels.length) * Math.PI * 2
+
+      return {
+        id: label,
+        type: "sub",
+        x: parent.x + radius * Math.cos(angle),
+        y: parent.y + radius * Math.sin(angle)
+      }
+    })
+  }
+
   const expandNode = (node) => {
 
-    let newNodes = []
-    let newLinks = []
+    let labels = []
 
-    if (node.id === "Science") {
+    if (node.id === "Science")
+      labels = ["Physics", "Biology", "Chemistry"]
 
-      newNodes = [
-        { id: "Physics", type: "sub", x: node.x - 450, y: node.y - 200 },
-        { id: "Biology", type: "sub", x: node.x - 450, y: node.y + 200 },
-        { id: "Chemistry", type: "sub", x: node.x - 600, y: node.y }
-      ]
+    if (node.id === "Philosophy")
+      labels = ["Free Will", "Consciousness"]
 
-      newLinks = [
-        { source: "Science", target: "Physics" },
-        { source: "Science", target: "Biology" },
-        { source: "Science", target: "Chemistry" }
-      ]
-    }
+    if (labels.length === 0) return
 
-    if (node.id === "Philosophy") {
+    const newNodes = createRadialNodes(node, labels)
 
-      newNodes = [
-        { id: "Free Will", type: "sub", x: node.x + 450, y: node.y + 200 },
-        { id: "Consciousness", type: "sub", x: node.x + 450, y: node.y - 200 }
-      ]
-
-      newLinks = [
-        { source: "Philosophy", target: "Free Will" },
-        { source: "Philosophy", target: "Consciousness" }
-      ]
-    }
-
-    if (newNodes.length === 0) return
+    const newLinks = labels.map(label => ({
+      source: node.id,
+      target: label
+    }))
 
     setGraphData(prev => ({
       nodes: [
