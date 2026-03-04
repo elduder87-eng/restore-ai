@@ -12,10 +12,10 @@ export default function CuriosityMap() {
 
   const [graphData, setGraphData] = useState({
     nodes: [
-      { id: "Learning", type: "main", fx: 0, fy: 0 },
-      { id: "Science", type: "main", fx: -450, fy: 150 },
-      { id: "Psychology", type: "main", fx: 450, fy: -150 },
-      { id: "Philosophy", type: "main", fx: 450, fy: 150 }
+      { id: "Learning", type: "main", x: 0, y: 0 },
+      { id: "Science", type: "main", x: -500, y: 150 },
+      { id: "Psychology", type: "main", x: 500, y: -150 },
+      { id: "Philosophy", type: "main", x: 500, y: 150 }
     ],
     links: [
       { source: "Learning", target: "Science" },
@@ -32,9 +32,9 @@ export default function CuriosityMap() {
     if (node.id === "Science") {
 
       newNodes = [
-        { id: "Physics", type: "sub" },
-        { id: "Biology", type: "sub" },
-        { id: "Chemistry", type: "sub" }
+        { id: "Physics", type: "sub", x: node.x - 220, y: node.y - 120 },
+        { id: "Biology", type: "sub", x: node.x - 220, y: node.y + 120 },
+        { id: "Chemistry", type: "sub", x: node.x - 350, y: node.y }
       ]
 
       newLinks = [
@@ -47,8 +47,8 @@ export default function CuriosityMap() {
     if (node.id === "Philosophy") {
 
       newNodes = [
-        { id: "Free Will", type: "sub" },
-        { id: "Consciousness", type: "sub" }
+        { id: "Free Will", type: "sub", x: node.x + 220, y: node.y + 120 },
+        { id: "Consciousness", type: "sub", x: node.x + 220, y: node.y - 120 }
       ]
 
       newLinks = [
@@ -75,18 +75,15 @@ export default function CuriosityMap() {
       <ForceGraph2D
         graphData={graphData}
 
-        cooldownTicks={120}
+        cooldownTicks={100}
 
-        /* Physics tuning */
         d3VelocityDecay={0.3}
-        d3AlphaDecay={0.02}
 
         d3Force={(d3) => {
-          d3.force("charge").strength(-700)
+          d3.force("charge").strength(-900)
           d3.force("link").distance(260)
         }}
 
-        /* Larger click area */
         nodePointerAreaPaint={(node, color, ctx) => {
 
           const size = node.type === "main" ? 26 : 18
@@ -98,7 +95,6 @@ export default function CuriosityMap() {
 
         }}
 
-        /* Node rendering */
         nodeCanvasObject={(node, ctx, globalScale) => {
 
           const label = node.id
@@ -121,9 +117,6 @@ export default function CuriosityMap() {
           ctx.fillText(label, node.x + size + 6, node.y + 4)
 
         }}
-
-        linkDirectionalParticles={2}
-        linkDirectionalParticleSpeed={0.004}
 
         onNodeClick={expandNode}
 
