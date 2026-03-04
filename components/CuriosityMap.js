@@ -29,12 +29,18 @@ export default function CuriosityMap() {
 
   const createBranchNodes = (parent, labels, radius = 420) => {
 
-    const spread = Math.PI / 1.5
+    let baseAngle = 0
+
+    if (parent.id === "Science") baseAngle = Math.PI
+    if (parent.id === "Philosophy") baseAngle = 0
+    if (parent.id === "Psychology") baseAngle = -Math.PI / 2
+
+    const spread = Math.PI / 2
 
     return labels.map((label, i) => {
 
       const angle =
-        -spread / 2 +
+        baseAngle - spread / 2 +
         (i / (labels.length - 1 || 1)) * spread
 
       return {
@@ -88,13 +94,15 @@ export default function CuriosityMap() {
         cooldownTicks={0}
         d3VelocityDecay={1}
 
+        enableNodeDrag={false}
+
         nodePointerAreaPaint={(node, color, ctx) => {
 
-          const size = node.type === "main" ? 32 : 16
+          const hitboxSize = node.type === "main" ? 55 : 35
 
           ctx.fillStyle = color
           ctx.beginPath()
-          ctx.arc(node.x, node.y, size, 0, 2 * Math.PI)
+          ctx.arc(node.x, node.y, hitboxSize, 0, 2 * Math.PI)
           ctx.fill()
 
         }}
@@ -124,6 +132,7 @@ export default function CuriosityMap() {
         }}
 
         linkColor={() => "#cccccc"}
+
         linkWidth={1.5}
 
         onNodeClick={expandNode}
