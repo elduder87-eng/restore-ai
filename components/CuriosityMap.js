@@ -35,7 +35,7 @@ export default function CuriosityMap() {
     if (parent.id === "Philosophy") baseAngle = 0
     if (parent.id === "Psychology") baseAngle = -Math.PI / 2
 
-    const spread = Math.PI / 2
+    const spread = Math.PI / 1.2
 
     return labels.map((label, i) => {
 
