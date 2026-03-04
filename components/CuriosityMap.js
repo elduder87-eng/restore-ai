@@ -14,11 +14,11 @@ export default function CuriosityMap() {
     nodes: [
       { id: "Learning", type: "main", x: 0, y: 0 },
 
-      { id: "Science", type: "main", x: -600, y: 150 },
+      { id: "Science", type: "main", x: -600, y: 120 },
 
-      { id: "Psychology", type: "main", x: 600, y: -150 },
+      { id: "Psychology", type: "main", x: 600, y: -120 },
 
-      { id: "Philosophy", type: "main", x: 600, y: 150 }
+      { id: "Philosophy", type: "main", x: 600, y: 120 }
     ],
     links: [
       { source: "Learning", target: "Science" },
@@ -27,7 +27,7 @@ export default function CuriosityMap() {
     ]
   })
 
-  const createBranchNodes = (parent, labels, radius = 450) => {
+  const createBranchNodes = (parent, labels, radius = 420) => {
 
     const spread = Math.PI / 1.5
 
@@ -40,7 +40,7 @@ export default function CuriosityMap() {
       return {
         id: label,
         type: "sub",
-        x: parent.x - radius * Math.cos(angle),
+        x: parent.x + radius * Math.cos(angle),
         y: parent.y + radius * Math.sin(angle)
       }
 
@@ -87,7 +87,7 @@ export default function CuriosityMap() {
 
         nodePointerAreaPaint={(node, color, ctx) => {
 
-          const size = node.type === "main" ? 34 : 16
+          const size = node.type === "main" ? 32 : 16
 
           ctx.fillStyle = color
           ctx.beginPath()
@@ -103,7 +103,7 @@ export default function CuriosityMap() {
 
           ctx.font = `${fontSize}px Sans-Serif`
 
-          const size = node.type === "main" ? 30 : 12
+          const size = node.type === "main" ? 28 : 12
 
           ctx.beginPath()
           ctx.arc(node.x, node.y, size, 0, 2 * Math.PI)
@@ -119,6 +119,10 @@ export default function CuriosityMap() {
           ctx.fillText(label, node.x + size + 6, node.y + 4)
 
         }}
+
+        linkColor={() => "#cccccc"}
+
+        linkWidth={1.5}
 
         onNodeClick={expandNode}
 
