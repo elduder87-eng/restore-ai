@@ -1,8 +1,15 @@
 import CuriosityMap from "@/components/CuriosityMap"
 
 export default function Dashboard() {
+
   return (
-    <main style={{ padding: "40px", maxWidth: "1100px", margin: "0 auto" }}>
+    <main
+      style={{
+        padding: "40px",
+        maxWidth: "1100px",
+        margin: "0 auto"
+      }}
+    >
 
       <h1 style={{ fontSize: "28px", marginBottom: "25px" }}>
         Thinking Overview
