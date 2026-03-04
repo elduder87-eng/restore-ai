@@ -10,60 +10,69 @@ const ForceGraph2D = dynamic(
 
 export default function CuriosityMap() {
 
-  const [graphData, setGraphData] = useState(null)
-  const [selectedNode, setSelectedNode] = useState(null)
+  const [graphData, setGraphData] = useState({
+    nodes: [
+      { id: "Learning" },
+      { id: "Science" },
+      { id: "Psychology" },
+      { id: "Philosophy" }
+    ],
+    links: [
+      { source: "Learning", target: "Science" },
+      { source: "Learning", target: "Psychology" },
+      { source: "Learning", target: "Philosophy" }
+    ]
+  })
 
-  useEffect(() => {
+  const expandNode = (node) => {
 
-    setGraphData({
-      nodes: [
-        { id: "Learning", description: "How we explore and understand ideas" },
-        { id: "Science", description: "Exploring the physical universe" },
-        { id: "Psychology", description: "Understanding the mind" },
-        { id: "Philosophy", description: "Big questions about existence" },
-        { id: "Astrophysics", description: "The physics of space and time" },
-        { id: "Free Will", description: "Do we truly choose our actions?" }
-      ],
-      links: [
-        { source: "Learning", target: "Science" },
-        { source: "Learning", target: "Psychology" },
-        { source: "Learning", target: "Philosophy" },
-        { source: "Science", target: "Astrophysics" },
-        { source: "Philosophy", target: "Free Will" }
+    let newNodes = []
+    let newLinks = []
+
+    if (node.id === "Science") {
+      newNodes = [
+        { id: "Physics" },
+        { id: "Biology" },
+        { id: "Chemistry" }
       ]
-    })
 
-  }, [])
+      newLinks = [
+        { source: "Science", target: "Physics" },
+        { source: "Science", target: "Biology" },
+        { source: "Science", target: "Chemistry" }
+      ]
+    }
 
-  if (!graphData) return <p>Loading curiosity map...</p>
+    if (node.id === "Philosophy") {
+      newNodes = [
+        { id: "Free Will" },
+        { id: "Consciousness" }
+      ]
+
+      newLinks = [
+        { source: "Philosophy", target: "Free Will" },
+        { source: "Philosophy", target: "Consciousness" }
+      ]
+    }
+
+    if (newNodes.length === 0) return
+
+    setGraphData(prev => ({
+      nodes: [...prev.nodes, ...newNodes],
+      links: [...prev.links, ...newLinks]
+    }))
+  }
 
   return (
-    <div style={{ marginTop: "30px" }}>
-
-      <div style={{ height: "700px", width: "100%" }}>
-        <ForceGraph2D
-          graphData={graphData}
-          nodeLabel="id"
-          nodeAutoColorBy="id"
-          linkDirectionalParticles={2}
-          linkDirectionalParticleSpeed={0.005}
-          onNodeClick={(node) => setSelectedNode(node)}
-        />
-      </div>
-
-      {selectedNode && (
-        <div style={{
-          marginTop: "20px",
-          padding: "20px",
-          border: "1px solid #ddd",
-          borderRadius: "10px",
-          background: "#fafafa"
-        }}>
-          <h3>{selectedNode.id}</h3>
-          <p>{selectedNode.description}</p>
-        </div>
-      )}
-
+    <div style={{ height: "700px", width: "100%" }}>
+      <ForceGraph2D
+        graphData={graphData}
+        nodeAutoColorBy="id"
+        nodeLabel="id"
+        linkDirectionalParticles={2}
+        linkDirectionalParticleSpeed={0.004}
+        onNodeClick={expandNode}
+      />
     </div>
   )
 }
