@@ -14,11 +14,11 @@ export default function CuriosityMap() {
     nodes: [
       { id: "Learning", type: "main", x: 0, y: 0 },
 
-      { id: "Science", type: "main", x: -600, y: 120 },
+      { id: "Science", type: "main", x: -650, y: 150 },
 
-      { id: "Psychology", type: "main", x: 600, y: -320 },
+      { id: "Psychology", type: "main", x: 650, y: -420 },
 
-      { id: "Philosophy", type: "main", x: 600, y: 120 }
+      { id: "Philosophy", type: "main", x: 650, y: 150 }
     ],
     links: [
       { source: "Learning", target: "Science" },
