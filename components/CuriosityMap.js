@@ -13,9 +13,9 @@ export default function CuriosityMap() {
   const [graphData, setGraphData] = useState({
     nodes: [
       { id: "Learning", type: "main", fx: 0, fy: 0 },
-      { id: "Science", type: "main", fx: -300, fy: 150 },
-      { id: "Psychology", type: "main", fx: 300, fy: -150 },
-      { id: "Philosophy", type: "main", fx: 300, fy: 150 }
+      { id: "Science", type: "main", fx: -350, fy: 120 },
+      { id: "Psychology", type: "main", fx: 350, fy: -120 },
+      { id: "Philosophy", type: "main", fx: 350, fy: 120 }
     ],
     links: [
       { source: "Learning", target: "Science" },
@@ -59,19 +59,6 @@ export default function CuriosityMap() {
 
     }
 
-    if (node.id === "Physics") {
-
-      newNodes = [
-        { id: "Time", type: "sub" }
-      ]
-
-      newLinks = [
-        { source: "Physics", target: "Time" },
-        { source: "Philosophy", target: "Time" }
-      ]
-
-    }
-
     if (newNodes.length === 0) return
 
     setGraphData(prev => ({
@@ -85,46 +72,4 @@ export default function CuriosityMap() {
 
   return (
 
-    <div style={{ height: "1200px", width: "100%" }}>
-
-      <ForceGraph2D
-        graphData={graphData}
-
-        nodeRelSize={10}
-
-        cooldownTicks={100}
-
-        nodeCanvasObject={(node, ctx, globalScale) => {
-
-          const label = node.id
-          const fontSize = 20 / globalScale
-          ctx.font = `${fontSize}px Sans-Serif`
-
-          const size = node.type === "main" ? 18 : 10
-
-          ctx.beginPath()
-          ctx.arc(node.x, node.y, size, 0, 2 * Math.PI)
-
-          ctx.fillStyle =
-            node.type === "main"
-              ? "#2b6cb0"
-              : "#38a169"
-
-          ctx.fill()
-
-          ctx.fillStyle = "#000"
-          ctx.fillText(label, node.x + size + 6, node.y + 4)
-
-        }}
-
-        linkDirectionalParticles={2}
-        linkDirectionalParticleSpeed={0.004}
-
-        onNodeClick={expandNode}
-
-      />
-
-    </div>
-
-  )
-}
+    <div style={{ height: "
