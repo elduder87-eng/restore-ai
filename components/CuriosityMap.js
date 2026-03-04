@@ -12,10 +12,13 @@ export default function CuriosityMap() {
 
   const [graphData, setGraphData] = useState({
     nodes: [
-      { id: "Learning", type: "main", x: 0, y: 0 },
-      { id: "Science", type: "main", x: -500, y: 150 },
-      { id: "Psychology", type: "main", x: 500, y: -150 },
-      { id: "Philosophy", type: "main", x: 500, y: 150 }
+      { id: "Learning", type: "main", fx: 0, fy: 0 },
+
+      { id: "Science", type: "main", fx: -500, fy: 150 },
+
+      { id: "Psychology", type: "main", fx: 500, fy: -150 },
+
+      { id: "Philosophy", type: "main", fx: 500, fy: 150 }
     ],
     links: [
       { source: "Learning", target: "Science" },
@@ -32,9 +35,9 @@ export default function CuriosityMap() {
     if (node.id === "Science") {
 
       newNodes = [
-        { id: "Physics", type: "sub", x: node.x - 400, y: node.y - 180 },
-        { id: "Biology", type: "sub", x: node.x - 400, y: node.y + 180 },
-        { id: "Chemistry", type: "sub", x: node.x - 520, y: node.y }
+        { id: "Physics", type: "sub", x: node.x - 450, y: node.y - 200 },
+        { id: "Biology", type: "sub", x: node.x - 450, y: node.y + 200 },
+        { id: "Chemistry", type: "sub", x: node.x - 600, y: node.y }
       ]
 
       newLinks = [
@@ -47,8 +50,8 @@ export default function CuriosityMap() {
     if (node.id === "Philosophy") {
 
       newNodes = [
-        { id: "Free Will", type: "sub", x: node.x + 400, y: node.y + 180 },
-        { id: "Consciousness", type: "sub", x: node.x + 400, y: node.y - 180 }
+        { id: "Free Will", type: "sub", x: node.x + 450, y: node.y + 200 },
+        { id: "Consciousness", type: "sub", x: node.x + 450, y: node.y - 200 }
       ]
 
       newLinks = [
@@ -77,11 +80,11 @@ export default function CuriosityMap() {
 
         cooldownTicks={100}
 
-        d3VelocityDecay={0.3}
+        d3VelocityDecay={0.35}
 
         d3Force={(d3) => {
-          d3.force("charge").strength(-900)
-          d3.force("link").distance(260)
+          d3.force("charge").strength(-1200)
+          d3.force("link").distance(300)
         }}
 
         nodePointerAreaPaint={(node, color, ctx) => {
@@ -117,9 +120,6 @@ export default function CuriosityMap() {
           ctx.fillText(label, node.x + size + 6, node.y + 4)
 
         }}
-
-        linkDirectionalParticles={2}
-        linkDirectionalParticleSpeed={0.004}
 
         onNodeClick={expandNode}
 
