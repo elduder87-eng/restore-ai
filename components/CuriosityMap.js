@@ -12,10 +12,13 @@ export default function CuriosityMap() {
 
   const [graphData, setGraphData] = useState({
     nodes: [
-      { id: "Learning", type: "main", fx: 0, fy: 0 },
-      { id: "Science", type: "main", fx: -500, fy: 150 },
-      { id: "Psychology", type: "main", fx: 500, fy: -150 },
-      { id: "Philosophy", type: "main", fx: 500, fy: 150 }
+      { id: "Learning", type: "main", x: 0, y: 0 },
+
+      { id: "Science", type: "main", x: -500, y: 150 },
+
+      { id: "Psychology", type: "main", x: 500, y: -150 },
+
+      { id: "Philosophy", type: "main", x: 500, y: 150 }
     ],
     links: [
       { source: "Learning", target: "Science" },
@@ -24,7 +27,8 @@ export default function CuriosityMap() {
     ]
   })
 
-  const createRadialNodes = (parent, labels, radius = 350) => {
+  const createRadialNodes = (parent, labels, radius = 420) => {
+
     return labels.map((label, i) => {
 
       const angle = (i / labels.length) * Math.PI * 2
@@ -35,7 +39,9 @@ export default function CuriosityMap() {
         x: parent.x + radius * Math.cos(angle),
         y: parent.y + radius * Math.sin(angle)
       }
+
     })
+
   }
 
   const expandNode = (node) => {
@@ -73,14 +79,9 @@ export default function CuriosityMap() {
       <ForceGraph2D
         graphData={graphData}
 
-        cooldownTicks={100}
+        cooldownTicks={0}
 
-        d3VelocityDecay={0.35}
-
-        d3Force={(d3) => {
-          d3.force("charge").strength(-1200)
-          d3.force("link").distance(300)
-        }}
+        d3VelocityDecay={1}
 
         nodePointerAreaPaint={(node, color, ctx) => {
 
