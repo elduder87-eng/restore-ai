@@ -13,9 +13,9 @@ export default function CuriosityMap() {
   const [graphData, setGraphData] = useState({
     nodes: [
       { id: "Learning", type: "main", fx: 0, fy: 0 },
-      { id: "Science", type: "main", fx: -350, fy: 120 },
-      { id: "Psychology", type: "main", fx: 350, fy: -120 },
-      { id: "Philosophy", type: "main", fx: 350, fy: 120 }
+      { id: "Science", type: "main", fx: -400, fy: 120 },
+      { id: "Psychology", type: "main", fx: 400, fy: -120 },
+      { id: "Philosophy", type: "main", fx: 400, fy: 120 }
     ],
     links: [
       { source: "Learning", target: "Science" },
@@ -32,9 +32,9 @@ export default function CuriosityMap() {
     if (node.id === "Science") {
 
       newNodes = [
-        { id: "Physics", type: "sub", x: node.x - 120, y: node.y - 80 },
-        { id: "Biology", type: "sub", x: node.x - 160, y: node.y + 20 },
-        { id: "Chemistry", type: "sub", x: node.x - 80, y: node.y + 100 }
+        { id: "Physics", type: "sub" },
+        { id: "Biology", type: "sub" },
+        { id: "Chemistry", type: "sub" }
       ]
 
       newLinks = [
@@ -47,8 +47,8 @@ export default function CuriosityMap() {
     if (node.id === "Philosophy") {
 
       newNodes = [
-        { id: "Free Will", type: "sub", x: node.x + 120, y: node.y - 80 },
-        { id: "Consciousness", type: "sub", x: node.x + 120, y: node.y + 80 }
+        { id: "Free Will", type: "sub" },
+        { id: "Consciousness", type: "sub" }
       ]
 
       newLinks = [
@@ -75,7 +75,17 @@ export default function CuriosityMap() {
       <ForceGraph2D
         graphData={graphData}
 
-        nodeRelSize={10}
+        cooldownTicks={100}
+
+        /* THIS SPREADS NODES OUT */
+        d3VelocityDecay={0.4}
+        d3AlphaDecay={0.02}
+
+        /* STRONG REPULSION BETWEEN NODES */
+        d3Force={(d3) => {
+          d3.force("charge").strength(-300)
+          d3.force("link").distance(140)
+        }}
 
         nodePointerAreaPaint={(node, color, ctx) => {
 
