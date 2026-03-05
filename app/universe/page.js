@@ -143,4 +143,74 @@ export default function Universe() {
       <Canvas camera={{ position: [0, 0, 18], fov: 60 }}>
 
         <ambientLight intensity={0.6} />
-        <pointLight position={[10
+        <pointLight position={[10, 10, 10]} intensity={2} />
+
+        {/* Starfield */}
+        <Stars
+          radius={300}
+          depth={120}
+          count={10000}
+          factor={6}
+          fade
+        />
+
+        {/* Center star */}
+        <UserStar />
+        <Label position={[0, 2, 0]}>YOU</Label>
+
+        {/* Orbit paths */}
+        <OrbitRing radius={6} />
+        <OrbitRing radius={7} />
+        <OrbitRing radius={8} />
+        <OrbitRing radius={9} />
+
+        {/* Planets */}
+
+        <Planet
+          radius={6}
+          speed={0.18}
+          size={0.45}
+          color="#f48fb1"
+          label="Psychology"
+        />
+
+        <Planet
+          radius={7}
+          speed={0.16}
+          size={0.5}
+          color="#81c784"
+          label="Science"
+        />
+
+        <Planet
+          radius={8}
+          speed={0.14}
+          size={0.52}
+          color="#ffd54f"
+          label="Philosophy"
+          ring={true}
+        />
+
+        <Planet
+          radius={9}
+          speed={0.12}
+          size={0.6}
+          color="#ce93d8"
+          label="Learning"
+        />
+
+        {/* Glow */}
+        <EffectComposer>
+          <Bloom
+            intensity={0.8}
+            luminanceThreshold={0.2}
+            luminanceSmoothing={0.6}
+          />
+        </EffectComposer>
+
+        <OrbitControls enableZoom enableRotate enablePan />
+
+      </Canvas>
+    </div>
+  );
+}
