@@ -108,15 +108,14 @@ export default function CuriosityMap() {
         d3VelocityDecay={1}
 
         enableNodeDrag={false}
-        enablePointerInteraction={true}
 
         nodePointerAreaPaint={(node, color, ctx) => {
 
-          const hitboxSize = node.type === "main" ? 65 : 40
+          const hitbox = node.type === "main" ? 65 : 40
 
           ctx.fillStyle = color
           ctx.beginPath()
-          ctx.arc(node.x, node.y, hitboxSize, 0, 2 * Math.PI)
+          ctx.arc(node.x, node.y, hitbox, 0, 2 * Math.PI)
           ctx.fill()
 
         }}
@@ -130,11 +129,24 @@ export default function CuriosityMap() {
 
           const size =
             node.id === "Learning"
-              ? 38
+              ? 40
               : node.type === "main"
-              ? 32
+              ? 30
               : 12
 
+
+          // glow halo
+          if (node.type === "main") {
+
+            ctx.beginPath()
+            ctx.arc(node.x, node.y, size + 8, 0, 2 * Math.PI)
+            ctx.fillStyle = "rgba(43,108,176,0.15)"
+            ctx.fill()
+
+          }
+
+
+          // node circle
           ctx.beginPath()
           ctx.arc(node.x, node.y, size, 0, 2 * Math.PI)
 
@@ -145,27 +157,31 @@ export default function CuriosityMap() {
 
           ctx.fill()
 
-          ctx.fillStyle = "#000"
+
+          // label above node
+          ctx.textAlign = "center"
+          ctx.textBaseline = "bottom"
+          ctx.fillStyle = "#111"
 
           ctx.fillText(
             label,
-            node.x + size + 6,
-            node.y + 4
+            node.x,
+            node.y - size - 6
           )
 
         }}
 
-        linkColor={() => "#888"}
+        linkColor={() => "#555"}
 
         linkWidth={link =>
           link.source.id === "Learning"
             ? 3
-            : 1.8
+            : 2
         }
 
-        linkDirectionalArrowLength={16}
-        linkDirectionalArrowColor={() => "#333"}
-        linkDirectionalArrowRelPos={1}
+        linkDirectionalArrowLength={14}
+        linkDirectionalArrowColor={() => "#444"}
+        linkDirectionalArrowRelPos={0.88}
 
         linkDirectionalParticles={3}
         linkDirectionalParticleWidth={3}
