@@ -1,7 +1,7 @@
 "use client";
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { OrbitControls, Text, Stars } from "@react-three/drei";
+import { OrbitControls, Stars, Text } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import { useRef } from "react";
 
@@ -30,7 +30,7 @@ anchorY="middle"
 function OrbitRing({ radius }) {
 return (
 <mesh rotation={[Math.PI / 2, 0, 0]}>
-<ringGeometry args={[radius - 0.03, radius + 0.03, 128]} />
+<ringGeometry args={[radius - 0.02, radius + 0.02, 128]} />
 <meshBasicMaterial
 color="white"
 transparent
@@ -43,10 +43,9 @@ side={2}
 
 function Moon({ radius, speed, size, color, label }) {
 const ref = useRef();
-const startAngle = useRef(Math.random() * Math.PI * 2);
 
 useFrame(({ clock }) => {
-const t = clock.getElapsedTime() * speed + startAngle.current;
+const t = clock.getElapsedTime() * speed;
 
 ref.current.position.x = Math.cos(t) * radius;
 ref.current.position.y = Math.sin(t) * radius;
@@ -75,15 +74,12 @@ emissiveIntensity={1}
 function Planet({ radius, speed, size, color, label, ring, children }) {
 const ref = useRef();
 const meshRef = useRef();
-const startAngle = useRef(Math.random() * Math.PI * 2);
 
 useFrame(({ clock }) => {
-const t = clock.getElapsedTime() * speed + startAngle.current;
+const t = clock.getElapsedTime() * speed;
 
-const x = Math.cos(t) * radius;
-const y = Math.sin(t) * radius;
-
-ref.current.position.set(x, y, 0);
+ref.current.position.x = Math.cos(t) * radius;
+ref.current.position.y = Math.sin(t) * radius;
 
 meshRef.current.rotation.y += 0.002;
 
