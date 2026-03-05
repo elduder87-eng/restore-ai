@@ -153,7 +153,7 @@ return (
     />
   </mesh>
 
-  <mesh scale={2.2}>
+  <mesh scale={1.7}>
     <sphereGeometry args={[1.4, 64, 64]} />
     <meshBasicMaterial
       color="#7df9ff"
@@ -171,7 +171,7 @@ export default function Universe() {
 return (
 <div style={{ width: "100vw", height: "100vh", background: "#000" }}>
 
-  <Canvas camera={{ position: [0, 0, 14], fov: 65 }}>
+  <Canvas camera={{ position: [0, -2, 16], fov: 60 }}>
 
     <color attach="background" args={["#020617"]} />
 
@@ -244,6 +244,7 @@ return (
     <OrbitControls enableZoom enableRotate enablePan />
 
   </Canvas>
+
 </div>
 
 );
