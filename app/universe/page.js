@@ -3,7 +3,7 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, Text, Stars } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
-import { useRef } from "react";
+import { useRef, forwardRef } from "react";
 
 function Label({ children, position }) {
   const ref = useRef();
@@ -17,7 +17,7 @@ function Label({ children, position }) {
     <Text
       ref={ref}
       position={position}
-      fontSize={0.45}
+      fontSize={0.4}
       color="white"
       anchorX="center"
       anchorY="middle"
@@ -32,7 +32,7 @@ function OrbitRing({ radius }) {
     <mesh rotation={[Math.PI / 2, 0, 0]}>
       <ringGeometry args={[radius - 0.03, radius + 0.03, 128]} />
       <meshBasicMaterial
-        color="#ffffff"
+        color="white"
         transparent
         opacity={0.08}
         side={2}
@@ -41,8 +41,10 @@ function OrbitRing({ radius }) {
   );
 }
 
-function Planet({ radius, speed, size, color, label, ring }) {
-  const ref = useRef();
+const Planet = forwardRef(function Planet(
+  { radius, speed, size, color, label, ring },
+  ref
+) {
   const meshRef = useRef();
   const startAngle = useRef(Math.random() * Math.PI * 2);
 
@@ -52,14 +54,13 @@ function Planet({ radius, speed, size, color, label, ring }) {
     const x = Math.cos(t) * radius;
     const y = Math.sin(t) * radius;
 
-    if (ref.current) ref.current.position.set(x, y, 0);
+    if (ref?.current) ref.current.position.set(x, y, 0);
 
     if (meshRef.current) meshRef.current.rotation.y += 0.004;
   });
 
   return (
     <group ref={ref}>
-
       {ring && (
         <mesh rotation={[Math.PI / 2, 0, 0]}>
           <ringGeometry args={[size + 0.35, size + 0.6, 64]} />
@@ -81,7 +82,6 @@ function Planet({ radius, speed, size, color, label, ring }) {
         />
       </mesh>
 
-      {/* atmosphere */}
       <mesh scale={1.4}>
         <sphereGeometry args={[size, 64, 64]} />
         <meshBasicMaterial
@@ -91,10 +91,43 @@ function Planet({ radius, speed, size, color, label, ring }) {
         />
       </mesh>
 
-      <Label position={[0, size + 0.8, 0]}>
+      <Label position={[0, size + 0.8, 0]}>{label}</Label>
+    </group>
+  );
+});
+
+function Moon({ parentRef, radius, speed, size, color, label }) {
+  const ref = useRef();
+  const startAngle = useRef(Math.random() * Math.PI * 2);
+
+  useFrame(({ clock }) => {
+    if (!parentRef.current) return;
+
+    const t = clock.getElapsedTime() * speed + startAngle.current;
+
+    const px = parentRef.current.position.x;
+    const py = parentRef.current.position.y;
+
+    const x = px + Math.cos(t) * radius;
+    const y = py + Math.sin(t) * radius;
+
+    ref.current.position.set(x, y, 0);
+  });
+
+  return (
+    <group ref={ref}>
+      <mesh>
+        <sphereGeometry args={[size, 32, 32]} />
+        <meshStandardMaterial
+          color={color}
+          emissive={color}
+          emissiveIntensity={1}
+        />
+      </mesh>
+
+      <Label position={[0, size + 0.4, 0]}>
         {label}
       </Label>
-
     </group>
   );
 }
@@ -123,6 +156,8 @@ function UserStar() {
 }
 
 export default function Universe() {
+  const scienceRef = useRef();
+
   return (
     <div
       style={{
@@ -146,7 +181,7 @@ export default function Universe() {
         />
 
         <UserStar />
-        <Label position={[0, 2.6, 0]}>YOU</Label>
+        <Label position={[0, 2.5, 0]}>YOU</Label>
 
         <OrbitRing radius={6} />
         <OrbitRing radius={7} />
@@ -162,6 +197,7 @@ export default function Universe() {
         />
 
         <Planet
+          ref={scienceRef}
           radius={7}
           speed={0.16}
           size={0.55}
@@ -186,6 +222,35 @@ export default function Universe() {
           label="Learning"
         />
 
+        {/* Science Moons */}
+
+        <Moon
+          parentRef={scienceRef}
+          radius={1.3}
+          speed={0.8}
+          size={0.18}
+          color="#9ad1ff"
+          label="Physics"
+        />
+
+        <Moon
+          parentRef={scienceRef}
+          radius={1.7}
+          speed={0.6}
+          size={0.18}
+          color="#7fff9a"
+          label="Biology"
+        />
+
+        <Moon
+          parentRef={scienceRef}
+          radius={2.1}
+          speed={0.5}
+          size={0.18}
+          color="#ffd17a"
+          label="Chemistry"
+        />
+
         <EffectComposer>
           <Bloom
             intensity={1.6}
@@ -199,4 +264,4 @@ export default function Universe() {
       </Canvas>
     </div>
   );
-}
+            }
