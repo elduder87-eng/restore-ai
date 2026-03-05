@@ -49,7 +49,11 @@ return (
 <group ref={ref}>
 <mesh>
 <sphereGeometry args={[size, 32, 32]} />
-<meshStandardMaterial color={color} emissive={color} emissiveIntensity={1} />
+<meshStandardMaterial
+color={color}
+emissive={color}
+emissiveIntensity={1}
+/>
 </mesh>
 
   <Label position={[0, size + 0.35, 0]}>{label}</Label>
@@ -65,7 +69,6 @@ size,
 color,
 label,
 ring,
-children,
 startAngle = 0,
 }) {
 const orbitRef = useRef();
@@ -86,7 +89,12 @@ return (
 {ring && (
 <mesh rotation={[Math.PI / 2, 0, 0]}>
 <ringGeometry args={[size + 0.4, size + 0.7, 64]} />
-<meshBasicMaterial color={color} transparent opacity={0.4} side={2} />
+<meshBasicMaterial
+color={color}
+transparent
+opacity={0.4}
+side={2}
+/>
 </mesh>
 )}
 
@@ -96,7 +104,6 @@ return (
       color={color}
       emissive={color}
       emissiveIntensity={1.2}
-      roughness={0.5}
     />
   </mesh>
 
@@ -106,8 +113,6 @@ return (
   </mesh>
 
   <Label position={[0, size + 0.7, 0]}>{label}</Label>
-
-  {children}
 </group>
 
 );
@@ -131,7 +136,11 @@ return (
 <group ref={orbitRef}>
 <mesh ref={planetMesh}>
 <sphereGeometry args={[0.55, 64, 64]} />
-<meshStandardMaterial color="#7cffb0" emissive="#7cffb0" emissiveIntensity={1.2} />
+<meshStandardMaterial
+color="#7cffb0"
+emissive="#7cffb0"
+emissiveIntensity={1.2}
+/>
 </mesh>
 
   <mesh scale={1.15}>
@@ -141,9 +150,9 @@ return (
 
   <Label position={[0, 1.1, 0]}>Science</Label>
 
-  <Moon radius={1.2} speed={1.3} size={0.16} color="#9ad1ff" label="Physics" />
-  <Moon radius={1.7} speed={1} size={0.16} color="#7fff9a" label="Biology" />
-  <Moon radius={2.2} speed={0.8} size={0.16} color="#ffd17a" label="Chemistry" />
+  <Moon radius={1.6} speed={1.3} size={0.16} color="#9ad1ff" label="Physics" />
+  <Moon radius={2.3} speed={1} size={0.16} color="#7fff9a" label="Biology" />
+  <Moon radius={3.0} speed={0.8} size={0.16} color="#ffd17a" label="Chemistry" />
 </group>
 
 );
@@ -161,10 +170,14 @@ return (
 <group>
 <mesh ref={ref}>
 <sphereGeometry args={[1.4, 64, 64]} />
-<meshStandardMaterial color="#7df9ff" emissive="#7df9ff" emissiveIntensity={4} />
+<meshStandardMaterial
+color="#7df9ff"
+emissive="#7df9ff"
+emissiveIntensity={4}
+/>
 </mesh>
 
-  <mesh scale={1.8}>
+  <mesh scale={1.45}>
     <sphereGeometry args={[1.4, 64, 64]} />
     <meshBasicMaterial color="#7df9ff" transparent opacity={0.25} />
   </mesh>
@@ -176,7 +189,7 @@ return (
 export default function Universe() {
 return (
 <div style={{ width: "100vw", height: "100vh", background: "#000" }}>
-<Canvas camera={{ position: [0, 0, 16], fov: 60 }}>
+<Canvas camera={{ position: [0, 2, 16], fov: 60 }}>
 <color attach="background" args={["#020617"]} />
 
     <ambientLight intensity={0.6} />
@@ -223,7 +236,11 @@ return (
     />
 
     <EffectComposer>
-      <Bloom intensity={1.8} luminanceThreshold={0.15} luminanceSmoothing={0.7} />
+      <Bloom
+        intensity={1.8}
+        luminanceThreshold={0.15}
+        luminanceSmoothing={0.7}
+      />
     </EffectComposer>
 
     <OrbitControls enableZoom enableRotate enablePan target={[0, 0, 0]} />
@@ -231,4 +248,4 @@ return (
 </div>
 
 );
-  }
+}
