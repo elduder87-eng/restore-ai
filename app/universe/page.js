@@ -11,7 +11,7 @@ const ref = useRef();
 const { camera } = useThree();
 
 useFrame(() => {
-if (ref.current) ref.current.lookAt(camera.position);
+ref.current.lookAt(camera.position);
 });
 
 return (
@@ -94,10 +94,9 @@ const t = clock.getElapsedTime() * speed + startAngle;
 const x = Math.cos(t) * radius;
 const z = Math.sin(t) * radius;
 
-orbit.current.position.x = x;
-orbit.current.position.z = z;
+orbit.current.position.set(x,0,z);
 
-if (setPos) setPos([x, 0, z]);
+if (setPos) setPos([x,0,z]);
 
 mesh.current.rotation.y += 0.003;
 
@@ -114,17 +113,12 @@ return (
 
   <mesh ref={mesh} onClick={onClick}>
     <sphereGeometry args={[size, 64, 64]} />
-    <meshStandardMaterial
-      color={color}
-      emissive={color}
-      emissiveIntensity={0.6}
-      roughness={0.8}
-    />
+    <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.6}/>
   </mesh>
 
   <mesh scale={1.25}>
     <sphereGeometry args={[size, 64, 64]} />
-    <meshBasicMaterial color={color} transparent opacity={0.15} />
+    <meshBasicMaterial color={color} transparent opacity={0.15}/>
   </mesh>
 
   <Label position={[0, size + 0.7, 0]}>{label}</Label>
@@ -135,7 +129,6 @@ return (
 
 function ScienceSystem({ radius, speed, startAngle, setPos, onClick }) {
 const orbit = useRef();
-const mesh = useRef();
 
 useFrame(({ clock }) => {
 const t = clock.getElapsedTime() * speed + startAngle;
@@ -143,28 +136,20 @@ const t = clock.getElapsedTime() * speed + startAngle;
 const x = Math.cos(t) * radius;
 const z = Math.sin(t) * radius;
 
-orbit.current.position.x = x;
-orbit.current.position.z = z;
+orbit.current.position.set(x,0,z);
 
-if (setPos) setPos([x, 0, z]);
-
-mesh.current.rotation.y += 0.002;
+if (setPos) setPos([x,0,z]);
 
 });
 
 return (
 <group ref={orbit}>
-<mesh ref={mesh} onClick={onClick}>
+<mesh onClick={onClick}>
 <sphereGeometry args={[0.6, 64, 64]} />
-<meshStandardMaterial color="#7cffb0" emissive="#7cffb0" emissiveIntensity={1} />
+<meshStandardMaterial color="#7cffb0" emissive="#7cffb0"/>
 </mesh>
 
-  <mesh scale={1.2}>
-    <sphereGeometry args={[0.6, 64, 64]} />
-    <meshBasicMaterial color="#7cffb0" transparent opacity={0.12} />
-  </mesh>
-
-  <Label position={[0, 1.2, 0]}>Science</Label>
+  <Label position={[0,1.2,0]}>Science</Label>
 
   <Moon radius={1.7} speed={1.4} size={0.16} color="#9ad1ff" label="Physics"/>
   <Moon radius={2.5} speed={1.1} size={0.16} color="#7fff9a" label="Biology"/>
@@ -174,70 +159,75 @@ return (
 );
 }
 
-function UserStar() {
-const ref = useRef();
-
-useFrame(({ clock }) => {
-const pulse = 3.5 + Math.sin(clock.getElapsedTime() * 2);
-ref.current.material.emissiveIntensity = pulse;
-});
-
-return (
-<group>
-<mesh ref={ref}>
-<sphereGeometry args={[1.5, 64, 64]} />
-<meshStandardMaterial color="#7df9ff" emissive="#7df9ff" emissiveIntensity={3.5} />
-</mesh>
-
-  <mesh scale={1.5}>
-    <sphereGeometry args={[1.5, 64, 64]} />
-    <meshBasicMaterial color="#7df9ff" transparent opacity={0.25} />
-  </mesh>
-</group>
-
-);
-}
-
 function CameraController({ target, lookAt }) {
+
 const { camera } = useThree();
 
 useFrame(() => {
-const targetVec = new THREE.Vector3(...target);
-const lookVec = new THREE.Vector3(...lookAt);
 
-camera.position.lerp(targetVec, 0.05);
-camera.lookAt(lookVec);
+const targetPos = new THREE.Vector3(...target);
+const lookPos = new THREE.Vector3(...lookAt);
+
+camera.position.lerp(targetPos, 0.08);
+camera.lookAt(lookPos);
 
 });
 
 return null;
 }
 
+function UserStar() {
+
+const ref = useRef();
+
+useFrame(({ clock }) => {
+ref.current.material.emissiveIntensity =
+3.5 + Math.sin(clock.getElapsedTime() * 2);
+});
+
+return (
+<mesh ref={ref}>
+<sphereGeometry args={[1.5,64,64]} />
+<meshStandardMaterial color="#7df9ff" emissive="#7df9ff"/>
+</mesh>
+);
+}
+
 export default function Universe() {
 
-const [cameraTarget, setCameraTarget] = useState([0,3,14]);
-const [cameraLook, setCameraLook] = useState([0,0,0]);
+const [target,setTarget] = useState([0,4,14]);
+const [look,setLook] = useState([0,0,0]);
 
 const psychology = useRef([0,0,0]);
 const philosophy = useRef([0,0,0]);
 const learning = useRef([0,0,0]);
 const science = useRef([0,0,0]);
 
+function flyTo(pos){
+setTarget([pos[0],2.5,pos[2]+3]);
+setLook(pos);
+}
+
+function reset(){
+setTarget([0,4,14]);
+setLook([0,0,0]);
+}
+
 return (
-<div style={{ width: "100vw", height: "100vh", background: "#000" }}>
-<Canvas camera={{ position: [0,3,14], fov: 60 }}>
 
-    <CameraController target={cameraTarget} lookAt={cameraLook}/>
+<div style={{width:"100vw",height:"100vh"}} onClick={reset}>
 
-    <color attach="background" args={["#020617"]} />
+  <Canvas camera={{position:[0,4,14],fov:60}}>
 
-    <ambientLight intensity={0.7} />
-    <pointLight position={[10,10,10]} intensity={2} />
+    <CameraController target={target} lookAt={look}/>
 
-    <Nebula />
-    <Stars radius={300} depth={120} count={15000} factor={8} fade />
+    <ambientLight intensity={0.7}/>
+    <pointLight position={[10,10,10]} intensity={2}/>
 
-    <UserStar />
+    <Nebula/>
+    <Stars radius={300} depth={120} count={15000} factor={8}/>
+
+    <UserStar/>
     <Label position={[0,2.5,0]}>YOU</Label>
 
     <OrbitTrail radius={6}/>
@@ -253,10 +243,7 @@ return (
       label="Psychology"
       startAngle={0}
       setPos={(p)=>psychology.current=p}
-      onClick={()=>{
-        setCameraTarget([psychology.current[0],3,psychology.current[2]+6]);
-        setCameraLook(psychology.current);
-      }}
+      onClick={(e)=>{e.stopPropagation(); flyTo(psychology.current);}}
     />
 
     <ScienceSystem
@@ -264,10 +251,7 @@ return (
       speed={0.16}
       startAngle={1.6}
       setPos={(p)=>science.current=p}
-      onClick={()=>{
-        setCameraTarget([science.current[0],3,science.current[2]+6]);
-        setCameraLook(science.current);
-      }}
+      onClick={(e)=>{e.stopPropagation(); flyTo(science.current);}}
     />
 
     <Planet
@@ -279,10 +263,7 @@ return (
       ring
       startAngle={3.1}
       setPos={(p)=>philosophy.current=p}
-      onClick={()=>{
-        setCameraTarget([philosophy.current[0],3,philosophy.current[2]+6]);
-        setCameraLook(philosophy.current);
-      }}
+      onClick={(e)=>{e.stopPropagation(); flyTo(philosophy.current);}}
     />
 
     <Planet
@@ -293,19 +274,17 @@ return (
       label="Learning"
       startAngle={4.7}
       setPos={(p)=>learning.current=p}
-      onClick={()=>{
-        setCameraTarget([learning.current[0],3,learning.current[2]+6]);
-        setCameraLook(learning.current);
-      }}
+      onClick={(e)=>{e.stopPropagation(); flyTo(learning.current);}}
     />
 
     <EffectComposer>
-      <Bloom intensity={1.6} luminanceThreshold={0.15} luminanceSmoothing={0.7}/>
+      <Bloom intensity={1.5}/>
     </EffectComposer>
 
-    <OrbitControls enableZoom enableRotate enablePan target={[0,0,0]}/>
+    <OrbitControls enablePan enableZoom enableRotate/>
 
   </Canvas>
+
 </div>
 
 );
