@@ -103,6 +103,8 @@ export default function CuriosityMap() {
       <ForceGraph2D
         graphData={graphData}
 
+        warmupTicks={60}
+
         cooldownTicks={0}
         d3VelocityDecay={1}
 
@@ -154,18 +156,21 @@ export default function CuriosityMap() {
 
         }}
 
-        linkColor={() => "#cccccc"}
+        linkColor={() => "#999999"}
 
         linkWidth={link =>
           link.source.id === "Learning"
-            ? 2.5
-            : 1.5
+            ? 3
+            : 1.8
         }
 
-        linkDirectionalArrowLength={6}
+        linkDirectionalArrowLength={12}
+        linkDirectionalArrowColor={() => "#444"}
         linkDirectionalArrowRelPos={1}
-        linkDirectionalParticles={2}
-        linkDirectionalParticleSpeed={0.003}
+
+        linkDirectionalParticles={3}
+        linkDirectionalParticleWidth={3}
+        linkDirectionalParticleSpeed={0.004}
 
         onNodeClick={expandNode}
 
