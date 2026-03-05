@@ -127,7 +127,12 @@ export default function CuriosityMap() {
 
           ctx.font = `${fontSize}px Sans-Serif`
 
-          const size = node.type === "main" ? 32 : 12
+          const size =
+            node.id === "Learning"
+              ? 38
+              : node.type === "main"
+              ? 32
+              : 12
 
           ctx.beginPath()
           ctx.arc(node.x, node.y, size, 0, 2 * Math.PI)
@@ -151,7 +156,11 @@ export default function CuriosityMap() {
 
         linkColor={() => "#cccccc"}
 
-        linkWidth={1.5}
+        linkWidth={link =>
+          link.source.id === "Learning"
+            ? 2.5
+            : 1.5
+        }
 
         onNodeClick={expandNode}
 
