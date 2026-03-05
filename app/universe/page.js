@@ -51,7 +51,7 @@ function Planet({ radius, speed, size, color, label, angle }) {
         <meshStandardMaterial
           color={color}
           emissive={color}
-          emissiveIntensity={2}
+          emissiveIntensity={1.5}
         />
       </mesh>
 
@@ -79,7 +79,7 @@ function UserStar() {
       <meshStandardMaterial
         color="#4fc3f7"
         emissive="#4fc3f7"
-        emissiveIntensity={3}
+        emissiveIntensity={2}
       />
     </mesh>
   );
@@ -101,14 +101,14 @@ export default function Universe() {
           fade
         />
 
-        {/* YOU star */}
+        {/* Center star */}
         <UserStar />
 
         <Label position={[0, 1.6, 0]}>
           YOU
         </Label>
 
-        {/* Topic planets */}
+        {/* Planets */}
         <Planet
           radius={3}
           speed={0.25}
@@ -148,9 +148,9 @@ export default function Universe() {
         {/* Glow engine */}
         <EffectComposer>
           <Bloom
-            intensity={1.5}
-            luminanceThreshold={0}
-            luminanceSmoothing={0.9}
+            intensity={0.8}
+            luminanceThreshold={0.2}
+            luminanceSmoothing={0.6}
           />
         </EffectComposer>
 
