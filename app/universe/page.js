@@ -81,7 +81,7 @@ const t = clock.getElapsedTime() * speed + startAngle;
 ref.current.position.x = Math.cos(t) * radius;
 ref.current.position.y = Math.sin(t) * radius;
 
-meshRef.current.rotation.y += 0.002;
+if (meshRef.current) meshRef.current.rotation.y += 0.003;
 
 });
 
@@ -90,7 +90,7 @@ return (
 
   {ring && (
     <mesh rotation={[Math.PI / 2, 0, 0]}>
-      <ringGeometry args={[size + 0.35, size + 0.7, 64]} />
+      <ringGeometry args={[size + 0.4, size + 0.7, 64]} />
       <meshBasicMaterial
         color={color}
         transparent
@@ -105,16 +105,18 @@ return (
     <meshStandardMaterial
       color={color}
       emissive={color}
-      emissiveIntensity={1.6}
+      emissiveIntensity={1.2}
+      roughness={0.5}
+      metalness={0.1}
     />
   </mesh>
 
-  <mesh scale={1.4}>
+  <mesh scale={1.15}>
     <sphereGeometry args={[size, 64, 64]} />
     <meshBasicMaterial
       color={color}
       transparent
-      opacity={0.12}
+      opacity={0.18}
     />
   </mesh>
 
@@ -149,7 +151,7 @@ return (
     />
   </mesh>
 
-  <mesh scale={1.7}>
+  <mesh scale={1.8}>
     <sphereGeometry args={[1.4, 64, 64]} />
     <meshBasicMaterial
       color="#7df9ff"
@@ -253,4 +255,4 @@ return (
 </div>
 
 );
-                                }
+      }
