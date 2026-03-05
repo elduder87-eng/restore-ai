@@ -1,7 +1,7 @@
 "use client";
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { OrbitControls, Stars, Text } from "@react-three/drei";
+import { OrbitControls, Stars, Text, Line } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import { useRef } from "react";
 import * as THREE from "three";
@@ -29,13 +29,13 @@ ref.current.rotation.z = clock.getElapsedTime() * 0.01;
 });
 
 return (
-<mesh ref={ref} position={[0, 0, -20]}>
-<sphereGeometry args={[90, 64, 64]} />
+<mesh ref={ref} position={[0, 0, -25]}>
+<sphereGeometry args={[100, 64, 64]} />
 <meshBasicMaterial
 color="#1c2b5a"
 side={THREE.BackSide}
 transparent
-opacity={0.35}
+opacity={0.4}
 />
 </mesh>
 );
@@ -74,15 +74,20 @@ return (
 );
 }
 
-function Planet({ radius, speed, size, color, label, ring, startAngle }) {
+function Planet({ radius, speed, size, color, label, ring, startAngle, setPos }) {
 const orbit = useRef();
 const mesh = useRef();
 
 useFrame(({ clock }) => {
 const t = clock.getElapsedTime() * speed + startAngle;
 
-orbit.current.position.x = Math.cos(t) * radius;
-orbit.current.position.z = Math.sin(t) * radius;
+const x = Math.cos(t) * radius;
+const z = Math.sin(t) * radius;
+
+orbit.current.position.x = x;
+orbit.current.position.z = z;
+
+if (setPos) setPos([x, 0, z]);
 
 mesh.current.rotation.y += 0.003;
 
@@ -118,15 +123,20 @@ return (
 );
 }
 
-function ScienceSystem({ radius, speed, startAngle }) {
+function ScienceSystem({ radius, speed, startAngle, setPos }) {
 const orbit = useRef();
 const mesh = useRef();
 
 useFrame(({ clock }) => {
 const t = clock.getElapsedTime() * speed + startAngle;
 
-orbit.current.position.x = Math.cos(t) * radius;
-orbit.current.position.z = Math.sin(t) * radius;
+const x = Math.cos(t) * radius;
+const z = Math.sin(t) * radius;
+
+orbit.current.position.x = x;
+orbit.current.position.z = z;
+
+if (setPos) setPos([x, 0, z]);
 
 mesh.current.rotation.y += 0.002;
 
@@ -146,9 +156,9 @@ return (
 
   <Label position={[0, 1.2, 0]}>Science</Label>
 
-  <Moon radius={1.8} speed={1.3} size={0.18} color="#9ad1ff" label="Physics" />
-  <Moon radius={2.6} speed={1} size={0.18} color="#7fff9a" label="Biology" />
-  <Moon radius={3.4} speed={0.8} size={0.18} color="#ffd17a" label="Chemistry" />
+  <Moon radius={1.4} speed={1.4} size={0.16} color="#9ad1ff" label="Physics"/>
+  <Moon radius={2.1} speed={1.1} size={0.16} color="#7fff9a" label="Biology"/>
+  <Moon radius={2.8} speed={0.8} size={0.16} color="#ffd17a" label="Chemistry"/>
 </group>
 
 );
@@ -178,11 +188,30 @@ return (
 );
 }
 
+function Constellation({ points }) {
+return (
+<Line
+points={points}
+color="white"
+lineWidth={1}
+transparent
+opacity={0.25}
+/>
+);
+}
+
 export default function Universe() {
+
+const psychology = useRef([0,0,0]);
+const philosophy = useRef([0,0,0]);
+const learning = useRef([0,0,0]);
+const science = useRef([0,0,0]);
+
 return (
 <div style={{ width: "100vw", height: "100vh", background: "#000" }}>
 <Canvas camera={{ position: [0, 0.5, 14], fov: 60 }}>
-<color attach="background" args={["#020617"]} />
+
+    <color attach="background" args={["#020617"]} />
 
     <ambientLight intensity={0.7} />
     <pointLight position={[10, 10, 10]} intensity={2} />
@@ -206,9 +235,15 @@ return (
       color="#ff9bbf"
       label="Psychology"
       startAngle={0}
+      setPos={(p)=>psychology.current=p}
     />
 
-    <ScienceSystem radius={8} speed={0.16} startAngle={1.6} />
+    <ScienceSystem
+      radius={8}
+      speed={0.16}
+      startAngle={1.6}
+      setPos={(p)=>science.current=p}
+    />
 
     <Planet
       radius={10}
@@ -218,6 +253,7 @@ return (
       label="Philosophy"
       ring
       startAngle={3.1}
+      setPos={(p)=>philosophy.current=p}
     />
 
     <Planet
@@ -227,13 +263,24 @@ return (
       color="#cfa7ff"
       label="Learning"
       startAngle={4.7}
+      setPos={(p)=>learning.current=p}
+    />
+
+    <Constellation
+      points={[
+        psychology.current,
+        philosophy.current,
+        science.current,
+        learning.current
+      ]}
     />
 
     <EffectComposer>
       <Bloom intensity={1.6} luminanceThreshold={0.15} luminanceSmoothing={0.7} />
     </EffectComposer>
 
-    <OrbitControls enableZoom enableRotate enablePan target={[0, 0, 0]} />
+    <OrbitControls enableZoom enableRotate enablePan target={[0,0,0]} />
+
   </Canvas>
 </div>
 
