@@ -27,15 +27,17 @@ function Label({ children, position }) {
   );
 }
 
-function Planet({ radius, speed, size, color, label, angle }) {
+function Planet({ radius, speed, size, color, label }) {
   const ref = useRef();
 
-  useFrame(({ clock }) => {
-    const t = clock.getElapsedTime() * speed;
+  const startAngle = useRef(Math.random() * Math.PI * 2);
 
-    const x = Math.cos(t + angle) * radius;
-    const y = Math.sin(t + angle) * radius * 0.6;
-    const z = Math.sin(t * 0.4 + angle) * 2;
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime() * speed + startAngle.current;
+
+    const x = Math.cos(t) * radius;
+    const y = Math.sin(t) * radius * 0.6;
+    const z = Math.sin(t * 0.5) * 2;
 
     if (ref.current) ref.current.position.set(x, y, z);
   });
@@ -51,7 +53,9 @@ function Planet({ radius, speed, size, color, label, angle }) {
         />
       </mesh>
 
-      <Label position={[0, size + 0.4, 0]}>{label}</Label>
+      <Label position={[0, size + 0.4, 0]}>
+        {label}
+      </Label>
     </group>
   );
 }
@@ -94,7 +98,6 @@ export default function Universe() {
         <ambientLight intensity={0.6} />
         <pointLight position={[10, 10, 10]} intensity={2} />
 
-        {/* Starfield */}
         <Stars
           radius={300}
           depth={120}
@@ -107,12 +110,11 @@ export default function Universe() {
         <UserStar />
         <Label position={[0, 2, 0]}>YOU</Label>
 
-        {/* Topic Planets */}
+        {/* Planets */}
 
         <Planet
           radius={6}
           speed={0.18}
-          angle={0}
           size={0.5}
           color="#f48fb1"
           label="Psychology"
@@ -121,7 +123,6 @@ export default function Universe() {
         <Planet
           radius={7}
           speed={0.16}
-          angle={1.5}
           size={0.5}
           color="#81c784"
           label="Science"
@@ -130,7 +131,6 @@ export default function Universe() {
         <Planet
           radius={8}
           speed={0.14}
-          angle={3}
           size={0.5}
           color="#ffd54f"
           label="Philosophy"
@@ -139,13 +139,11 @@ export default function Universe() {
         <Planet
           radius={9}
           speed={0.12}
-          angle={4.7}
           size={0.55}
           color="#ce93d8"
           label="Learning"
         />
 
-        {/* Glow */}
         <EffectComposer>
           <Bloom
             intensity={0.8}
