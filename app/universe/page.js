@@ -42,17 +42,22 @@ function OrbitRing({ radius }) {
 }
 
 function Moon({ radius, speed, size, color, label }) {
+
   const ref = useRef();
+  const startAngle = useRef(Math.random() * Math.PI * 2);
 
   useFrame(({ clock }) => {
-    const t = clock.getElapsedTime() * speed;
+
+    const t = clock.getElapsedTime() * speed + startAngle.current;
 
     ref.current.position.x = Math.cos(t) * radius;
     ref.current.position.y = Math.sin(t) * radius;
+
   });
 
   return (
     <group ref={ref}>
+
       <mesh>
         <sphereGeometry args={[size, 32, 32]} />
         <meshStandardMaterial
@@ -65,16 +70,19 @@ function Moon({ radius, speed, size, color, label }) {
       <Label position={[0, size + 0.3, 0]}>
         {label}
       </Label>
+
     </group>
   );
 }
 
 function Planet({ radius, speed, size, color, label, ring, children }) {
+
   const ref = useRef();
   const meshRef = useRef();
   const startAngle = useRef(Math.random() * Math.PI * 2);
 
   useFrame(({ clock }) => {
+
     const t = clock.getElapsedTime() * speed + startAngle.current;
 
     const x = Math.cos(t) * radius;
@@ -83,6 +91,7 @@ function Planet({ radius, speed, size, color, label, ring, children }) {
     ref.current.position.set(x, y, 0);
 
     meshRef.current.rotation.y += 0.003;
+
   });
 
   return (
@@ -129,12 +138,15 @@ function Planet({ radius, speed, size, color, label, ring, children }) {
 }
 
 function UserStar() {
+
   const ref = useRef();
 
   useFrame(({ clock }) => {
+
     const pulse = 4 + Math.sin(clock.getElapsedTime() * 2) * 1;
 
     ref.current.material.emissiveIntensity = pulse;
+
   });
 
   return (
@@ -149,7 +161,6 @@ function UserStar() {
         />
       </mesh>
 
-      {/* star glow */}
       <mesh scale={2.2}>
         <sphereGeometry args={[1.4, 64, 64]} />
         <meshBasicMaterial
@@ -164,6 +175,7 @@ function UserStar() {
 }
 
 export default function Universe() {
+
   return (
     <div
       style={{
@@ -266,4 +278,4 @@ export default function Universe() {
       </Canvas>
     </div>
   );
-}
+            }
