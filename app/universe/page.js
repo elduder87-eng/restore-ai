@@ -171,7 +171,7 @@ export default function Universe() {
 return (
 <div style={{ width: "100vw", height: "100vh", background: "#000" }}>
 
-  <Canvas camera={{ position: [0, -2, 16], fov: 60 }}>
+  <Canvas camera={{ position: [0, 0, 16], fov: 60 }}>
 
     <color attach="background" args={["#020617"]} />
 
@@ -241,7 +241,12 @@ return (
       />
     </EffectComposer>
 
-    <OrbitControls enableZoom enableRotate enablePan />
+    <OrbitControls
+      enableZoom
+      enableRotate
+      enablePan
+      target={[0,0,0]}
+    />
 
   </Canvas>
 
