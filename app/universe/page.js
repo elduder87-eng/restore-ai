@@ -11,7 +11,7 @@ const ref = useRef();
 const { camera } = useThree();
 
 useFrame(() => {
-ref.current.lookAt(camera.position);
+if (ref.current) ref.current.lookAt(camera.position);
 });
 
 return (
@@ -25,7 +25,7 @@ function Nebula() {
 const ref = useRef();
 
 useFrame(({ clock }) => {
-ref.current.rotation.z = clock.getElapsedTime() * 0.01;
+if (ref.current) ref.current.rotation.z = clock.getElapsedTime() * 0.01;
 });
 
 return (
@@ -55,6 +55,7 @@ const ref = useRef();
 
 useFrame(({ clock }) => {
 const t = clock.getElapsedTime() * speed;
+if (!ref.current) return;
 
 ref.current.position.x = Math.cos(t) * radius;
 ref.current.position.z = Math.sin(t) * radius;
@@ -94,11 +95,13 @@ const t = clock.getElapsedTime() * speed + startAngle;
 const x = Math.cos(t) * radius;
 const z = Math.sin(t) * radius;
 
+if (!orbit.current) return;
+
 orbit.current.position.set(x, 0, z);
 
 if (setPos) setPos([x, 0, z]);
 
-mesh.current.rotation.y += 0.002;
+if (mesh.current) mesh.current.rotation.y += 0.002;
 
 });
 
@@ -136,6 +139,8 @@ const t = clock.getElapsedTime() * speed + startAngle;
 const x = Math.cos(t) * radius;
 const z = Math.sin(t) * radius;
 
+if (!orbit.current) return;
+
 orbit.current.position.set(x, 0, z);
 
 if (setPos) setPos([x, 0, z]);
@@ -146,7 +151,11 @@ return (
 <group ref={orbit}>
 <mesh onClick={onClick}>
 <sphereGeometry args={[0.6, 64, 64]} />
-<meshStandardMaterial color="#7cffb0" emissive="#7cffb0" emissiveIntensity={0.5} />
+<meshStandardMaterial
+color="#7cffb0"
+emissive="#7cffb0"
+emissiveIntensity={0.5}
+/>
 </mesh>
 
   <Label position={[0, 1.2, 0]}>Science</Label>
@@ -186,14 +195,26 @@ function UserStar() {
 const ref = useRef();
 
 useFrame(({ clock }) => {
+if (!ref.current) return;
+
 ref.current.material.emissiveIntensity =
-1.5 + Math.sin(clock.getElapsedTime() * 2) * 0.5;
+  1.5 + Math.sin(clock.getElapsedTime() * 2) * 0.5;
+
 });
 
 return (
 <mesh ref={ref}>
 <sphereGeometry args={[1.5, 64, 64]} />
 <meshStandardMaterial color="#7df9ff" emissive="#7df9ff" />
+</mesh>
+);
+}
+
+function SpaceReset({ reset }) {
+return (
+<mesh onClick={reset} position={[0, 0, -50]}>
+<planeGeometry args={[500, 500]} />
+<meshBasicMaterial transparent opacity={0} />
 </mesh>
 );
 }
@@ -231,7 +252,7 @@ setLook([0, 0, 0]);
 
 return (
 
-<div style={{ width: "100vw", height: "100vh" }} onClick={reset}>
+<div style={{ width: "100vw", height: "100vh" }}>
 
   <Canvas camera={{ position: [0, 6, 20], fov: 60 }}>
 
@@ -293,6 +314,8 @@ return (
       onClick={(e) => { e.stopPropagation(); flyTo(learning.current); }}
     />
 
+    <SpaceReset reset={reset} />
+
     <EffectComposer>
       <Bloom intensity={1.1} />
     </EffectComposer>
@@ -309,4 +332,4 @@ return (
 </div>
 
 );
-  }
+                            }
