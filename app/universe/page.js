@@ -17,7 +17,7 @@ function Label({ children, position }) {
     <Text
       ref={ref}
       position={position}
-      fontSize={0.4}
+      fontSize={0.35}
       color="white"
       anchorX="center"
       anchorY="middle"
@@ -62,7 +62,7 @@ function Moon({ radius, speed, size, color, label }) {
         />
       </mesh>
 
-      <Label position={[0, size + 0.4, 0]}>
+      <Label position={[0, size + 0.3, 0]}>
         {label}
       </Label>
     </group>
@@ -90,7 +90,7 @@ function Planet({ radius, speed, size, color, label, ring, children }) {
 
       {ring && (
         <mesh rotation={[Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[size + 0.35, size + 0.6, 64]} />
+          <ringGeometry args={[size + 0.3, size + 0.6, 64]} />
           <meshBasicMaterial
             color={color}
             transparent
@@ -105,7 +105,7 @@ function Planet({ radius, speed, size, color, label, ring, children }) {
         <meshStandardMaterial
           color={color}
           emissive={color}
-          emissiveIntensity={1.5}
+          emissiveIntensity={1.6}
         />
       </mesh>
 
@@ -114,11 +114,11 @@ function Planet({ radius, speed, size, color, label, ring, children }) {
         <meshBasicMaterial
           color={color}
           transparent
-          opacity={0.15}
+          opacity={0.12}
         />
       </mesh>
 
-      <Label position={[0, size + 0.8, 0]}>
+      <Label position={[0, size + 0.7, 0]}>
         {label}
       </Label>
 
@@ -132,25 +132,38 @@ function UserStar() {
   const ref = useRef();
 
   useFrame(({ clock }) => {
-    const pulse = 3 + Math.sin(clock.getElapsedTime() * 2) * 0.8;
+    const pulse = 4 + Math.sin(clock.getElapsedTime() * 2) * 1;
 
     ref.current.material.emissiveIntensity = pulse;
   });
 
   return (
-    <mesh ref={ref}>
-      <sphereGeometry args={[1.4, 64, 64]} />
-      <meshStandardMaterial
-        color="#7df9ff"
-        emissive="#7df9ff"
-        emissiveIntensity={3}
-      />
-    </mesh>
+    <group>
+
+      <mesh ref={ref}>
+        <sphereGeometry args={[1.4, 64, 64]} />
+        <meshStandardMaterial
+          color="#7df9ff"
+          emissive="#7df9ff"
+          emissiveIntensity={4}
+        />
+      </mesh>
+
+      {/* star glow */}
+      <mesh scale={2.2}>
+        <sphereGeometry args={[1.4, 64, 64]} />
+        <meshBasicMaterial
+          color="#7df9ff"
+          transparent
+          opacity={0.25}
+        />
+      </mesh>
+
+    </group>
   );
 }
 
 export default function Universe() {
-
   return (
     <div
       style={{
@@ -168,7 +181,7 @@ export default function Universe() {
         <Stars
           radius={300}
           depth={120}
-          count={20000}
+          count={15000}
           factor={8}
           fade
         />
@@ -242,9 +255,9 @@ export default function Universe() {
 
         <EffectComposer>
           <Bloom
-            intensity={1.6}
+            intensity={1.7}
             luminanceThreshold={0.15}
-            luminanceSmoothing={0.6}
+            luminanceSmoothing={0.7}
           />
         </EffectComposer>
 
@@ -253,4 +266,4 @@ export default function Universe() {
       </Canvas>
     </div>
   );
-      }
+}
