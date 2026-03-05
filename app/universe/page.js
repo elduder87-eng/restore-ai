@@ -31,53 +31,13 @@ function OrbitRing({ radius }) {
 return (
 <mesh rotation={[Math.PI / 2, 0, 0]}>
 <ringGeometry args={[radius - 0.03, radius + 0.03, 128]} />
-<meshBasicMaterial color="white" transparent opacity={0.08} side={2} />
+<meshBasicMaterial
+color="white"
+transparent
+opacity={0.08}
+side={2}
+/>
 </mesh>
-);
-}
-
-function Nebula() {
-const group = useRef();
-
-useFrame(({ clock }) => {
-group.current.rotation.z = clock.getElapsedTime() * 0.003;
-});
-
-return (
-<group ref={group}>
-
-  <mesh position={[0, 0, -300]}>
-    <sphereGeometry args={[500, 64, 64]} />
-    <meshBasicMaterial
-      color="#33215a"
-      transparent
-      opacity={0.25}
-      side={2}
-    />
-  </mesh>
-
-  <mesh position={[200, -100, -350]}>
-    <sphereGeometry args={[400, 64, 64]} />
-    <meshBasicMaterial
-      color="#1e3a8a"
-      transparent
-      opacity={0.2}
-      side={2}
-    />
-  </mesh>
-
-  <mesh position={[-250, 150, -400]}>
-    <sphereGeometry args={[450, 64, 64]} />
-    <meshBasicMaterial
-      color="#6b21a8"
-      transparent
-      opacity={0.18}
-      side={2}
-    />
-  </mesh>
-
-</group>
-
 );
 }
 
@@ -104,7 +64,9 @@ emissiveIntensity={1}
 />
 </mesh>
 
-  <Label position={[0, size + 0.3, 0]}>{label}</Label>
+  <Label position={[0, size + 0.3, 0]}>
+    {label}
+  </Label>
 </group>
 
 );
@@ -129,17 +91,18 @@ meshRef.current.rotation.y += 0.002;
 
 return (
 <group ref={ref}>
-{ring && (
-<mesh rotation={[Math.PI / 2, 0, 0]}>
-<ringGeometry args={[size + 0.3, size + 0.6, 64]} />
-<meshBasicMaterial
-color={color}
-transparent
-opacity={0.4}
-side={2}
-/>
-</mesh>
-)}
+
+  {ring && (
+    <mesh rotation={[Math.PI / 2, 0, 0]}>
+      <ringGeometry args={[size + 0.3, size + 0.6, 64]} />
+      <meshBasicMaterial
+        color={color}
+        transparent
+        opacity={0.4}
+        side={2}
+      />
+    </mesh>
+  )}
 
   <mesh ref={meshRef}>
     <sphereGeometry args={[size, 64, 64]} />
@@ -159,9 +122,12 @@ side={2}
     />
   </mesh>
 
-  <Label position={[0, size + 0.7, 0]}>{label}</Label>
+  <Label position={[0, size + 0.7, 0]}>
+    {label}
+  </Label>
 
   {children}
+
 </group>
 
 );
@@ -171,20 +137,21 @@ function UserStar() {
 const ref = useRef();
 
 useFrame(({ clock }) => {
-const pulse = 4 + Math.sin(clock.getElapsedTime() * 2) * 1;
+const pulse = 4 + Math.sin(clock.getElapsedTime() * 2);
 ref.current.material.emissiveIntensity = pulse;
 });
 
 return (
 <group>
-<mesh ref={ref}>
-<sphereGeometry args={[1.4, 64, 64]} />
-<meshStandardMaterial
-color="#7df9ff"
-emissive="#7df9ff"
-emissiveIntensity={4}
-/>
-</mesh>
+
+  <mesh ref={ref}>
+    <sphereGeometry args={[1.4, 64, 64]} />
+    <meshStandardMaterial
+      color="#7df9ff"
+      emissive="#7df9ff"
+      emissiveIntensity={4}
+    />
+  </mesh>
 
   <mesh scale={2.2}>
     <sphereGeometry args={[1.4, 64, 64]} />
@@ -194,6 +161,7 @@ emissiveIntensity={4}
       opacity={0.25}
     />
   </mesh>
+
 </group>
 
 );
@@ -202,17 +170,26 @@ emissiveIntensity={4}
 export default function Universe() {
 return (
 <div style={{ width: "100vw", height: "100vh", background: "#000" }}>
-<Canvas camera={{ position: [0, 0, 14], fov: 65 }}>
+
+  <Canvas camera={{ position: [0, 0, 14], fov: 65 }}>
+
+    <color attach="background" args={["#020617"]} />
 
     <ambientLight intensity={0.6} />
     <pointLight position={[10, 10, 10]} intensity={2} />
 
-    <Stars radius={300} depth={120} count={15000} factor={8} fade />
-
-    <Nebula />
+    <Stars
+      radius={300}
+      depth={120}
+      count={15000}
+      factor={8}
+      fade
+    />
 
     <UserStar />
-    <Label position={[0, 2.5, 0]}>YOU</Label>
+    <Label position={[0, 2.5, 0]}>
+      YOU
+    </Label>
 
     <OrbitRing radius={6} />
     <OrbitRing radius={7} />
@@ -270,4 +247,4 @@ return (
 </div>
 
 );
-  }
+        }
