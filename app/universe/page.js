@@ -1,39 +1,83 @@
 "use client";
 
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
+import { OrbitControls, Text } from "@react-three/drei";
 import { useRef } from "react";
-import * as THREE from "three";
+import { useFrame } from "@react-three/fiber";
 
-function Planet({ position, size, color }) {
+function Planet({ position, size, color, label }) {
   const ref = useRef();
 
+  useFrame(() => {
+    if (ref.current) {
+      ref.current.rotation.y += 0.002;
+    }
+  });
+
   return (
-    <mesh ref={ref} position={position}>
-      <sphereGeometry args={[size, 32, 32]} />
-      <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.3} />
-    </mesh>
+    <group position={position}>
+      <mesh ref={ref}>
+        <sphereGeometry args={[size, 32, 32]} />
+        <meshStandardMaterial
+          color={color}
+          emissive={color}
+          emissiveIntensity={0.4}
+        />
+      </mesh>
+
+      <Text
+        position={[0, size + 0.3, 0]}
+        fontSize={0.25}
+        color="white"
+        anchorX="center"
+        anchorY="middle"
+      >
+        {label}
+      </Text>
+    </group>
+  );
+}
+
+function Connection({ start, end }) {
+  const points = [start, end];
+
+  return (
+    <line>
+      <bufferGeometry
+        attach="geometry"
+        setFromPoints={points}
+      />
+      <lineBasicMaterial attach="material" color="white" opacity={0.3} transparent />
+    </line>
   );
 }
 
 export default function Universe() {
+  const nodes = [
+    { label: "YOU", position: [0, 0, 0], size: 0.7, color: "#4fc3f7" },
+    { label: "Psychology", position: [0, 3, 0], size: 0.4, color: "#f48fb1" },
+    { label: "Science", position: [-3, -1, 0], size: 0.4, color: "#81c784" },
+    { label: "Philosophy", position: [3, -1, 0], size: 0.4, color: "#ffd54f" },
+    { label: "Learning", position: [0, -3, 0], size: 0.45, color: "#ce93d8" }
+  ];
+
   return (
     <div style={{ width: "100vw", height: "100vh", background: "black" }}>
-      <Canvas camera={{ position: [0, 0, 12], fov: 60 }}>
-        
+      <Canvas camera={{ position: [0, 0, 10], fov: 60 }}>
+
         <ambientLight intensity={0.6} />
         <pointLight position={[10, 10, 10]} />
 
-        {/* USER CENTER NODE */}
-        <Planet position={[0, 0, 0]} size={0.6} color="#4fc3f7" />
+        {nodes.map((node, i) => (
+          <Planet key={i} {...node} />
+        ))}
 
-        {/* TOPIC PLANETS */}
-        <Planet position={[4, 1, 0]} size={0.35} color="#f48fb1" />
-        <Planet position={[-3, -1, 0]} size={0.4} color="#81c784" />
-        <Planet position={[2, -3, 1]} size={0.3} color="#ffd54f" />
-        <Planet position={[-2, 3, -1]} size={0.32} color="#ce93d8" />
+        <Connection start={[0,0,0]} end={[0,3,0]} />
+        <Connection start={[0,0,0]} end={[-3,-1,0]} />
+        <Connection start={[0,0,0]} end={[3,-1,0]} />
+        <Connection start={[0,0,0]} end={[0,-3,0]} />
 
-        <OrbitControls enableZoom enablePan enableRotate />
+        <OrbitControls enableZoom enableRotate enablePan />
 
       </Canvas>
     </div>
