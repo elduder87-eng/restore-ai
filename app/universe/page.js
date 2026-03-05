@@ -10,9 +10,7 @@ function Label({ children, position }) {
   const { camera } = useThree();
 
   useFrame(() => {
-    if (ref.current) {
-      ref.current.lookAt(camera.position);
-    }
+    if (ref.current) ref.current.lookAt(camera.position);
   });
 
   return (
@@ -29,6 +27,20 @@ function Label({ children, position }) {
   );
 }
 
+function OrbitRing({ radius }) {
+  return (
+    <mesh rotation={[Math.PI / 2, 0, 0]}>
+      <ringGeometry args={[radius - 0.02, radius + 0.02, 128]} />
+      <meshBasicMaterial
+        color="#ffffff"
+        transparent
+        opacity={0.06}
+        side={2}
+      />
+    </mesh>
+  );
+}
+
 function Planet({ radius, speed, size, color, label }) {
   const ref = useRef();
   const startAngle = useRef(Math.random() * Math.PI * 2);
@@ -37,8 +49,8 @@ function Planet({ radius, speed, size, color, label }) {
     const t = clock.getElapsedTime() * speed + startAngle.current;
 
     const x = Math.cos(t) * radius;
-    const y = Math.sin(t) * radius * 0.6;
-    const z = Math.sin(t * 0.5) * 2;
+    const y = Math.sin(t) * radius;
+    const z = Math.sin(t * 0.3) * 0.5;
 
     if (ref.current) {
       ref.current.position.set(x, y, z);
@@ -47,19 +59,6 @@ function Planet({ radius, speed, size, color, label }) {
 
   return (
     <group ref={ref}>
-
-      {/* Orbit Ring */}
-      <mesh rotation={[Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[radius - 0.02, radius + 0.02, 64]} />
-        <meshBasicMaterial
-          color="#ffffff"
-          transparent
-          opacity={0.08}
-          side={2}
-        />
-      </mesh>
-
-      {/* Planet */}
       <mesh>
         <sphereGeometry args={[size, 32, 32]} />
         <meshStandardMaterial
@@ -69,10 +68,9 @@ function Planet({ radius, speed, size, color, label }) {
         />
       </mesh>
 
-      <Label position={[0, size + 0.4, 0]}>
+      <Label position={[0, size + 0.5, 0]}>
         {label}
       </Label>
-
     </group>
   );
 }
@@ -115,7 +113,6 @@ export default function Universe() {
         <ambientLight intensity={0.6} />
         <pointLight position={[10, 10, 10]} intensity={2} />
 
-        {/* Starfield */}
         <Stars
           radius={300}
           depth={120}
@@ -128,8 +125,13 @@ export default function Universe() {
         <UserStar />
         <Label position={[0, 2, 0]}>YOU</Label>
 
-        {/* Planets */}
+        {/* Orbit Rings */}
+        <OrbitRing radius={6} />
+        <OrbitRing radius={7} />
+        <OrbitRing radius={8} />
+        <OrbitRing radius={9} />
 
+        {/* Planets */}
         <Planet
           radius={6}
           speed={0.18}
@@ -162,7 +164,6 @@ export default function Universe() {
           label="Learning"
         />
 
-        {/* Glow */}
         <EffectComposer>
           <Bloom
             intensity={0.8}
@@ -176,4 +177,4 @@ export default function Universe() {
       </Canvas>
     </div>
   );
-            }
+      }
