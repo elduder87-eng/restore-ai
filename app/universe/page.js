@@ -1,9 +1,32 @@
 "use client";
 
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, Text, Stars } from "@react-three/drei";
 import { useRef } from "react";
-import * as THREE from "three";
+
+function Label({ children, position }) {
+  const ref = useRef();
+  const { camera } = useThree();
+
+  useFrame(() => {
+    if (ref.current) {
+      ref.current.lookAt(camera.position);
+    }
+  });
+
+  return (
+    <Text
+      ref={ref}
+      position={position}
+      fontSize={0.35}
+      color="white"
+      anchorX="center"
+      anchorY="middle"
+    >
+      {children}
+    </Text>
+  );
+}
 
 function Planet({ radius, speed, size, color, label, angle }) {
   const ref = useRef();
@@ -28,31 +51,14 @@ function Planet({ radius, speed, size, color, label, angle }) {
         <meshStandardMaterial
           color={color}
           emissive={color}
-          emissiveIntensity={0.6}
+          emissiveIntensity={0.7}
         />
       </mesh>
 
-      <Text
-        position={[0, size + 0.4, 0]}
-        fontSize={0.3}
-        color="white"
-        anchorX="center"
-        anchorY="middle"
-      >
+      <Label position={[0, size + 0.4, 0]}>
         {label}
-      </Text>
+      </Label>
     </group>
-  );
-}
-
-function Connection({ start, end }) {
-  const points = [new THREE.Vector3(...start), new THREE.Vector3(...end)];
-
-  return (
-    <line>
-      <bufferGeometry attach="geometry" setFromPoints={points} />
-      <lineBasicMaterial color="white" transparent opacity={0.3} />
-    </line>
   );
 }
 
@@ -61,7 +67,7 @@ export default function Universe() {
     <div style={{ width: "100vw", height: "100vh", background: "black" }}>
       <Canvas camera={{ position: [0, 0, 10], fov: 60 }}>
 
-        <ambientLight intensity={0.7} />
+        <ambientLight intensity={0.8} />
         <pointLight position={[10, 10, 10]} intensity={2} />
 
         <Stars
@@ -73,19 +79,19 @@ export default function Universe() {
           speed={1}
         />
 
-        {/* CENTER USER NODE */}
+        {/* USER NODE */}
         <mesh position={[0, 0, 0]}>
           <sphereGeometry args={[0.9, 32, 32]} />
           <meshStandardMaterial
             color="#4fc3f7"
             emissive="#4fc3f7"
-            emissiveIntensity={0.8}
+            emissiveIntensity={0.9}
           />
         </mesh>
 
-        <Text position={[0, 1.4, 0]} fontSize={0.35} color="white">
+        <Label position={[0, 1.4, 0]}>
           YOU
-        </Text>
+        </Label>
 
         {/* ORBITING TOPICS */}
         <Planet radius={3} speed={0.25} angle={0} size={0.45} color="#f48fb1" label="Psychology" />
