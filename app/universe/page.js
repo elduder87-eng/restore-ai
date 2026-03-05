@@ -29,13 +29,13 @@ ref.current.rotation.z = clock.getElapsedTime() * 0.01;
 });
 
 return (
-<mesh ref={ref} position={[0, 0, -30]}>
-<sphereGeometry args={[120, 64, 64]} />
+<mesh ref={ref} position={[0, 0, -40]}>
+<sphereGeometry args={[150, 64, 64]} />
 <meshBasicMaterial
 color="#1c2b5a"
 side={THREE.BackSide}
 transparent
-opacity={0.4}
+opacity={0.35}
 />
 </mesh>
 );
@@ -44,7 +44,7 @@ opacity={0.4}
 function OrbitTrail({ radius }) {
 return (
 <mesh rotation={[Math.PI / 2, 0, 0]}>
-<ringGeometry args={[radius - 0.03, radius + 0.03, 128]} />
+<ringGeometry args={[radius - 0.02, radius + 0.02, 128]} />
 <meshBasicMaterial color="white" transparent opacity={0.12} side={2} />
 </mesh>
 );
@@ -65,7 +65,7 @@ return (
 <group ref={ref}>
 <mesh>
 <sphereGeometry args={[size, 32, 32]} />
-<meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.8} />
+<meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.6} />
 </mesh>
 
   <Label position={[0, size + 0.35, 0]}>{label}</Label>
@@ -98,7 +98,7 @@ orbit.current.position.set(x,0,z);
 
 if (setPos) setPos([x,0,z]);
 
-mesh.current.rotation.y += 0.003;
+mesh.current.rotation.y += 0.002;
 
 });
 
@@ -106,14 +106,14 @@ return (
 <group ref={orbit}>
 {ring && (
 <mesh rotation={[Math.PI / 2, 0, 0]}>
-<ringGeometry args={[size + 0.4, size + 0.9, 128]} />
+<ringGeometry args={[size + 0.4, size + 0.8, 128]} />
 <meshBasicMaterial color={color} transparent opacity={0.45} side={2} />
 </mesh>
 )}
 
   <mesh ref={mesh} onClick={onClick}>
     <sphereGeometry args={[size, 64, 64]} />
-    <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.6}/>
+    <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.4}/>
   </mesh>
 
   <mesh scale={1.25}>
@@ -146,7 +146,7 @@ return (
 <group ref={orbit}>
 <mesh onClick={onClick}>
 <sphereGeometry args={[0.6, 64, 64]} />
-<meshStandardMaterial color="#7cffb0" emissive="#7cffb0"/>
+<meshStandardMaterial color="#7cffb0" emissive="#7cffb0" emissiveIntensity={0.5}/>
 </mesh>
 
   <Label position={[0,1.2,0]}>Science</Label>
@@ -168,7 +168,7 @@ useFrame(() => {
 const targetPos = new THREE.Vector3(...target);
 const lookPos = new THREE.Vector3(...lookAt);
 
-camera.position.lerp(targetPos, 0.08);
+camera.position.lerp(targetPos, 0.06);
 camera.lookAt(lookPos);
 
 });
@@ -182,7 +182,7 @@ const ref = useRef();
 
 useFrame(({ clock }) => {
 ref.current.material.emissiveIntensity =
-3.5 + Math.sin(clock.getElapsedTime() * 2);
+1.5 + Math.sin(clock.getElapsedTime() * 2) * 0.5;
 });
 
 return (
@@ -195,7 +195,7 @@ return (
 
 export default function Universe() {
 
-const [target,setTarget] = useState([0,4,14]);
+const [target,setTarget] = useState([0,6,20]);
 const [look,setLook] = useState([0,0,0]);
 
 const psychology = useRef([0,0,0]);
@@ -204,12 +204,21 @@ const learning = useRef([0,0,0]);
 const science = useRef([0,0,0]);
 
 function flyTo(pos){
-setTarget([pos[0],2.5,pos[2]+3]);
+
+const distance = 5;
+
+setTarget([
+  pos[0],
+  pos[1] + 2,
+  pos[2] + distance
+]);
+
 setLook(pos);
+
 }
 
 function reset(){
-setTarget([0,4,14]);
+setTarget([0,6,20]);
 setLook([0,0,0]);
 }
 
@@ -217,12 +226,12 @@ return (
 
 <div style={{width:"100vw",height:"100vh"}} onClick={reset}>
 
-  <Canvas camera={{position:[0,4,14],fov:60}}>
+  <Canvas camera={{position:[0,6,20],fov:60}}>
 
     <CameraController target={target} lookAt={look}/>
 
-    <ambientLight intensity={0.7}/>
-    <pointLight position={[10,10,10]} intensity={2}/>
+    <ambientLight intensity={0.8}/>
+    <pointLight position={[10,10,10]} intensity={1.6}/>
 
     <Nebula/>
     <Stars radius={300} depth={120} count={15000} factor={8}/>
@@ -278,7 +287,7 @@ return (
     />
 
     <EffectComposer>
-      <Bloom intensity={1.5}/>
+      <Bloom intensity={1.1}/>
     </EffectComposer>
 
     <OrbitControls enablePan enableZoom enableRotate/>
