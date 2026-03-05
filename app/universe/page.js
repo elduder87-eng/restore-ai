@@ -4,7 +4,6 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, Text, Stars } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import { useRef } from "react";
-import * as THREE from "three";
 
 function Label({ children, position }) {
   const ref = useRef();
@@ -61,9 +60,11 @@ function UserStar() {
   const ref = useRef();
 
   useFrame(({ clock }) => {
-    const pulse = 2 + Math.sin(clock.getElapsedTime() * 2) * 0.6;
+    const pulse = 2 + Math.sin(clock.getElapsedTime() * 2) * 0.5;
 
-    if (ref.current) ref.current.material.emissiveIntensity = pulse;
+    if (ref.current) {
+      ref.current.material.emissiveIntensity = pulse;
+    }
   });
 
   return (
@@ -78,23 +79,16 @@ function UserStar() {
   );
 }
 
-function Nebula({ color, position, size }) {
-  return (
-    <mesh position={position}>
-      <sphereGeometry args={[size, 32, 32]} />
-      <meshBasicMaterial
-        color={color}
-        transparent
-        opacity={0.03}
-        side={THREE.BackSide}
-      />
-    </mesh>
-  );
-}
-
 export default function Universe() {
   return (
-    <div style={{ width: "100vw", height: "100vh", background: "black" }}>
+    <div
+      style={{
+        width: "100vw",
+        height: "100vh",
+        background:
+          "radial-gradient(circle at center, #0f172a 0%, #020617 60%, #000000 100%)"
+      }}
+    >
       <Canvas camera={{ position: [0, 0, 18], fov: 60 }}>
 
         <ambientLight intensity={0.6} />
@@ -108,11 +102,6 @@ export default function Universe() {
           factor={6}
           fade
         />
-
-        {/* Nebula Clouds (soft background) */}
-        <Nebula color="#4f46e5" position={[0, 0, -80]} size={200} />
-        <Nebula color="#9333ea" position={[120, 40, -120]} size={250} />
-        <Nebula color="#f59e0b" position={[-120, -40, -120]} size={250} />
 
         {/* Center Star */}
         <UserStar />
