@@ -17,7 +17,7 @@ export default function CuriosityMap() {
 
       { id: "Science", type: "main", x: -650, y: 60 },
 
-      { id: "Psychology", type: "main", x: 0, y: -450 },
+      { id: "Psychology", type: "main", x: 0, y: -520 },
 
       { id: "Philosophy", type: "main", x: 650, y: 150 }
 
@@ -161,6 +161,11 @@ export default function CuriosityMap() {
             ? 2.5
             : 1.5
         }
+
+        linkDirectionalArrowLength={6}
+        linkDirectionalArrowRelPos={1}
+        linkDirectionalParticles={2}
+        linkDirectionalParticleSpeed={0.003}
 
         onNodeClick={expandNode}
 
