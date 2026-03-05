@@ -4,6 +4,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, Text, Stars } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import { useRef } from "react";
+import * as THREE from "three";
 
 function Label({ children, position }) {
   const ref = useRef();
@@ -36,8 +37,8 @@ function Planet({ radius, speed, size, color, label, angle }) {
     const t = clock.getElapsedTime() * speed;
 
     const x = Math.cos(t + angle) * radius;
-    const y = Math.sin(t + angle) * radius * 0.7;
-    const z = Math.sin(t * 0.5 + angle) * 1.5;
+    const y = Math.sin(t + angle) * radius * 0.6;
+    const z = Math.sin(t * 0.4 + angle) * 2;
 
     if (ref.current) {
       ref.current.position.set(x, y, z);
@@ -74,8 +75,8 @@ function UserStar() {
   });
 
   return (
-    <mesh ref={ref} position={[0, 0, 0]}>
-      <sphereGeometry args={[1, 32, 32]} />
+    <mesh ref={ref}>
+      <sphereGeometry args={[1.2, 32, 32]} />
       <meshStandardMaterial
         color="#4fc3f7"
         emissive="#4fc3f7"
@@ -85,67 +86,85 @@ function UserStar() {
   );
 }
 
+function Nebula({ color, position, size }) {
+  return (
+    <mesh position={position}>
+      <sphereGeometry args={[size, 32, 32]} />
+      <meshBasicMaterial
+        color={color}
+        transparent
+        opacity={0.08}
+        side={THREE.BackSide}
+      />
+    </mesh>
+  );
+}
+
 export default function Universe() {
   return (
     <div style={{ width: "100vw", height: "100vh", background: "black" }}>
-      <Canvas camera={{ position: [0, 0, 10], fov: 60 }}>
+      <Canvas camera={{ position: [0, 0, 16], fov: 60 }}>
 
         <ambientLight intensity={0.6} />
         <pointLight position={[10, 10, 10]} intensity={2} />
 
+        {/* Deep Space Starfield */}
         <Stars
-          radius={120}
-          depth={60}
-          count={6000}
-          factor={4}
+          radius={300}
+          depth={120}
+          count={10000}
+          factor={6}
           fade
         />
 
-        {/* Center star */}
+        {/* Nebula Clouds */}
+        <Nebula color="#4f46e5" position={[0, 0, -10]} size={60} />
+        <Nebula color="#9333ea" position={[20, 10, -20]} size={70} />
+        <Nebula color="#f59e0b" position={[-20, -10, -20]} size={70} />
+
+        {/* Center Star */}
         <UserStar />
+        <Label position={[0, 2, 0]}>YOU</Label>
 
-        <Label position={[0, 1.6, 0]}>
-          YOU
-        </Label>
+        {/* Topic Planets */}
 
-        {/* Planets */}
         <Planet
-          radius={3}
-          speed={0.25}
+          radius={6}
+          speed={0.18}
           angle={0}
-          size={0.45}
+          size={0.5}
           color="#f48fb1"
           label="Psychology"
         />
 
         <Planet
-          radius={3}
-          speed={0.25}
+          radius={7}
+          speed={0.16}
           angle={1.5}
-          size={0.45}
+          size={0.5}
           color="#81c784"
           label="Science"
         />
 
         <Planet
-          radius={3}
-          speed={0.25}
+          radius={8}
+          speed={0.14}
           angle={3}
-          size={0.45}
+          size={0.5}
           color="#ffd54f"
           label="Philosophy"
         />
 
         <Planet
-          radius={3}
-          speed={0.25}
+          radius={9}
+          speed={0.12}
           angle={4.7}
-          size={0.5}
+          size={0.55}
           color="#ce93d8"
           label="Learning"
         />
 
-        {/* Glow engine */}
+        {/* Glow Engine */}
         <EffectComposer>
           <Bloom
             intensity={0.8}
