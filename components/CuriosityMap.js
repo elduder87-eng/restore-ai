@@ -12,6 +12,7 @@ export default function CuriosityMap() {
 
   const [graphData, setGraphData] = useState({
     nodes: [
+
       { id: "Learning", type: "main", x: 0, y: 0 },
 
       { id: "Science", type: "main", x: -650, y: 150 },
@@ -19,7 +20,9 @@ export default function CuriosityMap() {
       { id: "Psychology", type: "main", x: 0, y: -450 },
 
       { id: "Philosophy", type: "main", x: 650, y: 150 }
+
     ],
+
     links: [
       { source: "Learning", target: "Science" },
       { source: "Learning", target: "Psychology" },
@@ -27,7 +30,8 @@ export default function CuriosityMap() {
     ]
   })
 
-  const createBranchNodes = (parent, labels, radius = 420) => {
+
+  function createBranchNodes(parent, labels, radius = 420) {
 
     let baseAngle = 0
 
@@ -53,7 +57,8 @@ export default function CuriosityMap() {
     })
   }
 
-  const expandNode = (node) => {
+
+  function expandNode(node) {
 
     let labels = []
 
@@ -84,9 +89,16 @@ export default function CuriosityMap() {
     }))
   }
 
+
   return (
 
-    <div style={{ height: "1200px", width: "100%" }}>
+    <div
+      style={{
+        height: "900px",
+        width: "100%",
+        marginTop: "-120px"
+      }}
+    >
 
       <ForceGraph2D
         graphData={graphData}
@@ -95,10 +107,11 @@ export default function CuriosityMap() {
         d3VelocityDecay={1}
 
         enableNodeDrag={false}
+        enablePointerInteraction={true}
 
         nodePointerAreaPaint={(node, color, ctx) => {
 
-          const hitboxSize = node.type === "main" ? 55 : 35
+          const hitboxSize = node.type === "main" ? 65 : 40
 
           ctx.fillStyle = color
           ctx.beginPath()
@@ -127,7 +140,12 @@ export default function CuriosityMap() {
           ctx.fill()
 
           ctx.fillStyle = "#000"
-          ctx.fillText(label, node.x + size + 6, node.y + 4)
+
+          ctx.fillText(
+            label,
+            node.x + size + 6,
+            node.y + 4
+          )
 
         }}
 
