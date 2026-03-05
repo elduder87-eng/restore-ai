@@ -1,9 +1,9 @@
 "use client";
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { OrbitControls, Stars, Text, Line } from "@react-three/drei";
+import { OrbitControls, Stars, Text } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import * as THREE from "three";
 
 function Label({ children, position }) {
@@ -29,8 +29,8 @@ ref.current.rotation.z = clock.getElapsedTime() * 0.01;
 });
 
 return (
-<mesh ref={ref} position={[0, 0, -25]}>
-<sphereGeometry args={[100, 64, 64]} />
+<mesh ref={ref} position={[0, 0, -30]}>
+<sphereGeometry args={[120, 64, 64]} />
 <meshBasicMaterial
 color="#1c2b5a"
 side={THREE.BackSide}
@@ -45,7 +45,7 @@ function OrbitTrail({ radius }) {
 return (
 <mesh rotation={[Math.PI / 2, 0, 0]}>
 <ringGeometry args={[radius - 0.03, radius + 0.03, 128]} />
-<meshBasicMaterial color="white" transparent opacity={0.1} side={2} />
+<meshBasicMaterial color="white" transparent opacity={0.12} side={2} />
 </mesh>
 );
 }
@@ -74,7 +74,17 @@ return (
 );
 }
 
-function Planet({ radius, speed, size, color, label, ring, startAngle, setPos }) {
+function Planet({
+radius,
+speed,
+size,
+color,
+label,
+ring,
+startAngle,
+setPos,
+onClick
+}) {
 const orbit = useRef();
 const mesh = useRef();
 
@@ -102,7 +112,7 @@ return (
 </mesh>
 )}
 
-  <mesh ref={mesh}>
+  <mesh ref={mesh} onClick={onClick}>
     <sphereGeometry args={[size, 64, 64]} />
     <meshStandardMaterial
       color={color}
@@ -123,7 +133,7 @@ return (
 );
 }
 
-function ScienceSystem({ radius, speed, startAngle, setPos }) {
+function ScienceSystem({ radius, speed, startAngle, setPos, onClick }) {
 const orbit = useRef();
 const mesh = useRef();
 
@@ -144,7 +154,7 @@ mesh.current.rotation.y += 0.002;
 
 return (
 <group ref={orbit}>
-<mesh ref={mesh}>
+<mesh ref={mesh} onClick={onClick}>
 <sphereGeometry args={[0.6, 64, 64]} />
 <meshStandardMaterial color="#7cffb0" emissive="#7cffb0" emissiveIntensity={1} />
 </mesh>
@@ -156,9 +166,9 @@ return (
 
   <Label position={[0, 1.2, 0]}>Science</Label>
 
-  <Moon radius={1.4} speed={1.4} size={0.16} color="#9ad1ff" label="Physics"/>
-  <Moon radius={2.1} speed={1.1} size={0.16} color="#7fff9a" label="Biology"/>
-  <Moon radius={2.8} speed={0.8} size={0.16} color="#ffd17a" label="Chemistry"/>
+  <Moon radius={1.7} speed={1.4} size={0.16} color="#9ad1ff" label="Physics"/>
+  <Moon radius={2.5} speed={1.1} size={0.16} color="#7fff9a" label="Biology"/>
+  <Moon radius={3.3} speed={0.8} size={0.16} color="#ffd17a" label="Chemistry"/>
 </group>
 
 );
@@ -188,19 +198,20 @@ return (
 );
 }
 
-function Constellation({ points }) {
-return (
-<Line
-points={points}
-color="white"
-lineWidth={1}
-transparent
-opacity={0.25}
-/>
-);
+function CameraController({ target }) {
+const { camera } = useThree();
+
+useFrame(() => {
+camera.position.lerp(new THREE.Vector3(...target), 0.05);
+camera.lookAt(0,0,0);
+});
+
+return null;
 }
 
 export default function Universe() {
+
+const [cameraTarget, setCameraTarget] = useState([0,3,14]);
 
 const psychology = useRef([0,0,0]);
 const philosophy = useRef([0,0,0]);
@@ -209,7 +220,9 @@ const science = useRef([0,0,0]);
 
 return (
 <div style={{ width: "100vw", height: "100vh", background: "#000" }}>
-<Canvas camera={{ position: [0, 0.5, 14], fov: 60 }}>
+<Canvas camera={{ position: [0,3,14], fov: 60 }}>
+
+    <CameraController target={cameraTarget}/>
 
     <color attach="background" args={["#020617"]} />
 
@@ -217,7 +230,6 @@ return (
     <pointLight position={[10, 10, 10]} intensity={2} />
 
     <Nebula />
-
     <Stars radius={300} depth={120} count={15000} factor={8} fade />
 
     <UserStar />
@@ -236,6 +248,7 @@ return (
       label="Psychology"
       startAngle={0}
       setPos={(p)=>psychology.current=p}
+      onClick={()=>setCameraTarget([psychology.current[0],3,psychology.current[2]+6])}
     />
 
     <ScienceSystem
@@ -243,6 +256,7 @@ return (
       speed={0.16}
       startAngle={1.6}
       setPos={(p)=>science.current=p}
+      onClick={()=>setCameraTarget([science.current[0],3,science.current[2]+6])}
     />
 
     <Planet
@@ -254,6 +268,7 @@ return (
       ring
       startAngle={3.1}
       setPos={(p)=>philosophy.current=p}
+      onClick={()=>setCameraTarget([philosophy.current[0],3,philosophy.current[2]+6])}
     />
 
     <Planet
@@ -264,15 +279,7 @@ return (
       label="Learning"
       startAngle={4.7}
       setPos={(p)=>learning.current=p}
-    />
-
-    <Constellation
-      points={[
-        psychology.current,
-        philosophy.current,
-        science.current,
-        learning.current
-      ]}
+      onClick={()=>setCameraTarget([learning.current[0],3,learning.current[2]+6])}
     />
 
     <EffectComposer>
@@ -285,4 +292,4 @@ return (
 </div>
 
 );
-  }
+}
