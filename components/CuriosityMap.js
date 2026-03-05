@@ -15,7 +15,7 @@ export default function CuriosityMap() {
 
       { id: "Learning", type: "main", x: 0, y: 0 },
 
-      { id: "Science", type: "main", x: -650, y: 150 },
+      { id: "Science", type: "main", x: -650, y: 60 },
 
       { id: "Psychology", type: "main", x: 0, y: -450 },
 
@@ -127,7 +127,7 @@ export default function CuriosityMap() {
 
           ctx.font = `${fontSize}px Sans-Serif`
 
-          const size = node.type === "main" ? 28 : 12
+          const size = node.type === "main" ? 32 : 12
 
           ctx.beginPath()
           ctx.arc(node.x, node.y, size, 0, 2 * Math.PI)
