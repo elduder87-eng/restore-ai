@@ -35,11 +35,11 @@ function Planet({ radius, speed, size, color, label, angle }) {
     const t = clock.getElapsedTime() * speed;
 
     const x = Math.cos(t + angle) * radius;
-    const y = Math.sin(t + angle) * radius;
+    const y = Math.sin(t + angle) * radius * 0.7;
+    const z = Math.sin(t * 0.5 + angle) * 1.5;
 
     if (ref.current) {
-      ref.current.position.x = x;
-      ref.current.position.y = y;
+      ref.current.position.set(x, y, z);
       ref.current.rotation.y += 0.002;
     }
   });
@@ -62,6 +62,29 @@ function Planet({ radius, speed, size, color, label, angle }) {
   );
 }
 
+function UserStar() {
+  const ref = useRef();
+
+  useFrame(({ clock }) => {
+    const pulse = 0.7 + Math.sin(clock.getElapsedTime() * 2) * 0.25;
+
+    if (ref.current) {
+      ref.current.material.emissiveIntensity = pulse;
+    }
+  });
+
+  return (
+    <mesh ref={ref} position={[0, 0, 0]}>
+      <sphereGeometry args={[0.9, 32, 32]} />
+      <meshStandardMaterial
+        color="#4fc3f7"
+        emissive="#4fc3f7"
+        emissiveIntensity={1}
+      />
+    </mesh>
+  );
+}
+
 export default function Universe() {
   return (
     <div style={{ width: "100vw", height: "100vh", background: "black" }}>
@@ -79,15 +102,8 @@ export default function Universe() {
           speed={1}
         />
 
-        {/* USER NODE */}
-        <mesh position={[0, 0, 0]}>
-          <sphereGeometry args={[0.9, 32, 32]} />
-          <meshStandardMaterial
-            color="#4fc3f7"
-            emissive="#4fc3f7"
-            emissiveIntensity={0.9}
-          />
-        </mesh>
+        {/* USER STAR */}
+        <UserStar />
 
         <Label position={[0, 1.4, 0]}>
           YOU
@@ -95,8 +111,11 @@ export default function Universe() {
 
         {/* ORBITING TOPICS */}
         <Planet radius={3} speed={0.25} angle={0} size={0.45} color="#f48fb1" label="Psychology" />
+
         <Planet radius={3} speed={0.25} angle={1.5} size={0.45} color="#81c784" label="Science" />
+
         <Planet radius={3} speed={0.25} angle={3} size={0.45} color="#ffd54f" label="Philosophy" />
+
         <Planet radius={3} speed={0.25} angle={4.7} size={0.5} color="#ce93d8" label="Learning" />
 
         <OrbitControls enableZoom enableRotate enablePan />
@@ -104,4 +123,4 @@ export default function Universe() {
       </Canvas>
     </div>
   );
-          }
+}
