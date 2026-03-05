@@ -36,8 +36,8 @@ ref.current.rotation.z = clock.getElapsedTime() * 0.01;
 });
 
 return (
-<mesh ref={ref} position={[0,0,-20]}>
-<sphereGeometry args={[80,64,64]} />
+<mesh ref={ref} position={[0, 0, -20]}>
+<sphereGeometry args={[80, 64, 64]} />
 <meshBasicMaterial
 color="#1c2b5a"
 side={THREE.BackSide}
@@ -62,10 +62,8 @@ const ref = useRef();
 
 useFrame(({ clock }) => {
 const t = clock.getElapsedTime() * speed;
-
 ref.current.position.x = Math.cos(t) * radius;
 ref.current.position.y = Math.sin(t) * radius;
-
 });
 
 return (
@@ -114,11 +112,11 @@ return (
 <group ref={orbitRef}>
 {ring && (
 <mesh rotation={[Math.PI / 2, 0, 0]}>
-<ringGeometry args={[size + 0.4, size + 0.7, 64]} />
+<ringGeometry args={[size + 0.4, size + 0.9, 128]} />
 <meshBasicMaterial
 color={color}
 transparent
-opacity={0.4}
+opacity={0.45}
 side={2}
 />
 </mesh>
@@ -128,19 +126,28 @@ side={2}
     <sphereGeometry args={[size, 64, 64]} />
     <meshStandardMaterial
       color={color}
-      emissive={color}
-      emissiveIntensity={0.9}
-      roughness={0.65}
+      roughness={0.8}
       metalness={0.05}
+      emissive={color}
+      emissiveIntensity={0.6}
     />
   </mesh>
 
-  <mesh scale={1.18}>
+  <mesh scale={1.25}>
     <sphereGeometry args={[size, 64, 64]} />
     <meshBasicMaterial
       color={color}
       transparent
-      opacity={0.12}
+      opacity={0.15}
+    />
+  </mesh>
+
+  <mesh scale={1.02}>
+    <sphereGeometry args={[size, 64, 64]} />
+    <meshStandardMaterial
+      color="#ffffff"
+      transparent
+      opacity={0.05}
     />
   </mesh>
 
@@ -262,13 +269,13 @@ return (
       size={0.5}
       color="#ff9bbf"
       label="Psychology"
-      startAngle={Math.PI * 0.5}
+      startAngle={0}
     />
 
     <ScienceSystem
       radius={7}
       speed={0.16}
-      startAngle={Math.PI * 1.2}
+      startAngle={1.6}
     />
 
     <Planet
@@ -278,7 +285,7 @@ return (
       color="#ffd95c"
       label="Philosophy"
       ring
-      startAngle={Math.PI * 1.8}
+      startAngle={3.1}
     />
 
     <Planet
@@ -287,7 +294,7 @@ return (
       size={0.65}
       color="#cfa7ff"
       label="Learning"
-      startAngle={Math.PI * 0.9}
+      startAngle={4.7}
     />
 
     <EffectComposer>
