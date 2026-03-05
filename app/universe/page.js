@@ -11,9 +11,7 @@ function Label({ children, position }) {
   const { camera } = useThree();
 
   useFrame(() => {
-    if (ref.current) {
-      ref.current.lookAt(camera.position);
-    }
+    if (ref.current) ref.current.lookAt(camera.position);
   });
 
   return (
@@ -40,9 +38,7 @@ function Planet({ radius, speed, size, color, label, angle }) {
     const y = Math.sin(t + angle) * radius * 0.6;
     const z = Math.sin(t * 0.4 + angle) * 2;
 
-    if (ref.current) {
-      ref.current.position.set(x, y, z);
-    }
+    if (ref.current) ref.current.position.set(x, y, z);
   });
 
   return (
@@ -56,9 +52,7 @@ function Planet({ radius, speed, size, color, label, angle }) {
         />
       </mesh>
 
-      <Label position={[0, size + 0.4, 0]}>
-        {label}
-      </Label>
+      <Label position={[0, size + 0.4, 0]}>{label}</Label>
     </group>
   );
 }
@@ -69,9 +63,7 @@ function UserStar() {
   useFrame(({ clock }) => {
     const pulse = 2 + Math.sin(clock.getElapsedTime() * 2) * 0.6;
 
-    if (ref.current) {
-      ref.current.material.emissiveIntensity = pulse;
-    }
+    if (ref.current) ref.current.material.emissiveIntensity = pulse;
   });
 
   return (
@@ -93,7 +85,7 @@ function Nebula({ color, position, size }) {
       <meshBasicMaterial
         color={color}
         transparent
-        opacity={0.08}
+        opacity={0.03}
         side={THREE.BackSide}
       />
     </mesh>
@@ -103,12 +95,12 @@ function Nebula({ color, position, size }) {
 export default function Universe() {
   return (
     <div style={{ width: "100vw", height: "100vh", background: "black" }}>
-      <Canvas camera={{ position: [0, 0, 16], fov: 60 }}>
+      <Canvas camera={{ position: [0, 0, 18], fov: 60 }}>
 
         <ambientLight intensity={0.6} />
         <pointLight position={[10, 10, 10]} intensity={2} />
 
-        {/* Deep Space Starfield */}
+        {/* Starfield */}
         <Stars
           radius={300}
           depth={120}
@@ -117,10 +109,10 @@ export default function Universe() {
           fade
         />
 
-        {/* Nebula Clouds */}
-        <Nebula color="#4f46e5" position={[0, 0, -10]} size={60} />
-        <Nebula color="#9333ea" position={[20, 10, -20]} size={70} />
-        <Nebula color="#f59e0b" position={[-20, -10, -20]} size={70} />
+        {/* Nebula Clouds (soft background) */}
+        <Nebula color="#4f46e5" position={[0, 0, -80]} size={200} />
+        <Nebula color="#9333ea" position={[120, 40, -120]} size={250} />
+        <Nebula color="#f59e0b" position={[-120, -40, -120]} size={250} />
 
         {/* Center Star */}
         <UserStar />
@@ -164,7 +156,7 @@ export default function Universe() {
           label="Learning"
         />
 
-        {/* Glow Engine */}
+        {/* Glow */}
         <EffectComposer>
           <Bloom
             intensity={0.8}
