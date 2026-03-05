@@ -29,7 +29,7 @@ function Label({ children, position }) {
 
 function OrbitRing({ radius }) {
   return (
-    <mesh rotation={[Math.PI / 2, 0, 0]}>
+    <mesh rotation={[Math.PI / 2.05, 0, 0]}>
       <ringGeometry args={[radius - 0.02, radius + 0.02, 128]} />
       <meshBasicMaterial
         color="#ffffff"
@@ -41,8 +41,9 @@ function OrbitRing({ radius }) {
   );
 }
 
-function Planet({ radius, speed, size, color, label }) {
+function Planet({ radius, speed, size, color, label, ring }) {
   const ref = useRef();
+  const meshRef = useRef();
   const startAngle = useRef(Math.random() * Math.PI * 2);
 
   useFrame(({ clock }) => {
@@ -52,14 +53,34 @@ function Planet({ radius, speed, size, color, label }) {
     const y = Math.sin(t) * radius;
     const z = Math.sin(t * 0.3) * 0.5;
 
-    if (ref.current) {
-      ref.current.position.set(x, y, z);
-    }
+    if (ref.current) ref.current.position.set(x, y, z);
+
+    // Planet spin
+    if (meshRef.current) meshRef.current.rotation.y += 0.01;
+
+    // Subtle breathing effect
+    const scale = 1 + Math.sin(clock.getElapsedTime() * 1.5) * 0.02;
+    if (meshRef.current) meshRef.current.scale.set(scale, scale, scale);
   });
 
   return (
     <group ref={ref}>
-      <mesh>
+
+      {/* Planet ring (Saturn style if enabled) */}
+      {ring && (
+        <mesh rotation={[Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[size + 0.35, size + 0.6, 64]} />
+          <meshBasicMaterial
+            color={color}
+            transparent
+            opacity={0.35}
+            side={2}
+          />
+        </mesh>
+      )}
+
+      {/* Planet */}
+      <mesh ref={meshRef}>
         <sphereGeometry args={[size, 32, 32]} />
         <meshStandardMaterial
           color={color}
@@ -68,9 +89,20 @@ function Planet({ radius, speed, size, color, label }) {
         />
       </mesh>
 
-      <Label position={[0, size + 0.5, 0]}>
+      {/* Atmosphere glow */}
+      <mesh scale={1.4}>
+        <sphereGeometry args={[size, 32, 32]} />
+        <meshBasicMaterial
+          color={color}
+          transparent
+          opacity={0.15}
+        />
+      </mesh>
+
+      <Label position={[0, size + 0.6, 0]}>
         {label}
       </Label>
+
     </group>
   );
 }
@@ -88,7 +120,7 @@ function UserStar() {
 
   return (
     <mesh ref={ref}>
-      <sphereGeometry args={[1.2, 32, 32]} />
+      <sphereGeometry args={[1.3, 32, 32]} />
       <meshStandardMaterial
         color="#4fc3f7"
         emissive="#4fc3f7"
@@ -111,70 +143,4 @@ export default function Universe() {
       <Canvas camera={{ position: [0, 0, 18], fov: 60 }}>
 
         <ambientLight intensity={0.6} />
-        <pointLight position={[10, 10, 10]} intensity={2} />
-
-        <Stars
-          radius={300}
-          depth={120}
-          count={10000}
-          factor={6}
-          fade
-        />
-
-        {/* Center Star */}
-        <UserStar />
-        <Label position={[0, 2, 0]}>YOU</Label>
-
-        {/* Orbit Rings */}
-        <OrbitRing radius={6} />
-        <OrbitRing radius={7} />
-        <OrbitRing radius={8} />
-        <OrbitRing radius={9} />
-
-        {/* Planets */}
-        <Planet
-          radius={6}
-          speed={0.18}
-          size={0.5}
-          color="#f48fb1"
-          label="Psychology"
-        />
-
-        <Planet
-          radius={7}
-          speed={0.16}
-          size={0.5}
-          color="#81c784"
-          label="Science"
-        />
-
-        <Planet
-          radius={8}
-          speed={0.14}
-          size={0.5}
-          color="#ffd54f"
-          label="Philosophy"
-        />
-
-        <Planet
-          radius={9}
-          speed={0.12}
-          size={0.55}
-          color="#ce93d8"
-          label="Learning"
-        />
-
-        <EffectComposer>
-          <Bloom
-            intensity={0.8}
-            luminanceThreshold={0.2}
-            luminanceSmoothing={0.6}
-          />
-        </EffectComposer>
-
-        <OrbitControls enableZoom enableRotate enablePan />
-
-      </Canvas>
-    </div>
-  );
-      }
+        <pointLight position={[10
