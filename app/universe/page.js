@@ -71,12 +71,12 @@ emissiveIntensity={1}
 );
 }
 
-function Planet({ radius, speed, size, color, label, ring, children }) {
+function Planet({ radius, speed, size, color, label, ring, children, startAngle = 0 }) {
 const ref = useRef();
 const meshRef = useRef();
 
 useFrame(({ clock }) => {
-const t = clock.getElapsedTime() * speed;
+const t = clock.getElapsedTime() * speed + startAngle;
 
 ref.current.position.x = Math.cos(t) * radius;
 ref.current.position.y = Math.sin(t) * radius;
@@ -198,6 +198,7 @@ return (
       size={0.5}
       color="#ff9bbf"
       label="Psychology"
+      startAngle={Math.PI * 0.5}
     />
 
     <Planet
@@ -206,6 +207,7 @@ return (
       size={0.55}
       color="#7cffb0"
       label="Science"
+      startAngle={Math.PI * 1.2}
     >
       <Moon radius={1.6} speed={1.4} size={0.16} color="#9ad1ff" label="Physics" />
       <Moon radius={2.2} speed={1} size={0.16} color="#7fff9a" label="Biology" />
@@ -219,6 +221,7 @@ return (
       color="#ffd95c"
       label="Philosophy"
       ring
+      startAngle={Math.PI * 1.8}
     />
 
     <Planet
@@ -227,6 +230,7 @@ return (
       size={0.65}
       color="#cfa7ff"
       label="Learning"
+      startAngle={Math.PI * 0.1}
     />
 
     <EffectComposer>
@@ -249,4 +253,4 @@ return (
 </div>
 
 );
-        }
+                                }
