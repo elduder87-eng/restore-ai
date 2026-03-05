@@ -42,38 +42,44 @@ function OrbitRing({ radius }) {
 }
 
 function Nebula() {
-  const points = useRef();
+  const group = useRef();
 
-  const count = 2000;
-  const positions = new Float32Array(count * 3);
-
-  for (let i = 0; i < count; i++) {
-    const r = 120 * Math.random();
-
-    positions[i * 3] = (Math.random() - 0.5) * r;
-    positions[i * 3 + 1] = (Math.random() - 0.5) * r;
-    positions[i * 3 + 2] = (Math.random() - 0.5) * r;
-  }
+  useFrame(({ clock }) => {
+    group.current.rotation.z = clock.getElapsedTime() * 0.01;
+  });
 
   return (
-    <points ref={points}>
-      <bufferGeometry>
-        <bufferAttribute
-          attach="attributes-position"
-          count={count}
-          array={positions}
-          itemSize={3}
+    <group ref={group}>
+      <mesh position={[0, 0, -40]}>
+        <sphereGeometry args={[120, 64, 64]} />
+        <meshBasicMaterial
+          color="#3b2f6b"
+          transparent
+          opacity={0.25}
+          side={2}
         />
-      </bufferGeometry>
+      </mesh>
 
-      <pointsMaterial
-        size={0.6}
-        color="#8a7dff"
-        transparent
-        opacity={0.25}
-        depthWrite={false}
-      />
-    </points>
+      <mesh position={[40, -20, -60]}>
+        <sphereGeometry args={[90, 64, 64]} />
+        <meshBasicMaterial
+          color="#2a4b8f"
+          transparent
+          opacity={0.2}
+          side={2}
+        />
+      </mesh>
+
+      <mesh position={[-50, 30, -80]}>
+        <sphereGeometry args={[110, 64, 64]} />
+        <meshBasicMaterial
+          color="#6a2c91"
+          transparent
+          opacity={0.18}
+          side={2}
+        />
+      </mesh>
+    </group>
   );
 }
 
@@ -164,7 +170,6 @@ function UserStar() {
 
   useFrame(({ clock }) => {
     const pulse = 4 + Math.sin(clock.getElapsedTime() * 2) * 1;
-
     ref.current.material.emissiveIntensity = pulse;
   });
 
@@ -201,7 +206,7 @@ export default function Universe() {
           "radial-gradient(circle at center, #020617 0%, #000000 80%)"
       }}
     >
-      <Canvas camera={{ position: [0, 0, 18], fov: 60 }}>
+      <Canvas camera={{ position: [0, 0, 14], fov: 65 }}>
         <ambientLight intensity={0.6} />
         <pointLight position={[10, 10, 10]} intensity={2} />
 
@@ -292,4 +297,4 @@ export default function Universe() {
       </Canvas>
     </div>
   );
-}
+            }
