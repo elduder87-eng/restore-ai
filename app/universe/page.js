@@ -64,7 +64,7 @@ emissiveIntensity={1}
 />
 </mesh>
 
-  <Label position={[0, size + 0.3, 0]}>
+  <Label position={[0, size + 0.35, 0]}>
     {label}
   </Label>
 </group>
@@ -94,7 +94,7 @@ return (
 
   {ring && (
     <mesh rotation={[Math.PI / 2, 0, 0]}>
-      <ringGeometry args={[size + 0.3, size + 0.6, 64]} />
+      <ringGeometry args={[size + 0.35, size + 0.7, 64]} />
       <meshBasicMaterial
         color={color}
         transparent
@@ -191,10 +191,10 @@ return (
       YOU
     </Label>
 
-    <OrbitRing radius={6} />
-    <OrbitRing radius={7} />
-    <OrbitRing radius={8} />
-    <OrbitRing radius={9} />
+    <OrbitRing radius={6.5} />
+    <OrbitRing radius={7.5} />
+    <OrbitRing radius={8.5} />
+    <OrbitRing radius={9.5} />
 
     <Planet
       radius={6}
@@ -211,9 +211,9 @@ return (
       color="#7cffb0"
       label="Science"
     >
-      <Moon radius={1.2} speed={1.4} size={0.16} color="#9ad1ff" label="Physics" />
-      <Moon radius={1.7} speed={1} size={0.16} color="#7fff9a" label="Biology" />
-      <Moon radius={2.2} speed={0.8} size={0.16} color="#ffd17a" label="Chemistry" />
+      <Moon radius={1.6} speed={1.4} size={0.16} color="#9ad1ff" label="Physics" />
+      <Moon radius={2.2} speed={1} size={0.16} color="#7fff9a" label="Biology" />
+      <Moon radius={2.8} speed={0.8} size={0.16} color="#ffd17a" label="Chemistry" />
     </Planet>
 
     <Planet
