@@ -25,17 +25,17 @@ function Nebula() {
 const ref = useRef();
 
 useFrame(({ clock }) => {
-if (ref.current) ref.current.rotation.z = clock.getElapsedTime() * 0.01;
+if (ref.current) ref.current.rotation.z = clock.getElapsedTime() * 0.005;
 });
 
 return (
-<mesh ref={ref} position={[0, 0, -60]}>
-<sphereGeometry args={[180, 64, 64]} />
+<mesh ref={ref} position={[0, 0, -80]}>
+<sphereGeometry args={[220, 64, 64]} />
 <meshBasicMaterial
-color="#1c2b5a"
-side={THREE.BackSide}
+color="#3a4fd8"
 transparent
-opacity={0.35}
+opacity={0.25}
+side={THREE.BackSide}
 />
 </mesh>
 );
@@ -70,7 +70,9 @@ return (
 <meshStandardMaterial
 color={color}
 emissive={color}
-emissiveIntensity={0.6}
+emissiveIntensity={0.4}
+roughness={0.6}
+metalness={0.1}
 />
 </mesh>
 
@@ -100,8 +102,6 @@ const t = clock.getElapsedTime() * speed + startAngle;
 const x = Math.cos(t) * radius;
 const z = Math.sin(t) * radius;
 
-if (!orbit.current) return;
-
 orbit.current.position.set(x, 0, z);
 
 if (setPos) setPos([x, 0, z]);
@@ -115,12 +115,7 @@ return (
 {ring && (
 <mesh rotation={[Math.PI / 2, 0, 0]}>
 <ringGeometry args={[size + 0.4, size + 0.8, 128]} />
-<meshBasicMaterial
-color={color}
-transparent
-opacity={0.45}
-side={2}
-/>
+<meshBasicMaterial color={color} transparent opacity={0.45} side={2} />
 </mesh>
 )}
 
@@ -129,7 +124,9 @@ side={2}
     <meshStandardMaterial
       color={color}
       emissive={color}
-      emissiveIntensity={0.45}
+      emissiveIntensity={0.25}
+      roughness={0.6}
+      metalness={0.1}
     />
   </mesh>
 
@@ -153,8 +150,6 @@ const t = clock.getElapsedTime() * speed + startAngle;
 const x = Math.cos(t) * radius;
 const z = Math.sin(t) * radius;
 
-if (!orbit.current) return;
-
 orbit.current.position.set(x, 0, z);
 
 if (setPos) setPos([x, 0, z]);
@@ -168,7 +163,9 @@ return (
 <meshStandardMaterial
 color="#7cffb0"
 emissive="#7cffb0"
-emissiveIntensity={0.45}
+emissiveIntensity={0.3}
+roughness={0.6}
+metalness={0.1}
 />
 </mesh>
 
@@ -184,17 +181,21 @@ emissiveIntensity={0.45}
 
 function CameraController({ target, lookAt, controls }) {
 const { camera } = useThree();
+const current = useRef(new THREE.Vector3());
+const looking = useRef(new THREE.Vector3());
 
 useFrame(() => {
 const targetPos = new THREE.Vector3(...target);
 const lookPos = new THREE.Vector3(...lookAt);
 
-camera.position.lerp(targetPos, 0.07);
-camera.lookAt(lookPos);
+current.current.lerp(targetPos, 0.07);
+looking.current.lerp(lookPos, 0.07);
+
+camera.position.copy(current.current);
+camera.lookAt(looking.current);
 
 if (controls.current) {
-  controls.current.target.lerp(lookPos, 0.1);
-  controls.current.update();
+  controls.current.target.copy(looking.current);
 }
 
 });
@@ -206,16 +207,13 @@ function UserStar() {
 const ref = useRef();
 
 useFrame(({ clock }) => {
-if (!ref.current) return;
-
 ref.current.material.emissiveIntensity =
-  1.2 + Math.sin(clock.getElapsedTime() * 2) * 0.4;
-
+1.1 + Math.sin(clock.getElapsedTime() * 2) * 0.4;
 });
 
 return (
 <mesh ref={ref}>
-<sphereGeometry args={[1.5, 64, 64]} />
+<sphereGeometry args={[1.3, 64, 64]} />
 <meshStandardMaterial color="#7df9ff" emissive="#7df9ff" />
 </mesh>
 );
@@ -256,10 +254,7 @@ setLook([0, 0, 0]);
 
 return (
 <div style={{ width: "100vw", height: "100vh" }}>
-<Canvas
-camera={{ position: [0, 6, 20], fov: 60 }}
-style={{ background: "#020617" }}
->
+<Canvas camera={{ position: [0, 6, 20], fov: 60 }} style={{ background: "#020617" }}>
 <fog attach="fog" args={["#020617", 25, 120]} />
 
     <CameraController target={target} lookAt={look} controls={controls} />
@@ -268,18 +263,27 @@ style={{ background: "#020617" }}
     <pointLight position={[10, 10, 10]} intensity={0.9} />
 
     <Nebula />
-    <Stars radius={300} depth={120} count={12000} factor={7} />
+
+    <Stars
+      radius={400}
+      depth={200}
+      count={20000}
+      factor={8}
+      saturation={0}
+      fade
+      speed={0.5}
+    />
 
     <UserStar />
-    <Label position={[0, 2.5, 0]}>YOU</Label>
+    <Label position={[0, 2.3, 0]}>YOU</Label>
 
-    <OrbitTrail radius={6} />
-    <OrbitTrail radius={8} />
+    <OrbitTrail radius={7} />
     <OrbitTrail radius={10} />
-    <OrbitTrail radius={12} />
+    <OrbitTrail radius={13} />
+    <OrbitTrail radius={16} />
 
     <Planet
-      radius={6}
+      radius={7}
       speed={0.18}
       size={0.55}
       color="#ff9bbf"
@@ -293,7 +297,7 @@ style={{ background: "#020617" }}
     />
 
     <ScienceSystem
-      radius={8}
+      radius={10}
       speed={0.16}
       startAngle={1.6}
       setPos={(p) => (science.current = p)}
@@ -304,7 +308,7 @@ style={{ background: "#020617" }}
     />
 
     <Planet
-      radius={10}
+      radius={13}
       speed={0.14}
       size={0.65}
       color="#ffd95c"
@@ -319,7 +323,7 @@ style={{ background: "#020617" }}
     />
 
     <Planet
-      radius={12}
+      radius={16}
       speed={0.12}
       size={0.7}
       color="#cfa7ff"
@@ -335,12 +339,19 @@ style={{ background: "#020617" }}
     <SpaceReset reset={reset} />
 
     <EffectComposer>
-      <Bloom intensity={0.35} />
+      <Bloom intensity={0.6} luminanceThreshold={0.2} />
     </EffectComposer>
 
-    <OrbitControls ref={controls} enablePan enableZoom enableRotate />
+    <OrbitControls
+      ref={controls}
+      enablePan
+      enableZoom
+      enableRotate
+      enableDamping
+      dampingFactor={0.05}
+    />
   </Canvas>
 </div>
 
 );
-  }
+}
