@@ -94,7 +94,7 @@ export default function CuriosityMap() {
 
     <div
       style={{
-        height: "900px",
+        height: "1000px",
         width: "100%",
         marginTop: "-120px"
       }}
@@ -103,10 +103,9 @@ export default function CuriosityMap() {
       <ForceGraph2D
         graphData={graphData}
 
-        warmupTicks={60}
-
-        cooldownTicks={120}
-        d3VelocityDecay={0.3}
+        cooldownTicks={0}
+        d3AlphaDecay={1}
+        d3VelocityDecay={1}
 
         enableNodeDrag={false}
         enablePointerInteraction={true}
@@ -156,7 +155,7 @@ export default function CuriosityMap() {
 
         }}
 
-        linkColor={() => "#999999"}
+        linkColor={() => "#888"}
 
         linkWidth={link =>
           link.source.id === "Learning"
