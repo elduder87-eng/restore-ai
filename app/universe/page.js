@@ -41,23 +41,55 @@ function OrbitRing({ radius }) {
   );
 }
 
-function Moon({ radius, speed, size, color, label }) {
+function Nebula() {
+  const points = useRef();
 
+  const count = 2000;
+  const positions = new Float32Array(count * 3);
+
+  for (let i = 0; i < count; i++) {
+    const r = 120 * Math.random();
+
+    positions[i * 3] = (Math.random() - 0.5) * r;
+    positions[i * 3 + 1] = (Math.random() - 0.5) * r;
+    positions[i * 3 + 2] = (Math.random() - 0.5) * r;
+  }
+
+  return (
+    <points ref={points}>
+      <bufferGeometry>
+        <bufferAttribute
+          attach="attributes-position"
+          count={count}
+          array={positions}
+          itemSize={3}
+        />
+      </bufferGeometry>
+
+      <pointsMaterial
+        size={0.6}
+        color="#8a7dff"
+        transparent
+        opacity={0.25}
+        depthWrite={false}
+      />
+    </points>
+  );
+}
+
+function Moon({ radius, speed, size, color, label }) {
   const ref = useRef();
   const startAngle = useRef(Math.random() * Math.PI * 2);
 
   useFrame(({ clock }) => {
-
     const t = clock.getElapsedTime() * speed + startAngle.current;
 
     ref.current.position.x = Math.cos(t) * radius;
     ref.current.position.y = Math.sin(t) * radius;
-
   });
 
   return (
     <group ref={ref}>
-
       <mesh>
         <sphereGeometry args={[size, 32, 32]} />
         <meshStandardMaterial
@@ -67,22 +99,17 @@ function Moon({ radius, speed, size, color, label }) {
         />
       </mesh>
 
-      <Label position={[0, size + 0.3, 0]}>
-        {label}
-      </Label>
-
+      <Label position={[0, size + 0.3, 0]}>{label}</Label>
     </group>
   );
 }
 
 function Planet({ radius, speed, size, color, label, ring, children }) {
-
   const ref = useRef();
   const meshRef = useRef();
   const startAngle = useRef(Math.random() * Math.PI * 2);
 
   useFrame(({ clock }) => {
-
     const t = clock.getElapsedTime() * speed + startAngle.current;
 
     const x = Math.cos(t) * radius;
@@ -90,13 +117,11 @@ function Planet({ radius, speed, size, color, label, ring, children }) {
 
     ref.current.position.set(x, y, 0);
 
-    meshRef.current.rotation.y += 0.003;
-
+    meshRef.current.rotation.y += 0.002;
   });
 
   return (
     <group ref={ref}>
-
       {ring && (
         <mesh rotation={[Math.PI / 2, 0, 0]}>
           <ringGeometry args={[size + 0.3, size + 0.6, 64]} />
@@ -127,31 +152,24 @@ function Planet({ radius, speed, size, color, label, ring, children }) {
         />
       </mesh>
 
-      <Label position={[0, size + 0.7, 0]}>
-        {label}
-      </Label>
+      <Label position={[0, size + 0.7, 0]}>{label}</Label>
 
       {children}
-
     </group>
   );
 }
 
 function UserStar() {
-
   const ref = useRef();
 
   useFrame(({ clock }) => {
-
     const pulse = 4 + Math.sin(clock.getElapsedTime() * 2) * 1;
 
     ref.current.material.emissiveIntensity = pulse;
-
   });
 
   return (
     <group>
-
       <mesh ref={ref}>
         <sphereGeometry args={[1.4, 64, 64]} />
         <meshStandardMaterial
@@ -169,13 +187,11 @@ function UserStar() {
           opacity={0.25}
         />
       </mesh>
-
     </group>
   );
 }
 
 export default function Universe() {
-
   return (
     <div
       style={{
@@ -186,7 +202,6 @@ export default function Universe() {
       }}
     >
       <Canvas camera={{ position: [0, 0, 18], fov: 60 }}>
-
         <ambientLight intensity={0.6} />
         <pointLight position={[10, 10, 10]} intensity={2} />
 
@@ -197,6 +212,8 @@ export default function Universe() {
           factor={8}
           fade
         />
+
+        <Nebula />
 
         <UserStar />
         <Label position={[0, 2.5, 0]}>YOU</Label>
@@ -221,7 +238,6 @@ export default function Universe() {
           color="#7cffb0"
           label="Science"
         >
-
           <Moon
             radius={1.2}
             speed={1.4}
@@ -245,7 +261,6 @@ export default function Universe() {
             color="#ffd17a"
             label="Chemistry"
           />
-
         </Planet>
 
         <Planet
@@ -267,15 +282,14 @@ export default function Universe() {
 
         <EffectComposer>
           <Bloom
-            intensity={1.7}
+            intensity={1.8}
             luminanceThreshold={0.15}
             luminanceSmoothing={0.7}
           />
         </EffectComposer>
 
         <OrbitControls enableZoom enableRotate enablePan />
-
       </Canvas>
     </div>
   );
-            }
+}
