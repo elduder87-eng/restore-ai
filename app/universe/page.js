@@ -10,7 +10,9 @@ function Label({ children, position }) {
   const { camera } = useThree();
 
   useFrame(() => {
-    if (ref.current) ref.current.lookAt(camera.position);
+    if (ref.current) {
+      ref.current.lookAt(camera.position);
+    }
   });
 
   return (
@@ -29,7 +31,6 @@ function Label({ children, position }) {
 
 function Planet({ radius, speed, size, color, label }) {
   const ref = useRef();
-
   const startAngle = useRef(Math.random() * Math.PI * 2);
 
   useFrame(({ clock }) => {
@@ -39,11 +40,26 @@ function Planet({ radius, speed, size, color, label }) {
     const y = Math.sin(t) * radius * 0.6;
     const z = Math.sin(t * 0.5) * 2;
 
-    if (ref.current) ref.current.position.set(x, y, z);
+    if (ref.current) {
+      ref.current.position.set(x, y, z);
+    }
   });
 
   return (
     <group ref={ref}>
+
+      {/* Orbit Ring */}
+      <mesh rotation={[Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[radius - 0.02, radius + 0.02, 64]} />
+        <meshBasicMaterial
+          color="#ffffff"
+          transparent
+          opacity={0.08}
+          side={2}
+        />
+      </mesh>
+
+      {/* Planet */}
       <mesh>
         <sphereGeometry args={[size, 32, 32]} />
         <meshStandardMaterial
@@ -56,6 +72,7 @@ function Planet({ radius, speed, size, color, label }) {
       <Label position={[0, size + 0.4, 0]}>
         {label}
       </Label>
+
     </group>
   );
 }
@@ -98,6 +115,7 @@ export default function Universe() {
         <ambientLight intensity={0.6} />
         <pointLight position={[10, 10, 10]} intensity={2} />
 
+        {/* Starfield */}
         <Stars
           radius={300}
           depth={120}
@@ -144,6 +162,7 @@ export default function Universe() {
           label="Learning"
         />
 
+        {/* Glow */}
         <EffectComposer>
           <Bloom
             intensity={0.8}
@@ -157,4 +176,4 @@ export default function Universe() {
       </Canvas>
     </div>
   );
-}
+            }
