@@ -179,12 +179,14 @@ metalness={0.1}
 );
 }
 
-function CameraController({ target, lookAt, controls }) {
+function CameraController({ target, lookAt, controls, autoCam }) {
 const { camera } = useThree();
 const current = useRef(new THREE.Vector3());
 const looking = useRef(new THREE.Vector3());
 
 useFrame(() => {
+if (!autoCam) return;
+
 const targetPos = new THREE.Vector3(...target);
 const lookPos = new THREE.Vector3(...lookAt);
 
@@ -233,6 +235,7 @@ const controls = useRef();
 
 const [target, setTarget] = useState([0, 6, 20]);
 const [look, setLook] = useState([0, 0, 0]);
+const [autoCam, setAutoCam] = useState(false);
 
 const psychology = useRef([0, 0, 0]);
 const philosophy = useRef([0, 0, 0]);
@@ -242,12 +245,15 @@ const science = useRef([0, 0, 0]);
 function flyTo(pos) {
 const distance = 5;
 
+setAutoCam(true);
+
 setTarget([pos[0], pos[1] + 2, pos[2] + distance]);
 setLook(pos);
 
 }
 
 function reset() {
+setAutoCam(false);
 setTarget([0, 6, 20]);
 setLook([0, 0, 0]);
 }
@@ -257,7 +263,12 @@ return (
 <Canvas camera={{ position: [0, 6, 20], fov: 60 }} style={{ background: "#020617" }}>
 <fog attach="fog" args={["#020617", 25, 120]} />
 
-    <CameraController target={target} lookAt={look} controls={controls} />
+    <CameraController
+      target={target}
+      lookAt={look}
+      controls={controls}
+      autoCam={autoCam}
+    />
 
     <ambientLight intensity={0.35} />
     <pointLight position={[10, 10, 10]} intensity={0.9} />
@@ -354,4 +365,4 @@ return (
 </div>
 
 );
-}
+  }
