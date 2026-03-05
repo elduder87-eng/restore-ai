@@ -105,8 +105,8 @@ export default function CuriosityMap() {
 
         warmupTicks={60}
 
-        cooldownTicks={0}
-        d3VelocityDecay={1}
+        cooldownTicks={120}
+        d3VelocityDecay={0.3}
 
         enableNodeDrag={false}
         enablePointerInteraction={true}
@@ -164,8 +164,8 @@ export default function CuriosityMap() {
             : 1.8
         }
 
-        linkDirectionalArrowLength={12}
-        linkDirectionalArrowColor={() => "#444"}
+        linkDirectionalArrowLength={16}
+        linkDirectionalArrowColor={() => "#333"}
         linkDirectionalArrowRelPos={1}
 
         linkDirectionalParticles={3}
