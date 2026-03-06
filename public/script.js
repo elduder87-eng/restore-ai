@@ -1,219 +1,158 @@
-"use client";
+import * as THREE from "three"
 
-import { Canvas, useFrame, useThree, useLoader } from "@react-three/fiber";
-import { OrbitControls, Stars, Text } from "@react-three/drei";
-import { EffectComposer, Bloom } from "@react-three/postprocessing";
-import { useRef } from "react";
-import * as THREE from "three";
+const scene = new THREE.Scene()
+scene.background = new THREE.Color("#020617")
 
-function Label({ children, position }) {
-const ref = useRef();
-const { camera } = useThree();
+const camera = new THREE.PerspectiveCamera(
+60,
+window.innerWidth / window.innerHeight,
+0.1,
+1000
+)
 
-useFrame(() => {
-if (ref.current) ref.current.lookAt(camera.position);
-});
+camera.position.set(0, 6, 18)
 
-return (
-<Text ref={ref} position={position} fontSize={0.35} color="white">
-{children}
-</Text>
-);
+const renderer = new THREE.WebGLRenderer({ antialias: true })
+renderer.setSize(window.innerWidth, window.innerHeight)
+document.body.appendChild(renderer.domElement)
+
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.5)
+scene.add(ambientLight)
+
+const light = new THREE.PointLight(0xffffff, 1.2)
+light.position.set(10, 10, 10)
+scene.add(light)
+
+const textureLoader = new THREE.TextureLoader()
+
+const earthTexture = textureLoader.load("/textures/images%20(12).jpeg")
+const marsTexture = textureLoader.load("/textures/images%20(13).jpeg")
+const saturnTexture = textureLoader.load("/textures/images%20(14).jpeg")
+const neptuneTexture = textureLoader.load("/textures/images%20(15).jpeg")
+
+const sphere = new THREE.SphereGeometry(1.3, 64, 64)
+
+const userMaterial = new THREE.MeshStandardMaterial({
+color: "#7df9ff",
+emissive: "#7df9ff",
+emissiveIntensity: 1
+})
+
+const user = new THREE.Mesh(sphere, userMaterial)
+scene.add(user)
+
+function createOrbit(radius) {
+
+const curve = new THREE.EllipseCurve(
+0,0,
+radius,radius,
+0,2*Math.PI,
+false,
+0
+)
+
+const points = curve.getPoints(100)
+const geometry = new THREE.BufferGeometry().setFromPoints(points)
+
+const material = new THREE.LineBasicMaterial({
+color: 0xffffff,
+transparent: true,
+opacity: 0.15
+})
+
+const ellipse = new THREE.LineLoop(geometry, material)
+ellipse.rotation.x = Math.PI / 2
+
+scene.add(ellipse)
 }
 
-function SpaceDrift() {
-const { camera } = useThree();
+createOrbit(5)
+createOrbit(8)
+createOrbit(11)
+createOrbit(14)
 
-useFrame(({ clock }) => {
-camera.position.x = Math.sin(clock.getElapsedTime() * 0.03) * 0.5;
-camera.position.y = 6 + Math.cos(clock.getElapsedTime() * 0.04) * 0.3;
-});
+function createPlanet(texture, size) {
 
-return null;
+const geometry = new THREE.SphereGeometry(size, 64, 64)
+
+const material = new THREE.MeshStandardMaterial({
+map: texture
+})
+
+return new THREE.Mesh(geometry, material)
 }
 
-function Nebula() {
-const ref = useRef();
+const psychology = createPlanet(earthTexture, 0.7)
+const science = createPlanet(marsTexture, 0.8)
+const philosophy = createPlanet(saturnTexture, 0.9)
+const learning = createPlanet(neptuneTexture, 1)
 
-useFrame(({ clock }) => {
-if (ref.current) ref.current.rotation.z = clock.getElapsedTime() * 0.002;
-});
+scene.add(psychology)
+scene.add(science)
+scene.add(philosophy)
+scene.add(learning)
 
-return (
-<mesh ref={ref} position={[0, 0, -150]}>
-<sphereGeometry args={[400, 64, 64]} />
-<meshBasicMaterial
-color="#3f51ff"
-transparent
-opacity={0.15}
-side={THREE.BackSide}
-/>
-</mesh>
-);
+const starsGeometry = new THREE.BufferGeometry()
+const starVertices = []
+
+for (let i = 0; i < 20000; i++) {
+
+const x = THREE.MathUtils.randFloatSpread(600)
+const y = THREE.MathUtils.randFloatSpread(600)
+const z = THREE.MathUtils.randFloatSpread(600)
+
+starVertices.push(x,y,z)
+
 }
 
-function Dust() {
-const ref = useRef();
-const particles = new Float32Array(15000);
+starsGeometry.setAttribute(
+"position",
+new THREE.Float32BufferAttribute(starVertices,3)
+)
 
-for (let i = 0; i < 15000; i++) {
-particles[i] = (Math.random() - 0.5) * 600;
+const starsMaterial = new THREE.PointsMaterial({
+color: 0xffffff,
+size: 0.7
+})
+
+const stars = new THREE.Points(starsGeometry,starsMaterial)
+scene.add(stars)
+
+let t = 0
+
+function animate() {
+
+requestAnimationFrame(animate)
+
+t += 0.002
+
+psychology.position.x = Math.cos(t*2)5
+psychology.position.z = Math.sin(t2)*5
+
+science.position.x = Math.cos(t*1.6)8
+science.position.z = Math.sin(t1.6)*8
+
+philosophy.position.x = Math.cos(t*1.2)11
+philosophy.position.z = Math.sin(t1.2)*11
+
+learning.position.x = Math.cos(t)*14
+learning.position.z = Math.sin(t)*14
+
+psychology.rotation.y += 0.002
+science.rotation.y += 0.002
+philosophy.rotation.y += 0.002
+learning.rotation.y += 0.002
+
+renderer.render(scene,camera)
+
 }
 
-useFrame(({ clock }) => {
-if (ref.current) ref.current.rotation.y = clock.getElapsedTime() * 0.01;
-});
+animate()
 
-return (
-<points ref={ref}>
-<bufferGeometry>
-<bufferAttribute
-attach="attributes-position"
-array={particles}
-count={particles.length / 3}
-itemSize={3}
-/>
-</bufferGeometry>
+window.addEventListener("resize",()=>{
 
-  <pointsMaterial size={0.25} color="white" transparent opacity={0.35} />
-</points>
+camera.aspect = window.innerWidth/window.innerHeight
+camera.updateProjectionMatrix()
+renderer.setSize(window.innerWidth,window.innerHeight)
 
-);
-}
-
-function OrbitTrail({ radius }) {
-return (
-<mesh rotation={[Math.PI / 2, 0, 0]}>
-<ringGeometry args={[radius - 0.02, radius + 0.02, 128]} />
-<meshBasicMaterial color="white" transparent opacity={0.02} side={2} />
-</mesh>
-);
-}
-
-function Planet({ radius, speed, size, texture, label, startAngle }) {
-const orbit = useRef();
-const mesh = useRef();
-
-const map = useLoader(THREE.TextureLoader, texture);
-
-useFrame(({ clock }) => {
-const t = clock.getElapsedTime() * speed + startAngle;
-
-orbit.current.position.x = Math.cos(t) * radius;
-orbit.current.position.z = Math.sin(t) * radius;
-
-if (mesh.current) mesh.current.rotation.y += 0.002;
-
-});
-
-return (
-<group ref={orbit}>
-<mesh ref={mesh}>
-<sphereGeometry args={[size, 64, 64]} />
-<meshStandardMaterial map={map} roughness={1} metalness={0} />
-</mesh>
-
-  <Label position={[0, size + 0.6, 0]}>{label}</Label>
-</group>
-
-);
-}
-
-function UserStar() {
-const ref = useRef();
-
-useFrame(({ clock }) => {
-if (ref.current) {
-ref.current.material.emissiveIntensity =
-1.2 + Math.sin(clock.getElapsedTime() * 2) * 0.35;
-}
-});
-
-return (
-<mesh ref={ref}>
-<sphereGeometry args={[1.3, 64, 64]} />
-<meshStandardMaterial color="#7df9ff" emissive="#7df9ff" />
-</mesh>
-);
-}
-
-export default function Universe() {
-return (
-<div style={{ width: "100vw", height: "100vh" }}>
-<Canvas
-camera={{ position: [0, 6, 20], fov: 60 }}
-style={{ background: "#020617" }}
->
-<fog attach="fog" args={["#020617", 30, 180]} />
-
-    <ambientLight intensity={0.35} />
-    <pointLight position={[10, 10, 10]} intensity={0.9} />
-
-    <SpaceDrift />
-    <Nebula />
-    <Dust />
-
-    <Stars
-      radius={900}
-      depth={500}
-      count={30000}
-      factor={8}
-      saturation={0}
-      fade
-      speed={0.2}
-    />
-
-    <UserStar />
-    <Label position={[0, 2.3, 0]}>YOU</Label>
-
-    <OrbitTrail radius={7} />
-    <OrbitTrail radius={10} />
-    <OrbitTrail radius={13} />
-    <OrbitTrail radius={16} />
-
-    <Planet
-      radius={7}
-      speed={0.18}
-      size={0.60}
-      texture="/textures/images (12).jpeg"
-      label="Psychology"
-      startAngle={0}
-    />
-
-    <Planet
-      radius={10}
-      speed={0.16}
-      size={0.70}
-      texture="/textures/images (13).jpeg"
-      label="Science"
-      startAngle={1.6}
-    />
-
-    <Planet
-      radius={13}
-      speed={0.14}
-      size={0.75}
-      texture="/textures/images (14).jpeg"
-      label="Philosophy"
-      startAngle={3.1}
-    />
-
-    <Planet
-      radius={16}
-      speed={0.12}
-      size={0.85}
-      texture="/textures/images (15).jpeg"
-      label="Learning"
-      startAngle={4.7}
-    />
-
-    <EffectComposer>
-      <Bloom intensity={0.9} luminanceThreshold={0.12} />
-    </EffectComposer>
-
-    <OrbitControls enablePan enableZoom enableRotate enableDamping />
-  </Canvas>
-</div>
-
-);
-  }
+})
