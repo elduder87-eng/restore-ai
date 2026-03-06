@@ -27,10 +27,12 @@ const loader = new THREE.TextureLoader();
 
 let psychology, science, philosophy, learning;
 
-loader.load("/textures/earth.jpg",(earth)=>{
-loader.load("/textures/mars.jpg",(mars)=>{
-loader.load("/textures/saturn.jpg",(saturn)=>{
-loader.load("/textures/neptune.jpg",(neptune)=>{
+Promise.all([
+loader.loadAsync("/textures/earth.jpg"),
+loader.loadAsync("/textures/mars.jpg"),
+loader.loadAsync("/textures/saturn.jpg"),
+loader.loadAsync("/textures/neptune.jpg")
+]).then(([earth, mars, saturn, neptune]) => {
 
 earth.colorSpace = THREE.SRGBColorSpace;
 mars.colorSpace = THREE.SRGBColorSpace;
@@ -64,14 +66,15 @@ scene.add(learning);
 
 });
 
-});
-});
-});
-
 function createOrbit(radius){
 
 const curve = new THREE.EllipseCurve(
-0,0,radius,radius,0,2*Math.PI
+0,
+0,
+radius,
+radius,
+0,
+2 * Math.PI
 );
 
 const points = curve.getPoints(100);
@@ -85,6 +88,7 @@ opacity:0.15
 });
 
 const orbit = new THREE.LineLoop(geometry,material);
+
 orbit.rotation.x = Math.PI/2;
 
 scene.add(orbit);
@@ -127,7 +131,10 @@ new THREE.Float32BufferAttribute(starVertices,3)
 
 const stars = new THREE.Points(
 starsGeometry,
-new THREE.PointsMaterial({color:0xffffff,size:0.7})
+new THREE.PointsMaterial({
+color:0xffffff,
+size:0.7
+})
 );
 
 scene.add(stars);
