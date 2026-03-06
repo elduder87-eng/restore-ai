@@ -25,34 +25,36 @@ scene.add(light);
 
 const loader = new THREE.TextureLoader();
 
-const earthTexture = loader.load("/textures/earth.jpg");
-const marsTexture = loader.load("/textures/mars.jpg");
-const saturnTexture = loader.load("/textures/saturn.jpg");
-const neptuneTexture = loader.load("/textures/neptune.jpg");
+let psychology, science, philosophy, learning;
 
-earthTexture.colorSpace = THREE.SRGBColorSpace;
-marsTexture.colorSpace = THREE.SRGBColorSpace;
-saturnTexture.colorSpace = THREE.SRGBColorSpace;
-neptuneTexture.colorSpace = THREE.SRGBColorSpace;
+loader.load("/textures/earth.jpg",(earth)=>{
+loader.load("/textures/mars.jpg",(mars)=>{
+loader.load("/textures/saturn.jpg",(saturn)=>{
+loader.load("/textures/neptune.jpg",(neptune)=>{
 
-const psychology = new THREE.Mesh(
+earth.colorSpace = THREE.SRGBColorSpace;
+mars.colorSpace = THREE.SRGBColorSpace;
+saturn.colorSpace = THREE.SRGBColorSpace;
+neptune.colorSpace = THREE.SRGBColorSpace;
+
+psychology = new THREE.Mesh(
 new THREE.SphereGeometry(0.7,64,64),
-new THREE.MeshStandardMaterial({map:earthTexture})
+new THREE.MeshStandardMaterial({map:earth})
 );
 
-const science = new THREE.Mesh(
+science = new THREE.Mesh(
 new THREE.SphereGeometry(0.8,64,64),
-new THREE.MeshStandardMaterial({map:marsTexture})
+new THREE.MeshStandardMaterial({map:mars})
 );
 
-const philosophy = new THREE.Mesh(
+philosophy = new THREE.Mesh(
 new THREE.SphereGeometry(0.9,64,64),
-new THREE.MeshStandardMaterial({map:saturnTexture})
+new THREE.MeshStandardMaterial({map:saturn})
 );
 
-const learning = new THREE.Mesh(
+learning = new THREE.Mesh(
 new THREE.SphereGeometry(1,64,64),
-new THREE.MeshStandardMaterial({map:neptuneTexture})
+new THREE.MeshStandardMaterial({map:neptune})
 );
 
 scene.add(psychology);
@@ -60,9 +62,18 @@ scene.add(science);
 scene.add(philosophy);
 scene.add(learning);
 
+});
+
+});
+});
+});
+
 function createOrbit(radius){
 
-const curve = new THREE.EllipseCurve(0,0,radius,radius,0,2*Math.PI);
+const curve = new THREE.EllipseCurve(
+0,0,radius,radius,0,2*Math.PI
+);
+
 const points = curve.getPoints(100);
 
 const geometry = new THREE.BufferGeometry().setFromPoints(points);
@@ -116,10 +127,7 @@ new THREE.Float32BufferAttribute(starVertices,3)
 
 const stars = new THREE.Points(
 starsGeometry,
-new THREE.PointsMaterial({
-color:0xffffff,
-size:0.7
-})
+new THREE.PointsMaterial({color:0xffffff,size:0.7})
 );
 
 scene.add(stars);
@@ -131,6 +139,8 @@ function animate(){
 requestAnimationFrame(animate);
 
 t += 0.002;
+
+if(psychology){
 
 psychology.position.set(
 Math.cos(t*2)5,
@@ -160,6 +170,8 @@ psychology.rotation.y += 0.002;
 science.rotation.y += 0.002;
 philosophy.rotation.y += 0.002;
 learning.rotation.y += 0.002;
+
+}
 
 renderer.render(scene,camera);
 
