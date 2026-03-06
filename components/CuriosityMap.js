@@ -1,196 +1,262 @@
 "use client"
 
-import dynamic from "next/dynamic"
-import { useState } from "react"
+import { useEffect, useRef } from "react"
+import * as THREE from "three"
 
-const ForceGraph2D = dynamic(
-  () => import("react-force-graph-2d"),
-  { ssr: false }
+export default function CuriosityMap(){
+
+const mountRef = useRef()
+
+useEffect(()=>{
+
+const scene = new THREE.Scene()
+
+const camera = new THREE.PerspectiveCamera(
+75,
+window.innerWidth/window.innerHeight,
+0.1,
+1000
 )
 
-export default function CuriosityMap() {
+camera.position.set(0,4,12)
 
-  const [graphData, setGraphData] = useState({
-    nodes: [
+const renderer = new THREE.WebGLRenderer({antialias:true})
+renderer.setSize(window.innerWidth,window.innerHeight)
+renderer.setPixelRatio(window.devicePixelRatio)
 
-      { id: "Learning", type: "main", x: 0, y: 0 },
+mountRef.current.appendChild(renderer.domElement)
 
-      { id: "Science", type: "main", x: -650, y: 60 },
+/* LIGHT */
 
-      { id: "Psychology", type: "main", x: 0, y: -520 },
+const ambient = new THREE.AmbientLight(0xffffff,0.6)
+scene.add(ambient)
 
-      { id: "Philosophy", type: "main", x: 650, y: 150 }
+const light = new THREE.PointLight(0xffffff,2)
+light.position.set(10,10,10)
+scene.add(light)
 
-    ],
+/* STARFIELD */
 
-    links: [
-      { source: "Learning", target: "Science" },
-      { source: "Learning", target: "Psychology" },
-      { source: "Learning", target: "Philosophy" }
-    ]
-  })
+const starGeo = new THREE.BufferGeometry()
+const starVerts=[]
 
+for(let i=0;i<2000;i++){
 
-  function createBranchNodes(parent, labels, radius = 420) {
+starVerts.push((Math.random()-0.5)*200)
+starVerts.push((Math.random()-0.5)*200)
+starVerts.push((Math.random()-0.5)*200)
 
-    let baseAngle = 0
+}
 
-    if (parent.id === "Science") baseAngle = Math.PI
-    if (parent.id === "Philosophy") baseAngle = 0
-    if (parent.id === "Psychology") baseAngle = -Math.PI / 2
+starGeo.setAttribute(
+"position",
+new THREE.Float32BufferAttribute(starVerts,3)
+)
 
-    const spread = Math.PI / 1.2
+const starMat = new THREE.PointsMaterial({
+color:0xffffff,
+size:0.7
+})
 
-    return labels.map((label, i) => {
+const stars = new THREE.Points(starGeo,starMat)
+scene.add(stars)
 
-      const angle =
-        baseAngle - spread / 2 +
-        (i / (labels.length - 1 || 1)) * spread
+/* CENTER */
 
-      return {
-        id: label,
-        type: "sub",
-        x: parent.x + radius * Math.cos(angle),
-        y: parent.y + radius * Math.sin(angle)
-      }
+const you = new THREE.Mesh(
+new THREE.SphereGeometry(1.2,64,64),
+new THREE.MeshStandardMaterial({
+color:0x7ee7ff,
+emissive:0x44ccff,
+emissiveIntensity:0.6
+})
+)
 
-    })
-  }
+scene.add(you)
 
+/* PLANETS */
 
-  function expandNode(node) {
+const psychology = new THREE.Mesh(
+new THREE.SphereGeometry(0.7,64,64),
+new THREE.MeshStandardMaterial({color:0xff8899})
+)
 
-    let labels = []
+const science = new THREE.Mesh(
+new THREE.SphereGeometry(0.8,64,64),
+new THREE.MeshStandardMaterial({color:0x66ff99})
+)
 
-    if (node.id === "Science")
-      labels = ["Physics", "Biology", "Chemistry"]
+const philosophy = new THREE.Mesh(
+new THREE.SphereGeometry(0.9,64,64),
+new THREE.MeshStandardMaterial({color:0xffdd88})
+)
 
-    if (node.id === "Philosophy")
-      labels = ["Free Will", "Consciousness"]
+const learning = new THREE.Mesh(
+new THREE.SphereGeometry(0.85,64,64),
+new THREE.MeshStandardMaterial({color:0xaa99ff})
+)
 
-    if (node.id === "Psychology")
-      labels = ["Cognition", "Emotion", "Behavior"]
+scene.add(psychology)
+scene.add(science)
+scene.add(philosophy)
+scene.add(learning)
 
-    if (labels.length === 0) return
+/* GLOW */
 
-    const newNodes = createBranchNodes(node, labels)
+function glow(planet,color,size){
 
-    const newLinks = labels.map(label => ({
-      source: node.id,
-      target: label
-    }))
+const g = new THREE.Mesh(
+new THREE.SphereGeometry(size,64,64),
+new THREE.MeshBasicMaterial({
+color:color,
+transparent:true,
+opacity:0.25
+})
+)
 
-    setGraphData(prev => ({
-      nodes: [
-        ...prev.nodes,
-        ...newNodes.filter(n => !prev.nodes.find(p => p.id === n.id))
-      ],
-      links: [...prev.links, ...newLinks]
-    }))
-  }
+planet.add(g)
 
+}
 
-  return (
+glow(psychology,0xff8899,0.9)
+glow(science,0x66ff99,1.0)
+glow(philosophy,0xffdd88,1.1)
+glow(learning,0xaa99ff,1.0)
 
-    <div
-      style={{
-        height: "1000px",
-        width: "100%",
-        marginTop: "-120px"
-      }}
-    >
+/* ORBITS */
 
-      <ForceGraph2D
-        graphData={graphData}
+function orbit(radius){
 
-        cooldownTicks={0}
-        d3AlphaDecay={1}
-        d3VelocityDecay={1}
+const points=[]
 
-        enableNodeDrag={false}
+for(let i=0;i<=64;i++){
 
-        nodePointerAreaPaint={(node, color, ctx) => {
+const angle=(i/64)Math.PI2
 
-          const hitbox = node.type === "main" ? 65 : 40
+points.push(
+new THREE.Vector3(
+Math.cos(angle)*radius,
+0,
+Math.sin(angle)*radius
+)
+)
 
-          ctx.fillStyle = color
-          ctx.beginPath()
-          ctx.arc(node.x, node.y, hitbox, 0, 2 * Math.PI)
-          ctx.fill()
+}
 
-        }}
+const geo = new THREE.BufferGeometry().setFromPoints(points)
 
-        nodeCanvasObject={(node, ctx, globalScale) => {
+const ring = new THREE.Line(
+geo,
+new THREE.LineBasicMaterial({
+color:0xffffff,
+transparent:true,
+opacity:0.2
+})
+)
 
-          const label = node.id
-          const fontSize = 22 / globalScale
+scene.add(ring)
 
-          ctx.font = `${fontSize}px Sans-Serif`
+}
 
-          const size =
-            node.id === "Learning"
-              ? 40
-              : node.type === "main"
-              ? 30
-              : 12
+orbit(3)
+orbit(4)
+orbit(5)
+orbit(6)
 
+/* CLICK SYSTEM */
 
-          // glow halo
-          if (node.type === "main") {
+const raycaster = new THREE.Raycaster()
+const mouse = new THREE.Vector2()
 
-            ctx.beginPath()
-            ctx.arc(node.x, node.y, size + 8, 0, 2 * Math.PI)
-            ctx.fillStyle = "rgba(43,108,176,0.15)"
-            ctx.fill()
+window.addEventListener("click",(event)=>{
 
-          }
+mouse.x=(event.clientX/window.innerWidth)*2-1
+mouse.y=-(event.clientY/window.innerHeight)*2+1
 
+raycaster.setFromCamera(mouse,camera)
 
-          // node circle
-          ctx.beginPath()
-          ctx.arc(node.x, node.y, size, 0, 2 * Math.PI)
+const objects=[psychology,science,philosophy,learning]
 
-          ctx.fillStyle =
-            node.type === "main"
-              ? "#2b6cb0"
-              : "#38a169"
+const hits=raycaster.intersectObjects(objects)
 
-          ctx.fill()
+if(hits.length>0){
 
+const obj=hits[0].object
 
-          // label above node
-          ctx.textAlign = "center"
-          ctx.textBaseline = "bottom"
-          ctx.fillStyle = "#111"
+if(obj===science) alert("Science system opening")
+if(obj===psychology) alert("Psychology system opening")
+if(obj===philosophy) alert("Philosophy system opening")
+if(obj===learning) alert("Learning system opening")
 
-          ctx.fillText(
-            label,
-            node.x,
-            node.y - size - 6
-          )
+}
 
-        }}
+})
 
-        linkColor={() => "#555"}
+/* ANIMATION */
 
-        linkWidth={link =>
-          link.source.id === "Learning"
-            ? 3
-            : 2
-        }
+let time=0
 
-        linkDirectionalArrowLength={14}
-        linkDirectionalArrowColor={() => "#444"}
-        linkDirectionalArrowRelPos={0.88}
+function animate(){
 
-        linkDirectionalParticles={3}
-        linkDirectionalParticleWidth={3}
-        linkDirectionalParticleSpeed={0.004}
+requestAnimationFrame(animate)
 
-        onNodeClick={expandNode}
+time+=0.01
 
-      />
+psychology.position.x=Math.cos(time*0.9)3
+psychology.position.z=Math.sin(time0.9)*3
 
-    </div>
-  )
+science.position.x=Math.cos(time*0.7)4
+science.position.z=Math.sin(time0.7)*4
+
+philosophy.position.x=Math.cos(time*0.5)5
+philosophy.position.z=Math.sin(time0.5)*5
+
+learning.position.x=Math.cos(time*0.3)6
+learning.position.z=Math.sin(time0.3)*6
+
+psychology.rotation.y+=0.003
+science.rotation.y+=0.003
+philosophy.rotation.y+=0.003
+learning.rotation.y+=0.003
+
+camera.position.x=Math.sin(time*0.1)0.5
+camera.position.y=4+Math.cos(time0.1)*0.3
+
+camera.lookAt(0,0,0)
+
+stars.material.size=0.6+Math.sin(time*2)*0.2
+
+renderer.render(scene,camera)
+
+}
+
+animate()
+
+window.addEventListener("resize",()=>{
+
+camera.aspect=window.innerWidth/window.innerHeight
+camera.updateProjectionMatrix()
+renderer.setSize(window.innerWidth,window.innerHeight)
+
+})
+
+return()=>{
+
+mountRef.current.removeChild(renderer.domElement)
+
+}
+
+},[])
+
+return(
+
+<div
+ref={mountRef}
+style={{
+width:"100vw",
+height:"100vh",
+background:"black"
+}}
+/>)
+
 }
