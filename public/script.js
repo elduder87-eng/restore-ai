@@ -10,17 +10,17 @@ window.innerWidth / window.innerHeight,
 1000
 );
 
-camera.position.set(0, 6, 18);
+camera.position.set(0,6,18);
 
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(window.innerWidth,window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-scene.add(ambientLight);
+const ambient = new THREE.AmbientLight(0xffffff,0.5);
+scene.add(ambient);
 
-const light = new THREE.PointLight(0xffffff, 1.2);
-light.position.set(10, 10, 10);
+const light = new THREE.PointLight(0xffffff,1.2);
+light.position.set(10,10,10);
 scene.add(light);
 
 const loader = new THREE.TextureLoader();
@@ -30,27 +30,30 @@ const marsTexture = loader.load("/textures/images%20(13).jpeg");
 const saturnTexture = loader.load("/textures/images%20(14).jpeg");
 const neptuneTexture = loader.load("/textures/images%20(15).jpeg");
 
-function createPlanet(texture, size) {
-const geometry = new THREE.SphereGeometry(size, 64, 64);
+function createPlanet(texture,size){
+
+const geometry = new THREE.SphereGeometry(size,64,64);
 
 const material = new THREE.MeshStandardMaterial({
-map: texture
+map:texture
 });
 
-return new THREE.Mesh(geometry, material);
+return new THREE.Mesh(geometry,material);
+
 }
 
-const psychology = createPlanet(earthTexture, 0.7);
-const science = createPlanet(marsTexture, 0.8);
-const philosophy = createPlanet(saturnTexture, 0.9);
-const learning = createPlanet(neptuneTexture, 1);
+const psychology = createPlanet(earthTexture,0.7);
+const science = createPlanet(marsTexture,0.8);
+const philosophy = createPlanet(saturnTexture,0.9);
+const learning = createPlanet(neptuneTexture,1);
 
 scene.add(psychology);
 scene.add(science);
 scene.add(philosophy);
 scene.add(learning);
 
-function createOrbit(radius) {
+function createOrbit(radius){
+
 const curve = new THREE.EllipseCurve(
 0,0,
 radius,radius,
@@ -61,15 +64,16 @@ const points = curve.getPoints(100);
 const geometry = new THREE.BufferGeometry().setFromPoints(points);
 
 const material = new THREE.LineBasicMaterial({
-color: 0xffffff,
-transparent: true,
-opacity: 0.15
+color:0xffffff,
+transparent:true,
+opacity:0.15
 });
 
-const orbit = new THREE.LineLoop(geometry, material);
-orbit.rotation.x = Math.PI / 2;
+const orbit = new THREE.LineLoop(geometry,material);
+orbit.rotation.x = Math.PI/2;
 
 scene.add(orbit);
+
 }
 
 createOrbit(5);
@@ -77,46 +81,46 @@ createOrbit(8);
 createOrbit(11);
 createOrbit(14);
 
-const userGeometry = new THREE.SphereGeometry(1.3, 64, 64);
+const userGeo = new THREE.SphereGeometry(1.3,64,64);
 
-const userMaterial = new THREE.MeshStandardMaterial({
-color: "#7df9ff",
-emissive: "#7df9ff",
-emissiveIntensity: 1
+const userMat = new THREE.MeshStandardMaterial({
+color:"#7df9ff",
+emissive:"#7df9ff",
+emissiveIntensity:1
 });
 
-const user = new THREE.Mesh(userGeometry, userMaterial);
+const user = new THREE.Mesh(userGeo,userMat);
 scene.add(user);
 
-const starsGeometry = new THREE.BufferGeometry();
-const starVertices = [];
+const starsGeo = new THREE.BufferGeometry();
+const starVerts = [];
 
-for (let i = 0; i < 20000; i++) {
+for(let i=0;i<20000;i++){
 
 const x = THREE.MathUtils.randFloatSpread(600);
 const y = THREE.MathUtils.randFloatSpread(600);
 const z = THREE.MathUtils.randFloatSpread(600);
 
-starVertices.push(x,y,z);
+starVerts.push(x,y,z);
 
 }
 
-starsGeometry.setAttribute(
+starsGeo.setAttribute(
 "position",
-new THREE.Float32BufferAttribute(starVertices,3)
+new THREE.Float32BufferAttribute(starVerts,3)
 );
 
-const starsMaterial = new THREE.PointsMaterial({
-color: 0xffffff,
-size: 0.7
+const starsMat = new THREE.PointsMaterial({
+color:0xffffff,
+size:0.7
 });
 
-const stars = new THREE.Points(starsGeometry,starsMaterial);
+const stars = new THREE.Points(starsGeo,starsMat);
 scene.add(stars);
 
 let t = 0;
 
-function animate() {
+function animate(){
 
 requestAnimationFrame(animate);
 
