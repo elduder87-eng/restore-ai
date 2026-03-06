@@ -3,32 +3,32 @@
 import { useEffect, useRef } from "react"
 import * as THREE from "three"
 
-export default function CuriosityMap() {
+export default function CuriosityMap(){
 
 const mountRef = useRef(null)
 
-useEffect(() => {
+useEffect(()=>{
 
 const scene = new THREE.Scene()
 
 const camera = new THREE.PerspectiveCamera(
 75,
-window.innerWidth / window.innerHeight,
+window.innerWidth/window.innerHeight,
 0.1,
 1000
 )
 
 camera.position.set(0,4,12)
 
-const renderer = new THREE.WebGLRenderer({ antialias:true })
-renderer.setSize(window.innerWidth, window.innerHeight)
+const renderer = new THREE.WebGLRenderer({antialias:true})
+renderer.setSize(window.innerWidth,window.innerHeight)
 renderer.setPixelRatio(window.devicePixelRatio)
 
 mountRef.current.appendChild(renderer.domElement)
 
-///////////////////////
+//////////////////////
 //// LIGHT
-///////////////////////
+//////////////////////
 
 const ambient = new THREE.AmbientLight(0xffffff,0.6)
 scene.add(ambient)
@@ -37,18 +37,18 @@ const light = new THREE.PointLight(0xffffff,2)
 light.position.set(10,10,10)
 scene.add(light)
 
-///////////////////////
-//// STARS
-///////////////////////
+//////////////////////
+//// STARFIELD
+//////////////////////
 
 const starGeo = new THREE.BufferGeometry()
-const starVerts = []
+const starVerts=[]
 
-for(let i=0;i<2000;i++){
+for(let i=0;i<3000;i++){
 
-starVerts.push((Math.random()-0.5)*200)
-starVerts.push((Math.random()-0.5)*200)
-starVerts.push((Math.random()-0.5)*200)
+starVerts.push((Math.random()-0.5)*400)
+starVerts.push((Math.random()-0.5)*400)
+starVerts.push((Math.random()-0.5)*400)
 
 }
 
@@ -59,15 +59,15 @@ new THREE.Float32BufferAttribute(starVerts,3)
 
 const starMat = new THREE.PointsMaterial({
 color:0xffffff,
-size:1
+size:1.3
 })
 
 const stars = new THREE.Points(starGeo,starMat)
 scene.add(stars)
 
-///////////////////////
-//// CENTER (YOU)
-///////////////////////
+//////////////////////
+//// CENTER
+//////////////////////
 
 const you = new THREE.Mesh(
 
@@ -76,47 +76,88 @@ new THREE.SphereGeometry(1.2,64,64),
 new THREE.MeshStandardMaterial({
 color:0x7ee7ff,
 emissive:0x44ccff,
-emissiveIntensity:0.7
+emissiveIntensity:0.8
 })
 
 )
 
 scene.add(you)
 
-///////////////////////
+//////////////////////
 //// PLANETS
-///////////////////////
+//////////////////////
 
-const psychology = new THREE.Mesh(
-new THREE.SphereGeometry(0.7,64,64),
-new THREE.MeshStandardMaterial({color:0xff8899})
+function planet(size,color){
+
+return new THREE.Mesh(
+
+new THREE.SphereGeometry(size,64,64),
+
+new THREE.MeshStandardMaterial({
+color:color
+})
+
 )
 
-const science = new THREE.Mesh(
-new THREE.SphereGeometry(0.8,64,64),
-new THREE.MeshStandardMaterial({color:0x66ff99})
-)
+}
 
-const philosophy = new THREE.Mesh(
-new THREE.SphereGeometry(0.9,64,64),
-new THREE.MeshStandardMaterial({color:0xffdd88})
-)
-
-const learning = new THREE.Mesh(
-new THREE.SphereGeometry(0.85,64,64),
-new THREE.MeshStandardMaterial({color:0xaa99ff})
-)
+const psychology = planet(0.7,0xff8899)
+const science = planet(0.8,0x66ff99)
+const philosophy = planet(0.9,0xffdd88)
+const learning = planet(0.85,0xaa99ff)
 
 scene.add(psychology)
 scene.add(science)
 scene.add(philosophy)
 scene.add(learning)
 
-///////////////////////
-//// ORBITS
-///////////////////////
+//////////////////////
+//// LABELS
+//////////////////////
 
-function createOrbit(radius){
+function createLabel(text){
+
+const canvas = document.createElement("canvas")
+const ctx = canvas.getContext("2d")
+
+canvas.width=512
+canvas.height=256
+
+ctx.fillStyle="white"
+ctx.font="48px Arial"
+ctx.textAlign="center"
+ctx.fillText(text,256,128)
+
+const texture = new THREE.CanvasTexture(canvas)
+
+const material = new THREE.SpriteMaterial({
+map:texture,
+transparent:true
+})
+
+const sprite = new THREE.Sprite(material)
+
+sprite.scale.set(2,1,1)
+
+return sprite
+
+}
+
+const labelScience = createLabel("Science")
+const labelPsychology = createLabel("Psychology")
+const labelPhilosophy = createLabel("Philosophy")
+const labelLearning = createLabel("Learning")
+
+scene.add(labelScience)
+scene.add(labelPsychology)
+scene.add(labelPhilosophy)
+scene.add(labelLearning)
+
+//////////////////////
+//// ORBITS
+//////////////////////
+
+function orbit(radius){
 
 const points=[]
 
@@ -138,41 +179,47 @@ Math.sin(angle)*radius
 
 const geo = new THREE.BufferGeometry().setFromPoints(points)
 
-const orbit = new THREE.Line(
+const line = new THREE.Line(
+
 geo,
+
 new THREE.LineBasicMaterial({
 color:0xffffff,
 transparent:true,
 opacity:0.2
 })
+
 )
 
-scene.add(orbit)
+scene.add(line)
 
 }
 
-createOrbit(3)
-createOrbit(4)
-createOrbit(5)
-createOrbit(6)
+orbit(3)
+orbit(4)
+orbit(5)
+orbit(6)
 
-///////////////////////
+//////////////////////
 //// CLICK DETECTION
-///////////////////////
+//////////////////////
 
 const raycaster = new THREE.Raycaster()
 const mouse = new THREE.Vector2()
 
 window.addEventListener("click",(event)=>{
 
-mouse.x = (event.clientX/window.innerWidth)*2-1
-mouse.y = -(event.clientY/window.innerHeight)*2+1
+mouse.x=(event.clientX/window.innerWidth)*2-1
+mouse.y=-(event.clientY/window.innerHeight)*2+1
 
 raycaster.setFromCamera(mouse,camera)
 
-const planets=[psychology,science,philosophy,learning]
-
-const hits = raycaster.intersectObjects(planets)
+const hits = raycaster.intersectObjects([
+science,
+psychology,
+philosophy,
+learning
+])
 
 if(hits.length>0){
 
@@ -187,9 +234,9 @@ if(obj===learning) alert("Learning")
 
 })
 
-///////////////////////
+//////////////////////
 //// ANIMATION
-///////////////////////
+//////////////////////
 
 let time=0
 
@@ -211,10 +258,32 @@ philosophy.position.z = Math.sin(time0.5)*5
 learning.position.x = Math.cos(time*0.3)6
 learning.position.z = Math.sin(time0.3)*6
 
-psychology.rotation.y += 0.003
-science.rotation.y += 0.003
-philosophy.rotation.y += 0.003
-learning.rotation.y += 0.003
+labelPsychology.position.set(
+psychology.position.x,
+1,
+psychology.position.z
+)
+
+labelScience.position.set(
+science.position.x,
+1,
+science.position.z
+)
+
+labelPhilosophy.position.set(
+philosophy.position.x,
+1,
+philosophy.position.z
+)
+
+labelLearning.position.set(
+learning.position.x,
+1,
+learning.position.z
+)
+
+camera.position.x = Math.sin(time*0.1)0.5
+camera.position.y = 4 + Math.cos(time0.1)*0.3
 
 camera.lookAt(0,0,0)
 
@@ -224,13 +293,13 @@ renderer.render(scene,camera)
 
 animate()
 
-///////////////////////
+//////////////////////
 //// RESIZE
-///////////////////////
+//////////////////////
 
 window.addEventListener("resize",()=>{
 
-camera.aspect = window.innerWidth/window.innerHeight
+camera.aspect=window.innerWidth/window.innerHeight
 camera.updateProjectionMatrix()
 
 renderer.setSize(window.innerWidth,window.innerHeight)
@@ -240,9 +309,7 @@ renderer.setSize(window.innerWidth,window.innerHeight)
 return()=>{
 
 if(mountRef.current){
-
 mountRef.current.removeChild(renderer.domElement)
-
 }
 
 }
