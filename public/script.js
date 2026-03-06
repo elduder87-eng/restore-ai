@@ -1,70 +1,71 @@
-import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color("#020617");
 
 const camera = new THREE.PerspectiveCamera(
-60,
-window.innerWidth / window.innerHeight,
-0.1,
-1000
+  75,
+  window.innerWidth / window.innerHeight,
+  0.1,
+  1000
 );
 
-camera.position.set(0,6,18);
+camera.position.z = 12;
 
-const renderer = new THREE.WebGLRenderer({ antialias:true });
-renderer.setSize(window.innerWidth,window.innerHeight);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(window.devicePixelRatio);
 document.body.appendChild(renderer.domElement);
 
-/* LIGHTING */
+renderer.outputColorSpace = THREE.SRGBColorSpace;
 
-const ambientLight = new THREE.AmbientLight(0xffffff,0.7);
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
 scene.add(ambientLight);
 
-const light = new THREE.PointLight(0xffffff,1.5);
-light.position.set(10,10,10);
+const light = new THREE.PointLight(0xffffff, 2);
+light.position.set(10, 10, 10);
 scene.add(light);
-
-/* TEXTURE LOADER */
 
 const loader = new THREE.TextureLoader();
 
-let psychology, science, philosophy, learning;
+const earthTexture = loader.load("/textures/earth.png");
+const marsTexture = loader.load("/textures/mars.png");
+const saturnTexture = loader.load("/textures/saturn.png");
+const neptuneTexture = loader.load("/textures/neptune.png");
 
-/* LOAD PLANET TEXTURES */
+earthTexture.colorSpace = THREE.SRGBColorSpace;
+marsTexture.colorSpace = THREE.SRGBColorSpace;
+saturnTexture.colorSpace = THREE.SRGBColorSpace;
+neptuneTexture.colorSpace = THREE.SRGBColorSpace;
 
-Promise.all([
-loader.loadAsync("/textures/earth.png"),
-loader.loadAsync("/textures/mars.png"),
-loader.loadAsync("/textures/saturn.png"),
-loader.loadAsync("/textures/neptune.png")
-]).then(([earth, mars, saturn, neptune]) => {
-
-earth.colorSpace = THREE.SRGBColorSpace;
-mars.colorSpace = THREE.SRGBColorSpace;
-saturn.colorSpace = THREE.SRGBColorSpace;
-neptune.colorSpace = THREE.SRGBColorSpace;
-
-/* PLANETS */
-
-psychology = new THREE.Mesh(
-new THREE.SphereGeometry(0.7,64,64),
-new THREE.MeshStandardMaterial({map:earth})
+const YOU = new THREE.Mesh(
+  new THREE.SphereGeometry(1.1, 64, 64),
+  new THREE.MeshStandardMaterial({
+    color: 0x7ee7ff,
+    emissive: 0x44ccff,
+    emissiveIntensity: 0.6
+  })
 );
 
-science = new THREE.Mesh(
-new THREE.SphereGeometry(0.8,64,64),
-new THREE.MeshStandardMaterial({map:mars})
+scene.add(YOU);
+
+const psychology = new THREE.Mesh(
+  new THREE.SphereGeometry(0.7, 64, 64),
+  new THREE.MeshStandardMaterial({ map: earthTexture })
 );
 
-philosophy = new THREE.Mesh(
-new THREE.SphereGeometry(0.9,64,64),
-new THREE.MeshStandardMaterial({map:saturn})
+const science = new THREE.Mesh(
+  new THREE.SphereGeometry(0.8, 64, 64),
+  new THREE.MeshStandardMaterial({ map: marsTexture })
 );
 
-learning = new THREE.Mesh(
-new THREE.SphereGeometry(1,64,64),
-new THREE.MeshStandardMaterial({map:neptune})
+const philosophy = new THREE.Mesh(
+  new THREE.SphereGeometry(0.9, 64, 64),
+  new THREE.MeshStandardMaterial({ map: saturnTexture })
+);
+
+const learning = new THREE.Mesh(
+  new THREE.SphereGeometry(0.85, 64, 64),
+  new THREE.MeshStandardMaterial({ map: neptuneTexture })
 );
 
 scene.add(psychology);
@@ -72,142 +73,59 @@ scene.add(science);
 scene.add(philosophy);
 scene.add(learning);
 
-});
-
-/* USER CENTER NODE */
-
-const user = new THREE.Mesh(
-new THREE.SphereGeometry(1.3,64,64),
-new THREE.MeshStandardMaterial({
-color:"#7df9ff",
-emissive:"#7df9ff",
-emissiveIntensity:1
-})
-);
-
-scene.add(user);
-
-/* ORBIT RINGS */
-
-function createOrbit(radius){
-
-const curve = new THREE.EllipseCurve(
-0,0,
-radius,radius,
-0,2*Math.PI
-);
-
-const points = curve.getPoints(100);
-
-const geometry = new THREE.BufferGeometry().setFromPoints(points);
-
-const material = new THREE.LineBasicMaterial({
-color:0xffffff,
-transparent:true,
-opacity:0.15
-});
-
-const orbit = new THREE.LineLoop(geometry,material);
-
-orbit.rotation.x = Math.PI/2;
-
-scene.add(orbit);
-
-}
-
-createOrbit(5);
-createOrbit(8);
-createOrbit(11);
-createOrbit(14);
-
-/* STARFIELD */
-
 const starsGeometry = new THREE.BufferGeometry();
 const starVertices = [];
 
-for(let i=0;i<20000;i++){
-
-starVertices.push(
-THREE.MathUtils.randFloatSpread(600),
-THREE.MathUtils.randFloatSpread(600),
-THREE.MathUtils.randFloatSpread(600)
-);
-
+for (let i = 0; i < 2000; i++) {
+  starVertices.push((Math.random() - 0.5) * 200);
+  starVertices.push((Math.random() - 0.5) * 200);
+  starVertices.push((Math.random() - 0.5) * 200);
 }
 
 starsGeometry.setAttribute(
-"position",
-new THREE.Float32BufferAttribute(starVertices,3)
+  "position",
+  new THREE.Float32BufferAttribute(starVertices, 3)
 );
 
-const stars = new THREE.Points(
-starsGeometry,
-new THREE.PointsMaterial({
-color:0xffffff,
-size:0.7
-})
-);
+const starsMaterial = new THREE.PointsMaterial({
+  color: 0xffffff,
+  size: 0.5
+});
 
-scene.add(stars);
+const starField = new THREE.Points(starsGeometry, starsMaterial);
+scene.add(starField);
 
-/* ANIMATION */
+let time = 0;
 
-let t = 0;
+function animate() {
+  requestAnimationFrame(animate);
 
-function animate(){
+  time += 0.01;
 
-requestAnimationFrame(animate);
+  psychology.position.x = Math.cos(time * 0.9) * 3;
+  psychology.position.z = Math.sin(time * 0.9) * 3;
 
-t += 0.002;
+  science.position.x = Math.cos(time * 0.7) * 4;
+  science.position.z = Math.sin(time * 0.7) * 4;
 
-if(psychology){
+  philosophy.position.x = Math.cos(time * 0.5) * 5;
+  philosophy.position.z = Math.sin(time * 0.5) * 5;
 
-psychology.position.set(
-Math.cos(t*2)5,
-0,
-Math.sin(t2)*5
-);
+  learning.position.x = Math.cos(time * 0.3) * 6;
+  learning.position.z = Math.sin(time * 0.3) * 6;
 
-science.position.set(
-Math.cos(t*1.6)8,
-0,
-Math.sin(t1.6)*8
-);
+  psychology.rotation.y += 0.005;
+  science.rotation.y += 0.005;
+  philosophy.rotation.y += 0.005;
+  learning.rotation.y += 0.005;
 
-philosophy.position.set(
-Math.cos(t*1.2)11,
-0,
-Math.sin(t1.2)*11
-);
-
-learning.position.set(
-Math.cos(t)*14,
-0,
-Math.sin(t)*14
-);
-
-/* PLANET ROTATION */
-
-psychology.rotation.y += 0.002;
-science.rotation.y += 0.002;
-philosophy.rotation.y += 0.002;
-learning.rotation.y += 0.002;
-
-}
-
-renderer.render(scene,camera);
-
+  renderer.render(scene, camera);
 }
 
 animate();
 
-/* RESIZE */
-
-window.addEventListener("resize",()=>{
-
-camera.aspect = window.innerWidth/window.innerHeight;
-camera.updateProjectionMatrix();
-
-renderer.setSize(window.innerWidth,window.innerHeight);
-
+window.addEventListener("resize", () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
 });
