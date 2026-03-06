@@ -28,10 +28,10 @@ const loader = new THREE.TextureLoader();
 let psychology, science, philosophy, learning;
 
 Promise.all([
-loader.loadAsync("/textures/earth.jpg"),
-loader.loadAsync("/textures/mars.jpg"),
-loader.loadAsync("/textures/saturn.jpg"),
-loader.loadAsync("/textures/neptune.jpg")
+loader.loadAsync("./textures/earth.jpg"),
+loader.loadAsync("./textures/mars.jpg"),
+loader.loadAsync("./textures/saturn.jpg"),
+loader.loadAsync("./textures/neptune.jpg")
 ]).then(([earth, mars, saturn, neptune]) => {
 
 earth.colorSpace = THREE.SRGBColorSpace;
@@ -88,7 +88,6 @@ opacity:0.15
 });
 
 const orbit = new THREE.LineLoop(geometry,material);
-
 orbit.rotation.x = Math.PI/2;
 
 scene.add(orbit);
