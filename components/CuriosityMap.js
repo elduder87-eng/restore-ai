@@ -18,91 +18,93 @@ window.innerWidth / window.innerHeight,
 1000
 )
 
-camera.position.z = 12
-camera.position.y = 4
+camera.position.set(0,4,12)
 
-const renderer = new THREE.WebGLRenderer({ antialias: true })
+const renderer = new THREE.WebGLRenderer({ antialias:true })
 renderer.setSize(window.innerWidth, window.innerHeight)
 renderer.setPixelRatio(window.devicePixelRatio)
 
 mountRef.current.appendChild(renderer.domElement)
 
-////////////////////////
-//// LIGHTING
-////////////////////////
+///////////////////////
+//// LIGHT
+///////////////////////
 
-const ambient = new THREE.AmbientLight(0xffffff, 0.6)
+const ambient = new THREE.AmbientLight(0xffffff,0.6)
 scene.add(ambient)
 
-const pointLight = new THREE.PointLight(0xffffff, 2)
-pointLight.position.set(10,10,10)
-scene.add(pointLight)
+const light = new THREE.PointLight(0xffffff,2)
+light.position.set(10,10,10)
+scene.add(light)
 
-////////////////////////
+///////////////////////
 //// STARS
-////////////////////////
+///////////////////////
 
-const starGeometry = new THREE.BufferGeometry()
-const starVertices = []
+const starGeo = new THREE.BufferGeometry()
+const starVerts = []
 
 for(let i=0;i<2000;i++){
 
-starVertices.push((Math.random()-0.5)*200)
-starVertices.push((Math.random()-0.5)*200)
-starVertices.push((Math.random()-0.5)*200)
+starVerts.push((Math.random()-0.5)*200)
+starVerts.push((Math.random()-0.5)*200)
+starVerts.push((Math.random()-0.5)*200)
 
 }
 
-starGeometry.setAttribute(
+starGeo.setAttribute(
 "position",
-new THREE.Float32BufferAttribute(starVertices,3)
+new THREE.Float32BufferAttribute(starVerts,3)
 )
 
-const starMaterial = new THREE.PointsMaterial({
+const starMat = new THREE.PointsMaterial({
 color:0xffffff,
-size:0.7
+size:1
 })
 
-const stars = new THREE.Points(starGeometry, starMaterial)
+const stars = new THREE.Points(starGeo,starMat)
 scene.add(stars)
 
-////////////////////////
-//// YOU (CENTER PLANET)
-////////////////////////
+///////////////////////
+//// CENTER (YOU)
+///////////////////////
 
 const you = new THREE.Mesh(
+
 new THREE.SphereGeometry(1.2,64,64),
+
 new THREE.MeshStandardMaterial({
 color:0x7ee7ff,
 emissive:0x44ccff,
-emissiveIntensity:0.6
+emissiveIntensity:0.7
 })
+
 )
 
 scene.add(you)
 
-////////////////////////
+///////////////////////
 //// PLANETS
-////////////////////////
+///////////////////////
 
 const psychology = new THREE.Mesh(
 new THREE.SphereGeometry(0.7,64,64),
-new THREE.MeshStandardMaterial({ color:0xff8899 })
+new THREE.MeshStandardMaterial({color:0xff8899})
 )
 
 const science = new THREE.Mesh(
 new THREE.SphereGeometry(0.8,64,64),
-new THREE.MeshStandardMaterial({ color:0x66ff99 })
+new THREE.MeshStandardMaterial({color:0x66ff99})
 )
 
 const philosophy = new THREE.Mesh(
 new THREE.SphereGeometry(0.9,64,64),
-new THREE.MeshStandardMaterial({ color:0xffdd88 })
+new THREE.MeshStandardMaterial({color:0xffdd88})
 )
 
 const learning = new THREE.Mesh(
 new THREE.SphereGeometry(0.85,64,64),
-new THREE.MeshStandardMaterial({ color:0xaa99ff })
+new THREE.MeshStandardMaterial({color:0xaa99ff})
 )
 
 scene.add(psychology)
@@ -110,9 +112,9 @@ scene.add(science)
 scene.add(philosophy)
 scene.add(learning)
 
-////////////////////////
+///////////////////////
 //// ORBITS
-////////////////////////
+///////////////////////
 
 function createOrbit(radius){
 
@@ -120,22 +122,24 @@ const points=[]
 
 for(let i=0;i<=64;i++){
 
-const angle=(i/64)Math.PI2
+const angle = (i/64) * Math.PI * 2
 
 points.push(
+
 new THREE.Vector3(
 Math.cos(angle)*radius,
 0,
 Math.sin(angle)*radius
 )
+
 )
 
 }
 
-const geometry=new THREE.BufferGeometry().setFromPoints(points)
+const geo = new THREE.BufferGeometry().setFromPoints(points)
 
-const orbit=new THREE.Line(
-geometry,
+const orbit = new THREE.Line(
+geo,
 new THREE.LineBasicMaterial({
 color:0xffffff,
 transparent:true,
@@ -152,27 +156,27 @@ createOrbit(4)
 createOrbit(5)
 createOrbit(6)
 
-////////////////////////
-//// INTERACTION
-////////////////////////
+///////////////////////
+//// CLICK DETECTION
+///////////////////////
 
 const raycaster = new THREE.Raycaster()
 const mouse = new THREE.Vector2()
 
 window.addEventListener("click",(event)=>{
 
-mouse.x = (event.clientX / window.innerWidth) * 2 - 1
-mouse.y = -(event.clientY / window.innerHeight) * 2 + 1
+mouse.x = (event.clientX/window.innerWidth)*2-1
+mouse.y = -(event.clientY/window.innerHeight)*2+1
 
 raycaster.setFromCamera(mouse,camera)
 
-const objects=[psychology,science,philosophy,learning]
+const planets=[psychology,science,philosophy,learning]
 
-const intersects = raycaster.intersectObjects(objects)
+const hits = raycaster.intersectObjects(planets)
 
-if(intersects.length>0){
+if(hits.length>0){
 
-const obj = intersects[0].object
+const obj = hits[0].object
 
 if(obj===science) alert("Science")
 if(obj===psychology) alert("Psychology")
@@ -183,29 +187,29 @@ if(obj===learning) alert("Learning")
 
 })
 
-////////////////////////
+///////////////////////
 //// ANIMATION
-////////////////////////
+///////////////////////
 
-let time = 0
+let time=0
 
 function animate(){
 
 requestAnimationFrame(animate)
 
-time += 0.01
+time+=0.01
 
-psychology.position.x = Math.cos(time * 0.9) * 3
-psychology.position.z = Math.sin(time * 0.9) * 3
+psychology.position.x = Math.cos(time*0.9)3
+psychology.position.z = Math.sin(time0.9)*3
 
-science.position.x = Math.cos(time * 0.7) * 4
-science.position.z = Math.sin(time * 0.7) * 4
+science.position.x = Math.cos(time*0.7)4
+science.position.z = Math.sin(time0.7)*4
 
-philosophy.position.x = Math.cos(time * 0.5) * 5
-philosophy.position.z = Math.sin(time * 0.5) * 5
+philosophy.position.x = Math.cos(time*0.5)5
+philosophy.position.z = Math.sin(time0.5)*5
 
-learning.position.x = Math.cos(time * 0.3) * 6
-learning.position.z = Math.sin(time * 0.3) * 6
+learning.position.x = Math.cos(time*0.3)6
+learning.position.z = Math.sin(time0.3)*6
 
 psychology.rotation.y += 0.003
 science.rotation.y += 0.003
@@ -220,30 +224,32 @@ renderer.render(scene,camera)
 
 animate()
 
-////////////////////////
+///////////////////////
 //// RESIZE
-////////////////////////
+///////////////////////
 
 window.addEventListener("resize",()=>{
 
-camera.aspect = window.innerWidth / window.innerHeight
+camera.aspect = window.innerWidth/window.innerHeight
 camera.updateProjectionMatrix()
 
-renderer.setSize(window.innerWidth, window.innerHeight)
+renderer.setSize(window.innerWidth,window.innerHeight)
 
 })
 
-return ()=>{
+return()=>{
 
 if(mountRef.current){
+
 mountRef.current.removeChild(renderer.domElement)
+
 }
 
 }
 
 },[])
 
-return (
+return(
 
 <div
 ref={mountRef}
