@@ -1,14 +1,14 @@
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
 
-console.log("RESTORE INTERACTIVE SYSTEM RUNNING");
+console.log("RESTORE SYSTEM LOADED");
 
-/* ---------------- SCENE ---------------- */
+/* ---------- SCENE ---------- */
 
 const scene = new THREE.Scene();
 
 const camera = new THREE.PerspectiveCamera(
 75,
-window.innerWidth / window.innerHeight,
+window.innerWidth/window.innerHeight,
 0.1,
 1000
 );
@@ -21,7 +21,7 @@ renderer.setPixelRatio(window.devicePixelRatio);
 
 document.body.appendChild(renderer.domElement);
 
-/* ---------------- LIGHT ---------------- */
+/* ---------- LIGHT ---------- */
 
 const ambient = new THREE.AmbientLight(0xffffff,0.6);
 scene.add(ambient);
@@ -30,10 +30,10 @@ const light = new THREE.PointLight(0xffffff,2);
 light.position.set(10,10,10);
 scene.add(light);
 
-/* ---------------- STARFIELD ---------------- */
+/* ---------- STARFIELD ---------- */
 
 const starGeo = new THREE.BufferGeometry();
-const starVerts = [];
+const starVerts=[];
 
 for(let i=0;i<2000;i++){
 
@@ -56,7 +56,7 @@ size:0.7
 const stars = new THREE.Points(starGeo,starMat);
 scene.add(stars);
 
-/* ---------------- CENTER ---------------- */
+/* ---------- CENTER ---------- */
 
 const you = new THREE.Mesh(
 new THREE.SphereGeometry(1.1,64,64),
@@ -69,7 +69,7 @@ emissiveIntensity:0.6
 
 scene.add(you);
 
-/* ---------------- PLANETS ---------------- */
+/* ---------- PLANETS ---------- */
 
 const psychology = new THREE.Mesh(
 new THREE.SphereGeometry(0.7,64,64),
@@ -96,7 +96,7 @@ scene.add(science);
 scene.add(philosophy);
 scene.add(learning);
 
-/* ---------------- GLOW ---------------- */
+/* ---------- GLOW ---------- */
 
 function glow(planet,color,size){
 
@@ -118,7 +118,7 @@ glow(science,0x66ff99,1.0);
 glow(philosophy,0xffdd88,1.1);
 glow(learning,0xaa99ff,1.0);
 
-/* ---------------- ORBITS ---------------- */
+/* ---------- ORBITS ---------- */
 
 function orbit(radius){
 
@@ -138,9 +138,9 @@ Math.sin(angle)*radius
 
 }
 
-const geo=new THREE.BufferGeometry().setFromPoints(points);
+const geo = new THREE.BufferGeometry().setFromPoints(points);
 
-const ring=new THREE.Line(
+const ring = new THREE.Line(
 geo,
 new THREE.LineBasicMaterial({
 color:0xffffff,
@@ -158,7 +158,7 @@ orbit(4);
 orbit(5);
 orbit(6);
 
-/* ---------------- LABELS ---------------- */
+/* ---------- LABELS ---------- */
 
 function label(text){
 
@@ -182,12 +182,12 @@ const Lsci = label("Science");
 const Lphi = label("Philosophy");
 const Llea = label("Learning");
 
-/* ---------------- UI PANEL ---------------- */
+/* ---------- PANEL ---------- */
 
 const panel = document.createElement("div");
 
 panel.style.position="absolute";
-panel.style.bottom="30px";
+panel.style.bottom="40px";
 panel.style.left="50%";
 panel.style.transform="translateX(-50%)";
 panel.style.background="rgba(0,0,0,0.7)";
@@ -205,21 +205,21 @@ panel.style.display="block";
 
 }
 
-/* ---------------- CLICK SYSTEM ---------------- */
+/* ---------- CLICK ---------- */
 
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 
 window.addEventListener("click",(event)=>{
 
-mouse.x = (event.clientX / window.innerWidth)*2 - 1;
-mouse.y = -(event.clientY / window.innerHeight)*2 + 1;
+mouse.x=(event.clientX/window.innerWidth)*2-1;
+mouse.y=-(event.clientY/window.innerHeight)*2+1;
 
 raycaster.setFromCamera(mouse,camera);
 
 const objects=[psychology,science,philosophy,learning];
 
-const hits = raycaster.intersectObjects(objects);
+const hits=raycaster.intersectObjects(objects);
 
 if(hits.length>0){
 
@@ -234,7 +234,7 @@ if(obj===learning) openPanel("Learning");
 
 });
 
-/* ---------------- ANIMATION ---------------- */
+/* ---------- ANIMATION ---------- */
 
 let time=0;
 
@@ -276,7 +276,7 @@ camera.lookAt(0,0,0);
 
 stars.material.size=0.6+Math.sin(time*2)*0.2;
 
-/* LABEL POSITION */
+/* LABEL UPDATE */
 
 function update(mesh,label){
 
@@ -300,7 +300,7 @@ renderer.render(scene,camera);
 
 animate();
 
-/* ---------------- RESIZE ---------------- */
+/* ---------- RESIZE ---------- */
 
 window.addEventListener("resize",()=>{
 
