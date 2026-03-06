@@ -16,10 +16,10 @@ const renderer = new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(window.innerWidth,window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-const ambientLight = new THREE.AmbientLight(0xffffff,0.6);
+const ambientLight = new THREE.AmbientLight(0xffffff,0.7);
 scene.add(ambientLight);
 
-const light = new THREE.PointLight(0xffffff,1.2);
+const light = new THREE.PointLight(0xffffff,1.5);
 light.position.set(10,10,10);
 scene.add(light);
 
@@ -30,22 +30,25 @@ const marsTexture = loader.load("/textures/images%20(13).jpeg");
 const saturnTexture = loader.load("/textures/images%20(14).jpeg");
 const neptuneTexture = loader.load("/textures/images%20(15).jpeg");
 
-function createPlanet(texture,size){
+const psychology = new THREE.Mesh(
+new THREE.SphereGeometry(0.7,64,64),
+new THREE.MeshStandardMaterial({map:earthTexture})
+);
 
-const geometry = new THREE.SphereGeometry(size,64,64);
+const science = new THREE.Mesh(
+new THREE.SphereGeometry(0.8,64,64),
+new THREE.MeshStandardMaterial({map:marsTexture})
+);
 
-const material = new THREE.MeshStandardMaterial({
-map:texture
-});
+const philosophy = new THREE.Mesh(
+new THREE.SphereGeometry(0.9,64,64),
+new THREE.MeshStandardMaterial({map:saturnTexture})
+);
 
-return new THREE.Mesh(geometry,material);
-
-}
-
-const psychology = createPlanet(earthTexture,0.7);
-const science = createPlanet(marsTexture,0.8);
-const philosophy = createPlanet(saturnTexture,0.9);
-const learning = createPlanet(neptuneTexture,1);
+const learning = new THREE.Mesh(
+new THREE.SphereGeometry(1,64,64),
+new THREE.MeshStandardMaterial({map:neptuneTexture})
+);
 
 scene.add(psychology);
 scene.add(science);
@@ -82,15 +85,15 @@ createOrbit(8);
 createOrbit(11);
 createOrbit(14);
 
-const userGeometry = new THREE.SphereGeometry(1.3,64,64);
-
-const userMaterial = new THREE.MeshStandardMaterial({
+const user = new THREE.Mesh(
+new THREE.SphereGeometry(1.3,64,64),
+new THREE.MeshStandardMaterial({
 color:"#7df9ff",
 emissive:"#7df9ff",
 emissiveIntensity:1
-});
+})
+);
 
-const user = new THREE.Mesh(userGeometry,userMaterial);
 scene.add(user);
 
 const starsGeometry = new THREE.BufferGeometry();
@@ -98,11 +101,11 @@ const starVertices = [];
 
 for(let i=0;i<20000;i++){
 
-const x = THREE.MathUtils.randFloatSpread(600);
-const y = THREE.MathUtils.randFloatSpread(600);
-const z = THREE.MathUtils.randFloatSpread(600);
-
-starVertices.push(x,y,z);
+starVertices.push(
+THREE.MathUtils.randFloatSpread(600),
+THREE.MathUtils.randFloatSpread(600),
+THREE.MathUtils.randFloatSpread(600)
+);
 
 }
 
@@ -111,12 +114,11 @@ starsGeometry.setAttribute(
 new THREE.Float32BufferAttribute(starVertices,3)
 );
 
-const starsMaterial = new THREE.PointsMaterial({
-color:0xffffff,
-size:0.7
-});
+const stars = new THREE.Points(
+starsGeometry,
+new THREE.PointsMaterial({color:0xffffff,size:0.7})
+);
 
-const stars = new THREE.Points(starsGeometry,starsMaterial);
 scene.add(stars);
 
 let t = 0;
@@ -127,17 +129,29 @@ requestAnimationFrame(animate);
 
 t += 0.002;
 
-psychology.position.x = Math.cos(t*2)5;
-psychology.position.z = Math.sin(t2)*5;
+psychology.position.set(
+Math.cos(t*2)5,
+0,
+Math.sin(t2)*5
+);
 
-science.position.x = Math.cos(t*1.6)8;
-science.position.z = Math.sin(t1.6)*8;
+science.position.set(
+Math.cos(t*1.6)8,
+0,
+Math.sin(t1.6)*8
+);
 
-philosophy.position.x = Math.cos(t*1.2)11;
-philosophy.position.z = Math.sin(t1.2)*11;
+philosophy.position.set(
+Math.cos(t*1.2)11,
+0,
+Math.sin(t1.2)*11
+);
 
-learning.position.x = Math.cos(t)*14;
-learning.position.z = Math.sin(t)*14;
+learning.position.set(
+Math.cos(t)*14,
+0,
+Math.sin(t)*14
+);
 
 psychology.rotation.y += 0.002;
 science.rotation.y += 0.002;
