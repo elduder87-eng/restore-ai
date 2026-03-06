@@ -1,8 +1,8 @@
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
 
-console.log("NEW SCRIPT RUNNING");
+console.log("RESTORE INTERACTIVE SYSTEM RUNNING");
 
-/* -------------------- SCENE -------------------- */
+/* ---------------- SCENE ---------------- */
 
 const scene = new THREE.Scene();
 
@@ -13,36 +13,63 @@ window.innerWidth / window.innerHeight,
 1000
 );
 
-camera.position.z = 12;
+camera.position.set(0,4,12);
 
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(window.innerWidth,window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
+
 document.body.appendChild(renderer.domElement);
 
-/* -------------------- LIGHTING -------------------- */
+/* ---------------- LIGHT ---------------- */
 
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-scene.add(ambientLight);
+const ambient = new THREE.AmbientLight(0xffffff,0.6);
+scene.add(ambient);
 
-const pointLight = new THREE.PointLight(0xffffff, 2);
-pointLight.position.set(10,10,10);
-scene.add(pointLight);
+const light = new THREE.PointLight(0xffffff,2);
+light.position.set(10,10,10);
+scene.add(light);
 
-/* -------------------- CENTER PLANET (YOU) -------------------- */
+/* ---------------- STARFIELD ---------------- */
+
+const starGeo = new THREE.BufferGeometry();
+const starVerts = [];
+
+for(let i=0;i<2000;i++){
+
+starVerts.push((Math.random()-0.5)*200);
+starVerts.push((Math.random()-0.5)*200);
+starVerts.push((Math.random()-0.5)*200);
+
+}
+
+starGeo.setAttribute(
+"position",
+new THREE.Float32BufferAttribute(starVerts,3)
+);
+
+const starMat = new THREE.PointsMaterial({
+color:0xffffff,
+size:0.7
+});
+
+const stars = new THREE.Points(starGeo,starMat);
+scene.add(stars);
+
+/* ---------------- CENTER ---------------- */
 
 const you = new THREE.Mesh(
-new THREE.SphereGeometry(1.1, 64, 64),
+new THREE.SphereGeometry(1.1,64,64),
 new THREE.MeshStandardMaterial({
-color: 0x7ee7ff,
-emissive: 0x44ccff,
-emissiveIntensity: 0.6
+color:0x7ee7ff,
+emissive:0x44ccff,
+emissiveIntensity:0.6
 })
 );
 
 scene.add(you);
 
-/* -------------------- PLANETS -------------------- */
+/* ---------------- PLANETS ---------------- */
 
 const psychology = new THREE.Mesh(
 new THREE.SphereGeometry(0.7,64,64),
@@ -69,11 +96,11 @@ scene.add(science);
 scene.add(philosophy);
 scene.add(learning);
 
-/* -------------------- PLANET GLOW -------------------- */
+/* ---------------- GLOW ---------------- */
 
-function addGlow(planet,color,size){
+function glow(planet,color,size){
 
-const glow = new THREE.Mesh(
+const g = new THREE.Mesh(
 new THREE.SphereGeometry(size,64,64),
 new THREE.MeshBasicMaterial({
 color:color,
@@ -82,18 +109,18 @@ opacity:0.25
 })
 );
 
-planet.add(glow);
+planet.add(g);
 
 }
 
-addGlow(psychology,0xff8899,0.9);
-addGlow(science,0x66ff99,1.0);
-addGlow(philosophy,0xffdd88,1.1);
-addGlow(learning,0xaa99ff,1.0);
+glow(psychology,0xff8899,0.9);
+glow(science,0x66ff99,1.0);
+glow(philosophy,0xffdd88,1.1);
+glow(learning,0xaa99ff,1.0);
 
-/* -------------------- ORBIT RINGS -------------------- */
+/* ---------------- ORBITS ---------------- */
 
-function createOrbit(radius){
+function orbit(radius){
 
 const points=[];
 
@@ -111,10 +138,10 @@ Math.sin(angle)*radius
 
 }
 
-const geometry = new THREE.BufferGeometry().setFromPoints(points);
+const geo=new THREE.BufferGeometry().setFromPoints(points);
 
-const orbit = new THREE.Line(
-geometry,
+const ring=new THREE.Line(
+geo,
 new THREE.LineBasicMaterial({
 color:0xffffff,
 transparent:true,
@@ -122,126 +149,150 @@ opacity:0.2
 })
 );
 
-scene.add(orbit);
+scene.add(ring);
 
 }
 
-createOrbit(3);
-createOrbit(4);
-createOrbit(5);
-createOrbit(6);
+orbit(3);
+orbit(4);
+orbit(5);
+orbit(6);
 
-/* -------------------- STARFIELD -------------------- */
+/* ---------------- LABELS ---------------- */
 
-const starGeometry = new THREE.BufferGeometry();
-const starVertices = [];
+function label(text){
 
-for(let i=0;i<2000;i++){
+const div=document.createElement("div");
 
-starVertices.push((Math.random()-0.5)*200);
-starVertices.push((Math.random()-0.5)*200);
-starVertices.push((Math.random()-0.5)*200);
+div.textContent=text;
+div.style.position="absolute";
+div.style.color="white";
+div.style.fontSize="14px";
+div.style.pointerEvents="none";
 
-}
-
-starGeometry.setAttribute(
-"position",
-new THREE.Float32BufferAttribute(starVertices,3)
-);
-
-const starMaterial = new THREE.PointsMaterial({
-color:0xffffff,
-size:0.7
-});
-
-const stars = new THREE.Points(starGeometry,starMaterial);
-
-scene.add(stars);
-
-/* -------------------- LABELS -------------------- */
-
-function createLabel(text){
-
-const div = document.createElement("div");
-div.textContent = text;
-div.style.position = "absolute";
-div.style.color = "white";
-div.style.fontSize = "14px";
-div.style.pointerEvents = "none";
 document.body.appendChild(div);
 
 return div;
 
 }
 
-const labelYou = createLabel("YOU");
-const labelPsychology = createLabel("Psychology");
-const labelScience = createLabel("Science");
-const labelPhilosophy = createLabel("Philosophy");
-const labelLearning = createLabel("Learning");
+const Lyou = label("YOU");
+const Lpsy = label("Psychology");
+const Lsci = label("Science");
+const Lphi = label("Philosophy");
+const Llea = label("Learning");
 
-/* -------------------- ANIMATION -------------------- */
+/* ---------------- UI PANEL ---------------- */
 
-let time = 0;
+const panel = document.createElement("div");
+
+panel.style.position="absolute";
+panel.style.bottom="30px";
+panel.style.left="50%";
+panel.style.transform="translateX(-50%)";
+panel.style.background="rgba(0,0,0,0.7)";
+panel.style.padding="20px";
+panel.style.borderRadius="10px";
+panel.style.color="white";
+panel.style.display="none";
+
+document.body.appendChild(panel);
+
+function openPanel(title){
+
+panel.innerHTML="<h2>"+title+"</h2><p>Knowledge system loading...</p>";
+panel.style.display="block";
+
+}
+
+/* ---------------- CLICK SYSTEM ---------------- */
+
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+
+window.addEventListener("click",(event)=>{
+
+mouse.x = (event.clientX / window.innerWidth)*2 - 1;
+mouse.y = -(event.clientY / window.innerHeight)*2 + 1;
+
+raycaster.setFromCamera(mouse,camera);
+
+const objects=[psychology,science,philosophy,learning];
+
+const hits = raycaster.intersectObjects(objects);
+
+if(hits.length>0){
+
+const obj=hits[0].object;
+
+if(obj===science) openPanel("Science");
+if(obj===psychology) openPanel("Psychology");
+if(obj===philosophy) openPanel("Philosophy");
+if(obj===learning) openPanel("Learning");
+
+}
+
+});
+
+/* ---------------- ANIMATION ---------------- */
+
+let time=0;
 
 function animate(){
 
 requestAnimationFrame(animate);
 
-time += 0.01;
+time+=0.01;
 
 /* ORBITS */
 
-psychology.position.x = Math.cos(time*0.9)3;
-psychology.position.z = Math.sin(time0.9)*3;
+psychology.position.x=Math.cos(time*0.9)3;
+psychology.position.z=Math.sin(time0.9)*3;
 
-science.position.x = Math.cos(time*0.7)4;
-science.position.z = Math.sin(time0.7)*4;
+science.position.x=Math.cos(time*0.7)4;
+science.position.z=Math.sin(time0.7)*4;
 
-philosophy.position.x = Math.cos(time*0.5)5;
-philosophy.position.z = Math.sin(time0.5)*5;
+philosophy.position.x=Math.cos(time*0.5)5;
+philosophy.position.z=Math.sin(time0.5)*5;
 
-learning.position.x = Math.cos(time*0.3)6;
-learning.position.z = Math.sin(time0.3)*6;
+learning.position.x=Math.cos(time*0.3)6;
+learning.position.z=Math.sin(time0.3)*6;
 
 /* ROTATION */
 
-psychology.rotation.y += 0.003;
-science.rotation.y += 0.003;
-philosophy.rotation.y += 0.003;
-learning.rotation.y += 0.003;
-
-/* STAR TWINKLE */
-
-stars.material.size = 0.6 + Math.sin(time*2)*0.2;
+psychology.rotation.y+=0.003;
+science.rotation.y+=0.003;
+philosophy.rotation.y+=0.003;
+learning.rotation.y+=0.003;
 
 /* CAMERA DRIFT */
 
-camera.position.x = Math.sin(time*0.1)0.5;
-camera.position.y = Math.cos(time0.1)*0.3;
+camera.position.x=Math.sin(time*0.1)0.5;
+camera.position.y=4+Math.cos(time0.1)*0.3;
 
 camera.lookAt(0,0,0);
 
-/* UPDATE LABEL POSITIONS */
+/* STAR TWINKLE */
 
-function updateLabel(mesh,label){
+stars.material.size=0.6+Math.sin(time*2)*0.2;
 
-const vector = mesh.position.clone();
-vector.project(camera);
+/* LABEL POSITION */
 
-const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
-const y = (-vector.y * 0.5 + 0.5) * window.innerHeight;
+function update(mesh,label){
 
-label.style.left = x + "px";
-label.style.top = y + "px";
+const v=mesh.position.clone();
+v.project(camera);
+
+label.style.left=((v.x*0.5+0.5)window.innerWidth)+"px";
+label.style.top=((-v.y0.5+0.5)*window.innerHeight)+"px";
 
 }
 
-updateLabel(you,labelYou);
-updateLabel(psychology,labelPsychology);
-updateLabel(science,labelScience);
-updateLabel(philosophy,labelPhilosophy);
-updateLabel(learning,labelLearning);
+update(you,Lyou);
+update(psychology,Lpsy);
+update(science,Lsci);
+update(philosophy,Lphi);
+update(learning,Llea);
 
 renderer.render(scene,camera);
 
@@ -249,11 +300,11 @@ renderer.render(scene,camera);
 
 animate();
 
-/* -------------------- RESIZE -------------------- */
+/* ---------------- RESIZE ---------------- */
 
 window.addEventListener("resize",()=>{
 
-camera.aspect = window.innerWidth/window.innerHeight;
+camera.aspect=window.innerWidth/window.innerHeight;
 camera.updateProjectionMatrix();
 renderer.setSize(window.innerWidth,window.innerHeight);
 
