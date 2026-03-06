@@ -3,30 +3,30 @@
 import { useEffect, useRef } from "react"
 import * as THREE from "three"
 
-export default function CuriosityMap(){
+export default function CuriosityMap() {
 
-const mountRef = useRef()
+const mountRef = useRef(null)
 
-useEffect(()=>{
+useEffect(() => {
 
 const scene = new THREE.Scene()
 
 const camera = new THREE.PerspectiveCamera(
 75,
-window.innerWidth/window.innerHeight,
+window.innerWidth / window.innerHeight,
 0.1,
 1000
 )
 
 camera.position.set(0,4,12)
 
-const renderer = new THREE.WebGLRenderer({antialias:true})
-renderer.setSize(window.innerWidth,window.innerHeight)
+const renderer = new THREE.WebGLRenderer({ antialias: true })
+renderer.setSize(window.innerWidth, window.innerHeight)
 renderer.setPixelRatio(window.devicePixelRatio)
 
 mountRef.current.appendChild(renderer.domElement)
 
-/* LIGHT */
+/* LIGHTING */
 
 const ambient = new THREE.AmbientLight(0xffffff,0.6)
 scene.add(ambient)
@@ -38,13 +38,13 @@ scene.add(light)
 /* STARFIELD */
 
 const starGeo = new THREE.BufferGeometry()
-const starVerts=[]
+const starVerts = []
 
-for(let i=0;i<2000;i++){
+for (let i = 0; i < 2000; i++) {
 
-starVerts.push((Math.random()-0.5)*200)
-starVerts.push((Math.random()-0.5)*200)
-starVerts.push((Math.random()-0.5)*200)
+starVerts.push((Math.random() - 0.5) * 200)
+starVerts.push((Math.random() - 0.5) * 200)
+starVerts.push((Math.random() - 0.5) * 200)
 
 }
 
@@ -58,10 +58,10 @@ color:0xffffff,
 size:0.7
 })
 
-const stars = new THREE.Points(starGeo,starMat)
+const stars = new THREE.Points(starGeo, starMat)
 scene.add(stars)
 
-/* CENTER */
+/* CENTER PLANET */
 
 const you = new THREE.Mesh(
 new THREE.SphereGeometry(1.2,64,64),
@@ -101,7 +101,7 @@ scene.add(science)
 scene.add(philosophy)
 scene.add(learning)
 
-/* GLOW */
+/* PLANET GLOW */
 
 function glow(planet,color,size){
 
@@ -131,7 +131,7 @@ const points=[]
 
 for(let i=0;i<=64;i++){
 
-const angle=(i/64)Math.PI2
+const angle=(i/64)(Math.PI2)
 
 points.push(
 new THREE.Vector3(
@@ -143,9 +143,9 @@ Math.sin(angle)*radius
 
 }
 
-const geo = new THREE.BufferGeometry().setFromPoints(points)
+const geo=new THREE.BufferGeometry().setFromPoints(points)
 
-const ring = new THREE.Line(
+const ring=new THREE.Line(
 geo,
 new THREE.LineBasicMaterial({
 color:0xffffff,
@@ -163,15 +163,15 @@ orbit(4)
 orbit(5)
 orbit(6)
 
-/* CLICK SYSTEM */
+/* CLICK INTERACTION */
 
 const raycaster = new THREE.Raycaster()
 const mouse = new THREE.Vector2()
 
 window.addEventListener("click",(event)=>{
 
-mouse.x=(event.clientX/window.innerWidth)*2-1
-mouse.y=-(event.clientY/window.innerHeight)*2+1
+mouse.x = (event.clientX / window.innerWidth) * 2 - 1
+mouse.y = -(event.clientY / window.innerHeight) * 2 + 1
 
 raycaster.setFromCamera(mouse,camera)
 
@@ -240,15 +240,17 @@ renderer.setSize(window.innerWidth,window.innerHeight)
 
 })
 
-return()=>{
+return () => {
 
+if(mountRef.current){
 mountRef.current.removeChild(renderer.domElement)
+}
 
 }
 
 },[])
 
-return(
+return (
 
 <div
 ref={mountRef}
