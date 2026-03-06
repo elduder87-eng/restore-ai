@@ -19,16 +19,16 @@ document.body.appendChild(renderer.domElement);
 const ambientLight = new THREE.AmbientLight(0xffffff,0.7);
 scene.add(ambientLight);
 
-const light = new THREE.PointLight(0xffffff,1.4);
+const light = new THREE.PointLight(0xffffff,1.5);
 light.position.set(10,10,10);
 scene.add(light);
 
 const loader = new THREE.TextureLoader();
 
-const earthTexture = loader.load("./textures/images (12).jpeg");
-const marsTexture = loader.load("./textures/images (13).jpeg");
-const saturnTexture = loader.load("./textures/images (14).jpeg");
-const neptuneTexture = loader.load("./textures/images (15).jpeg");
+const earthTexture = loader.load("./textures/earth.jpg");
+const marsTexture = loader.load("./textures/mars.jpg");
+const saturnTexture = loader.load("./textures/saturn.jpg");
+const neptuneTexture = loader.load("./textures/neptune.jpg");
 
 const psychology = new THREE.Mesh(
 new THREE.SphereGeometry(0.7,64,64),
@@ -116,10 +116,7 @@ new THREE.Float32BufferAttribute(starVertices,3)
 
 const stars = new THREE.Points(
 starsGeometry,
-new THREE.PointsMaterial({
-color:0xffffff,
-size:0.7
-})
+new THREE.PointsMaterial({color:0xffffff,size:0.7})
 );
 
 scene.add(stars);
