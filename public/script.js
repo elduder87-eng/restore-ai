@@ -1,11 +1,11 @@
-import * as THREE from "three";
+import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color("#020617");
 
 const camera = new THREE.PerspectiveCamera(
 60,
-window.innerWidth / window.innerHeight,
+window.innerWidth/window.innerHeight,
 0.1,
 1000
 );
@@ -16,8 +16,8 @@ const renderer = new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(window.innerWidth,window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-const ambient = new THREE.AmbientLight(0xffffff,0.5);
-scene.add(ambient);
+const ambientLight = new THREE.AmbientLight(0xffffff,0.6);
+scene.add(ambientLight);
 
 const light = new THREE.PointLight(0xffffff,1.2);
 light.position.set(10,10,10);
@@ -61,6 +61,7 @@ radius,radius,
 );
 
 const points = curve.getPoints(100);
+
 const geometry = new THREE.BufferGeometry().setFromPoints(points);
 
 const material = new THREE.LineBasicMaterial({
@@ -81,19 +82,19 @@ createOrbit(8);
 createOrbit(11);
 createOrbit(14);
 
-const userGeo = new THREE.SphereGeometry(1.3,64,64);
+const userGeometry = new THREE.SphereGeometry(1.3,64,64);
 
-const userMat = new THREE.MeshStandardMaterial({
+const userMaterial = new THREE.MeshStandardMaterial({
 color:"#7df9ff",
 emissive:"#7df9ff",
 emissiveIntensity:1
 });
 
-const user = new THREE.Mesh(userGeo,userMat);
+const user = new THREE.Mesh(userGeometry,userMaterial);
 scene.add(user);
 
-const starsGeo = new THREE.BufferGeometry();
-const starVerts = [];
+const starsGeometry = new THREE.BufferGeometry();
+const starVertices = [];
 
 for(let i=0;i<20000;i++){
 
@@ -101,21 +102,21 @@ const x = THREE.MathUtils.randFloatSpread(600);
 const y = THREE.MathUtils.randFloatSpread(600);
 const z = THREE.MathUtils.randFloatSpread(600);
 
-starVerts.push(x,y,z);
+starVertices.push(x,y,z);
 
 }
 
-starsGeo.setAttribute(
+starsGeometry.setAttribute(
 "position",
-new THREE.Float32BufferAttribute(starVerts,3)
+new THREE.Float32BufferAttribute(starVertices,3)
 );
 
-const starsMat = new THREE.PointsMaterial({
+const starsMaterial = new THREE.PointsMaterial({
 color:0xffffff,
 size:0.7
 });
 
-const stars = new THREE.Points(starsGeo,starsMat);
+const stars = new THREE.Points(starsGeometry,starsMaterial);
 scene.add(stars);
 
 let t = 0;
