@@ -11,7 +11,7 @@ window.innerWidth / window.innerHeight,
 
 camera.position.z = 12;
 
-const renderer = new THREE.WebGLRenderer({ antialias:true });
+const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -22,12 +22,12 @@ document.body.appendChild(renderer.domElement);
 
 /* LIGHTING */
 
-const ambientLight = new THREE.AmbientLight(0xffffff,0.7);
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
 scene.add(ambientLight);
 
-const sunLight = new THREE.PointLight(0xffffff,2);
-sunLight.position.set(10,10,10);
-scene.add(sunLight);
+const pointLight = new THREE.PointLight(0xffffff, 2);
+pointLight.position.set(10, 10, 10);
+scene.add(pointLight);
 
 
 
@@ -35,10 +35,10 @@ scene.add(sunLight);
 
 const loader = new THREE.TextureLoader();
 
-const earthTexture = loader.load("./textures/earth.png");
-const marsTexture = loader.load("./textures/mars.png");
-const saturnTexture = loader.load("./textures/saturn.png");
-const neptuneTexture = loader.load("./textures/neptune.png");
+const earthTexture = loader.load("/textures/earth.png");
+const marsTexture = loader.load("/textures/mars.png");
+const saturnTexture = loader.load("/textures/saturn.png");
+const neptuneTexture = loader.load("/textures/neptune.png");
 
 earthTexture.colorSpace = THREE.SRGBColorSpace;
 marsTexture.colorSpace = THREE.SRGBColorSpace;
@@ -47,14 +47,14 @@ neptuneTexture.colorSpace = THREE.SRGBColorSpace;
 
 
 
-/* CENTER PLANET */
+/* CENTER */
 
 const you = new THREE.Mesh(
-new THREE.SphereGeometry(1.1,64,64),
+new THREE.SphereGeometry(1.1, 64, 64),
 new THREE.MeshStandardMaterial({
-color:0x7ee7ff,
-emissive:0x44ccff,
-emissiveIntensity:0.6
+color: 0x7ee7ff,
+emissive: 0x44ccff,
+emissiveIntensity: 0.6
 })
 );
 
@@ -65,23 +65,23 @@ scene.add(you);
 /* PLANETS */
 
 const psychology = new THREE.Mesh(
-new THREE.SphereGeometry(0.7,64,64),
-new THREE.MeshStandardMaterial({ map:earthTexture })
+new THREE.SphereGeometry(0.7, 64, 64),
+new THREE.MeshStandardMaterial({ map: earthTexture })
 );
 
 const science = new THREE.Mesh(
-new THREE.SphereGeometry(0.8,64,64),
-new THREE.MeshStandardMaterial({ map:marsTexture })
+new THREE.SphereGeometry(0.8, 64, 64),
+new THREE.MeshStandardMaterial({ map: marsTexture })
 );
 
 const philosophy = new THREE.Mesh(
-new THREE.SphereGeometry(0.9,64,64),
-new THREE.MeshStandardMaterial({ map:saturnTexture })
+new THREE.SphereGeometry(0.9, 64, 64),
+new THREE.MeshStandardMaterial({ map: saturnTexture })
 );
 
 const learning = new THREE.Mesh(
-new THREE.SphereGeometry(0.85,64,64),
-new THREE.MeshStandardMaterial({ map:neptuneTexture })
+new THREE.SphereGeometry(0.85, 64, 64),
+new THREE.MeshStandardMaterial({ map: neptuneTexture })
 );
 
 scene.add(psychology);
@@ -91,34 +91,34 @@ scene.add(learning);
 
 
 
-/* ORBIT RINGS */
+/* ORBITS */
 
 const orbitMaterial = new THREE.LineBasicMaterial({
-color:0xffffff,
-transparent:true,
-opacity:0.2
+color: 0xffffff,
+transparent: true,
+opacity: 0.2
 });
 
-function createOrbit(radius){
+function createOrbit(radius) {
 
-const points=[];
+const points = [];
 
-for(let i=0;i<=64;i++){
+for (let i = 0; i <= 64; i++) {
 
-const angle=(i/64)*Math.PI*2;
+const angle = (i / 64) * Math.PI * 2;
 
 points.push(
 new THREE.Vector3(
-Math.cos(angle)*radius,
+Math.cos(angle) * radius,
 0,
-Math.sin(angle)*radius
+Math.sin(angle) * radius
 )
 );
 
 }
 
 const geometry = new THREE.BufferGeometry().setFromPoints(points);
-const orbit = new THREE.Line(geometry,orbitMaterial);
+const orbit = new THREE.Line(geometry, orbitMaterial);
 
 scene.add(orbit);
 
@@ -136,25 +136,25 @@ createOrbit(6);
 const starGeometry = new THREE.BufferGeometry();
 const starVertices = [];
 
-for(let i=0;i<2000;i++){
+for (let i = 0; i < 2000; i++) {
 
-starVertices.push((Math.random()-0.5)*200);
-starVertices.push((Math.random()-0.5)*200);
-starVertices.push((Math.random()-0.5)*200);
+starVertices.push((Math.random() - 0.5) * 200);
+starVertices.push((Math.random() - 0.5) * 200);
+starVertices.push((Math.random() - 0.5) * 200);
 
 }
 
 starGeometry.setAttribute(
 "position",
-new THREE.Float32BufferAttribute(starVertices,3)
+new THREE.Float32BufferAttribute(starVertices, 3)
 );
 
 const starMaterial = new THREE.PointsMaterial({
-color:0xffffff,
-size:0.7
+color: 0xffffff,
+size: 0.7
 });
 
-const stars = new THREE.Points(starGeometry,starMaterial);
+const stars = new THREE.Points(starGeometry, starMaterial);
 scene.add(stars);
 
 
@@ -163,30 +163,30 @@ scene.add(stars);
 
 let time = 0;
 
-function animate(){
+function animate() {
 
 requestAnimationFrame(animate);
 
 time += 0.01;
 
-psychology.position.x = Math.cos(time*0.9)*3;
-psychology.position.z = Math.sin(time*0.9)*3;
+psychology.position.x = Math.cos(time * 0.9) * 3;
+psychology.position.z = Math.sin(time * 0.9) * 3;
 
-science.position.x = Math.cos(time*0.7)*4;
-science.position.z = Math.sin(time*0.7)*4;
+science.position.x = Math.cos(time * 0.7) * 4;
+science.position.z = Math.sin(time * 0.7) * 4;
 
-philosophy.position.x = Math.cos(time*0.5)*5;
-philosophy.position.z = Math.sin(time*0.5)*5;
+philosophy.position.x = Math.cos(time * 0.5) * 5;
+philosophy.position.z = Math.sin(time * 0.5) * 5;
 
-learning.position.x = Math.cos(time*0.3)*6;
-learning.position.z = Math.sin(time*0.3)*6;
+learning.position.x = Math.cos(time * 0.3) * 6;
+learning.position.z = Math.sin(time * 0.3) * 6;
 
 psychology.rotation.y += 0.004;
 science.rotation.y += 0.004;
 philosophy.rotation.y += 0.004;
 learning.rotation.y += 0.004;
 
-renderer.render(scene,camera);
+renderer.render(scene, camera);
 
 }
 
@@ -194,12 +194,12 @@ animate();
 
 
 
-/* MOBILE RESIZE FIX */
+/* RESIZE */
 
-window.addEventListener("resize",()=>{
+window.addEventListener("resize", () => {
 
-camera.aspect = window.innerWidth/window.innerHeight;
+camera.aspect = window.innerWidth / window.innerHeight;
 camera.updateProjectionMatrix();
-renderer.setSize(window.innerWidth,window.innerHeight);
+renderer.setSize(window.innerWidth, window.innerHeight);
 
 });
