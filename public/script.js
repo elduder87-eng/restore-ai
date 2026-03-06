@@ -12,9 +12,11 @@ window.innerWidth / window.innerHeight,
 
 camera.position.set(0,6,18);
 
-const renderer = new THREE.WebGLRenderer({antialias:true});
+const renderer = new THREE.WebGLRenderer({ antialias:true });
 renderer.setSize(window.innerWidth,window.innerHeight);
 document.body.appendChild(renderer.domElement);
+
+/* LIGHTING */
 
 const ambientLight = new THREE.AmbientLight(0xffffff,0.7);
 scene.add(ambientLight);
@@ -23,21 +25,27 @@ const light = new THREE.PointLight(0xffffff,1.5);
 light.position.set(10,10,10);
 scene.add(light);
 
+/* TEXTURE LOADER */
+
 const loader = new THREE.TextureLoader();
 
 let psychology, science, philosophy, learning;
 
+/* LOAD PLANET TEXTURES */
+
 Promise.all([
-loader.loadAsync("./textures/earth.jpg"),
-loader.loadAsync("./textures/mars.jpg"),
-loader.loadAsync("./textures/saturn.jpg"),
-loader.loadAsync("./textures/neptune.jpg")
+loader.loadAsync("/textures/earth.png"),
+loader.loadAsync("/textures/mars.png"),
+loader.loadAsync("/textures/saturn.png"),
+loader.loadAsync("/textures/neptune.png")
 ]).then(([earth, mars, saturn, neptune]) => {
 
 earth.colorSpace = THREE.SRGBColorSpace;
 mars.colorSpace = THREE.SRGBColorSpace;
 saturn.colorSpace = THREE.SRGBColorSpace;
 neptune.colorSpace = THREE.SRGBColorSpace;
+
+/* PLANETS */
 
 psychology = new THREE.Mesh(
 new THREE.SphereGeometry(0.7,64,64),
@@ -66,15 +74,27 @@ scene.add(learning);
 
 });
 
+/* USER CENTER NODE */
+
+const user = new THREE.Mesh(
+new THREE.SphereGeometry(1.3,64,64),
+new THREE.MeshStandardMaterial({
+color:"#7df9ff",
+emissive:"#7df9ff",
+emissiveIntensity:1
+})
+);
+
+scene.add(user);
+
+/* ORBIT RINGS */
+
 function createOrbit(radius){
 
 const curve = new THREE.EllipseCurve(
-0,
-0,
-radius,
-radius,
-0,
-2 * Math.PI
+0,0,
+radius,radius,
+0,2*Math.PI
 );
 
 const points = curve.getPoints(100);
@@ -88,6 +108,7 @@ opacity:0.15
 });
 
 const orbit = new THREE.LineLoop(geometry,material);
+
 orbit.rotation.x = Math.PI/2;
 
 scene.add(orbit);
@@ -99,16 +120,7 @@ createOrbit(8);
 createOrbit(11);
 createOrbit(14);
 
-const user = new THREE.Mesh(
-new THREE.SphereGeometry(1.3,64,64),
-new THREE.MeshStandardMaterial({
-color:"#7df9ff",
-emissive:"#7df9ff",
-emissiveIntensity:1
-})
-);
-
-scene.add(user);
+/* STARFIELD */
 
 const starsGeometry = new THREE.BufferGeometry();
 const starVertices = [];
@@ -137,6 +149,8 @@ size:0.7
 );
 
 scene.add(stars);
+
+/* ANIMATION */
 
 let t = 0;
 
@@ -172,6 +186,8 @@ Math.cos(t)*14,
 Math.sin(t)*14
 );
 
+/* PLANET ROTATION */
+
 psychology.rotation.y += 0.002;
 science.rotation.y += 0.002;
 philosophy.rotation.y += 0.002;
@@ -185,10 +201,13 @@ renderer.render(scene,camera);
 
 animate();
 
+/* RESIZE */
+
 window.addEventListener("resize",()=>{
 
 camera.aspect = window.innerWidth/window.innerHeight;
 camera.updateProjectionMatrix();
+
 renderer.setSize(window.innerWidth,window.innerHeight);
 
 });
