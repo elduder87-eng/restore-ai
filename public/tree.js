@@ -1,147 +1,126 @@
-import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
 
-//////////////////////////////
+/////////////////////////////////////////////////
 // SCENE
-//////////////////////////////
+/////////////////////////////////////////////////
 
-const scene = new THREE.Scene();
+const scene = new THREE.Scene()
 
 const camera = new THREE.PerspectiveCamera(
-75,
-window.innerWidth / window.innerHeight,
-0.1,
-1000
-);
+  75,
+  window.innerWidth / window.innerHeight,
+  0.1,
+  1000
+)
 
-camera.position.z = 10;
+camera.position.z = 10
 
-//////////////////////////////
-// RENDERER
-//////////////////////////////
+const renderer = new THREE.WebGLRenderer({ antialias: true })
+renderer.setSize(window.innerWidth, window.innerHeight)
 
-const renderer = new THREE.WebGLRenderer({ antialias:true });
+document.body.appendChild(renderer.domElement)
 
-renderer.setSize(window.innerWidth, window.innerHeight);
+/////////////////////////////////////////////////
+// TEXTURE LOADER
+/////////////////////////////////////////////////
 
-document.body.style.margin = 0;
-document.body.appendChild(renderer.domElement);
+const textureLoader = new THREE.TextureLoader()
 
-//////////////////////////////
-// LIGHT
-//////////////////////////////
-
-const light = new THREE.PointLight(0xffffff,1);
-light.position.set(10,10,10);
-scene.add(light);
-
-//////////////////////////////
+/////////////////////////////////////////////////
 // STARFIELD
-//////////////////////////////
+/////////////////////////////////////////////////
 
-const starGeometry = new THREE.BufferGeometry();
-const starVertices = [];
+const starGeo = new THREE.BufferGeometry()
 
-for(let i=0;i<1500;i++){
+const starVerts = []
 
-starVertices.push(
-(Math.random()-0.5)*400,
-(Math.random()-0.5)*400,
-(Math.random()-0.5)*400
-);
+for (let i = 0; i < 2000; i++) {
 
-}
-
-starGeometry.setAttribute(
-"position",
-new THREE.Float32BufferAttribute(starVertices,3)
-);
-
-const starMaterial = new THREE.PointsMaterial({
-color:0xffffff,
-size:1
-});
-
-const stars = new THREE.Points(starGeometry,starMaterial);
-scene.add(stars);
-
-//////////////////////////////
-// SEED
-//////////////////////////////
-
-const seedGeometry = new THREE.SphereGeometry(0.5,32,32);
-
-const seedMaterial = new THREE.MeshStandardMaterial({
-color:0x66ccff,
-emissive:0x2244ff
-});
-
-const seed = new THREE.Mesh(seedGeometry,seedMaterial);
-scene.add(seed);
-
-//////////////////////////////
-// NODE SYSTEM
-//////////////////////////////
-
-const nodes = [];
-
-function createNode(){
-
-const angle = Math.random()Math.PI2;
-const distance = 2 + Math.random()*3;
-
-const x = Math.cos(angle)*distance;
-const y = Math.sin(angle)*distance;
-const z = (Math.random()-0.5)*2;
-
-const geo = new THREE.SphereGeometry(0.2,16,16);
-
-const mat = new THREE.MeshStandardMaterial({
-color:0xffffff,
-emissive:0x333333
-});
-
-const node = new THREE.Mesh(geo,mat);
-
-node.position.set(x,y,z);
-
-scene.add(node);
-
-nodes.push(node);
+  starVerts.push(
+    (Math.random() - 0.5) * 600,
+    (Math.random() - 0.5) * 600,
+    (Math.random() - 0.5) * 600
+  )
 
 }
 
-//////////////////////////////
-// CLICK = GROW
-//////////////////////////////
+starGeo.setAttribute(
+  "position",
+  new THREE.Float32BufferAttribute(starVerts, 3)
+)
 
-window.addEventListener("click",createNode);
+let starTexture
 
-//////////////////////////////
-// ANIMATE
-//////////////////////////////
+try {
+  starTexture = textureLoader.load("textures/star.png")
+} catch (e) {
+  console.log("Star texture failed, using fallback")
+}
 
-function animate(){
+let starMat
 
-requestAnimationFrame(animate);
+if (starTexture) {
 
-seed.rotation.y += 0.01;
-stars.rotation.y += 0.0003;
+  starMat = new THREE.PointsMaterial({
+    size: 1.5,
+    map: starTexture,
+    transparent: true,
+    depthWrite: false
+  })
 
-renderer.render(scene,camera);
+} else {
+
+  starMat = new THREE.PointsMaterial({
+    color: 0xffffff,
+    size: 1
+  })
 
 }
 
-animate();
+const stars = new THREE.Points(starGeo, starMat)
+scene.add(stars)
 
-//////////////////////////////
-// RESIZE
-//////////////////////////////
+/////////////////////////////////////////////////
+// SEED (CENTER OF TREE)
+/////////////////////////////////////////////////
 
-window.addEventListener("resize",()=>{
+const seedGeo = new THREE.SphereGeometry(1.2, 32, 32)
 
-camera.aspect = window.innerWidth / window.innerHeight;
-camera.updateProjectionMatrix();
+const seedMat = new THREE.MeshBasicMaterial({
+  color: 0x66ccff
+})
 
-renderer.setSize(window.innerWidth, window.innerHeight);
+const seed = new THREE.Mesh(seedGeo, seedMat)
 
-});
+scene.add(seed)
+
+/////////////////////////////////////////////////
+// ANIMATION
+/////////////////////////////////////////////////
+
+function animate() {
+
+  requestAnimationFrame(animate)
+
+  // gentle seed pulse
+  const scale = 1 + Math.sin(Date.now() * 0.002) * 0.05
+  seed.scale.set(scale, scale, scale)
+
+  renderer.render(scene, camera)
+
+}
+
+animate()
+
+/////////////////////////////////////////////////
+// RESIZE FIX
+/////////////////////////////////////////////////
+
+window.addEventListener("resize", () => {
+
+  camera.aspect = window.innerWidth / window.innerHeight
+  camera.updateProjectionMatrix()
+
+  renderer.setSize(window.innerWidth, window.innerHeight)
+
+})
