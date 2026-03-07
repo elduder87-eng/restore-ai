@@ -2,29 +2,44 @@ export default function Dashboard() {
   return (
     <div style={styles.page}>
 
-      {/* Header */}
+      {/* NAVBAR */}
 
-      <header style={styles.header}>
-        <h1 style={styles.title}>Restore</h1>
-        <p style={styles.subtitle}>A Renewed Understanding Experience</p>
-      </header>
+      <div style={styles.navbar}>
+        <div style={styles.logo}>Restore</div>
 
-      {/* Top Grid */}
+        <div style={styles.navlinks}>
+          <a href="/">Home</a>
+          <a href="/dashboard">Dashboard</a>
+          <a href="/universe">Universe</a>
+          <a href="/profile">Profile</a>
+        </div>
+      </div>
 
-      <div style={styles.grid3}>
+
+      {/* HEADER */}
+
+      <div style={styles.header}>
+        <h1>Dashboard</h1>
+        <p>A Renewed Understanding Experience</p>
+      </div>
+
+
+      {/* GRID */}
+
+      <div style={styles.grid}>
 
         {/* Understanding Pulse */}
 
         <div style={styles.card}>
           <h3>Understanding Pulse</h3>
 
-          {Pulse("Connecting", 32)}
-          {Pulse("Reflecting", 28)}
-          {Pulse("Curious", 22)}
-          {Pulse("Confused", 12)}
-          {Pulse("Exploring", 6)}
-
+          <Pulse label="Connecting" value={70} />
+          <Pulse label="Reflecting" value={55} />
+          <Pulse label="Curious" value={40} />
+          <Pulse label="Confused" value={20} />
+          <Pulse label="Exploring" value={15} />
         </div>
+
 
         {/* Confusion Signals */}
 
@@ -34,8 +49,8 @@ export default function Dashboard() {
           <p>🔴 Electric Circuits</p>
           <p>🟡 Limits in Calculus</p>
           <p>🟡 Plate Tectonics</p>
-
         </div>
+
 
         {/* Curiosity Activity */}
 
@@ -47,14 +62,8 @@ export default function Dashboard() {
             <li>Evolution</li>
             <li>Ancient civilizations</li>
           </ul>
-
         </div>
 
-      </div>
-
-      {/* Bottom Grid */}
-
-      <div style={styles.grid2}>
 
         {/* Learning Moments */}
 
@@ -64,19 +73,30 @@ export default function Dashboard() {
           <p>Emma — Connected Galileo & Motion</p>
           <p>James — Understood Ionic Bonds</p>
           <p>Sarah — Reflected on Moon Phases</p>
-
         </div>
+
 
         {/* Suggested Next Steps */}
 
         <div style={styles.card}>
           <h3>Suggested Next Steps</h3>
 
-          <p>🔁 Review: Limits in Calculus</p>
-          <p>🔎 Explore: How gravity bends space</p>
+          <p>📚 Review: Limits in Calculus</p>
+          <p>🔍 Explore: How gravity bends space</p>
           <p>🔗 Connect: Galileo → planetary motion</p>
           <p>💭 Reflect: Why do moon phases change?</p>
+        </div>
 
+
+        {/* Current Session */}
+
+        <div style={styles.card}>
+          <h3>Current Session</h3>
+
+          <p><b>Topic:</b> Gravity and Orbits</p>
+          <p><b>State:</b> Reflecting</p>
+          <p><b>Questions Asked:</b> 7</p>
+          <p><b>Connections Made:</b> 3</p>
         </div>
 
       </div>
@@ -86,23 +106,20 @@ export default function Dashboard() {
 }
 
 
-/* Pulse Bar */
 
-function Pulse(label, value) {
+function Pulse({ label, value }) {
   return (
-    <div style={{marginBottom:"12px"}}>
+    <div style={{ marginBottom: 10 }}>
 
       <div>{label}</div>
 
       <div style={styles.barBackground}>
-
         <div
           style={{
             ...styles.barFill,
             width: value + "%"
           }}
         />
-
       </div>
 
     </div>
@@ -110,7 +127,6 @@ function Pulse(label, value) {
 }
 
 
-/* Styles */
 
 const styles = {
 
@@ -118,54 +134,55 @@ page: {
   fontFamily: "Arial",
   background: "#f4f7fb",
   minHeight: "100vh",
-  padding: "30px"
+  padding: "20px"
 },
 
-header: {
-  marginBottom: "20px"
+navbar: {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  marginBottom: "30px"
 },
 
-title: {
-  color: "#3a6fb0",
-  margin: 0
+logo: {
+  fontSize: "22px",
+  fontWeight: "bold",
+  color: "#3a6fb0"
 },
 
-subtitle: {
-  marginTop: "5px",
-  color: "#666"
-},
-
-grid3: {
-  display: "grid",
-  gridTemplateColumns: "1fr 1fr 1fr",
+navlinks: {
+  display: "flex",
   gap: "20px"
 },
 
-grid2: {
+header: {
+  marginBottom: "25px"
+},
+
+grid: {
   display: "grid",
-  gridTemplateColumns: "1fr 1fr",
-  gap: "20px",
-  marginTop: "20px"
+  gridTemplateColumns: "repeat(auto-fit, minmax(250px,1fr))",
+  gap: "20px"
 },
 
 card: {
   background: "white",
   padding: "20px",
-  borderRadius: "10px",
-  boxShadow: "0 2px 6px rgba(0,0,0,0.08)"
+  borderRadius: "12px",
+  boxShadow: "0 6px 14px rgba(0,0,0,0.08)"
 },
 
 barBackground: {
-  height: "8px",
-  background: "#e4e8f0",
-  borderRadius: "4px",
+  height: "10px",
+  background: "#e5e8ef",
+  borderRadius: "5px",
   marginTop: "4px"
 },
 
 barFill: {
-  height: "8px",
+  height: "10px",
   background: "#4a90e2",
-  borderRadius: "4px"
+  borderRadius: "5px"
 }
 
 }
