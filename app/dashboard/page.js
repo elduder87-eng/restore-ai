@@ -24,6 +24,18 @@ export default function Dashboard() {
       </div>
 
 
+      {/* TODAY'S INSIGHT */}
+
+      <div style={styles.insightCard}>
+        <h3>Today's Insight</h3>
+
+        <p>
+          You tend to form strong connections when reflecting on examples.
+          Try exploring one new question today to deepen understanding.
+        </p>
+      </div>
+
+
       {/* GRID */}
 
       <div style={styles.grid}>
@@ -107,6 +119,8 @@ export default function Dashboard() {
 
 
 
+/* Pulse Bar */
+
 function Pulse({ label, value }) {
   return (
     <div style={{ marginBottom: 10 }}>
@@ -128,13 +142,15 @@ function Pulse({ label, value }) {
 
 
 
+/* STYLES */
+
 const styles = {
 
 page: {
   fontFamily: "Arial",
   background: "#f4f7fb",
   minHeight: "100vh",
-  padding: "20px"
+  padding: "24px"
 },
 
 navbar: {
@@ -145,18 +161,28 @@ navbar: {
 },
 
 logo: {
-  fontSize: "22px",
+  fontSize: "24px",
   fontWeight: "bold",
   color: "#3a6fb0"
 },
 
 navlinks: {
   display: "flex",
-  gap: "20px"
+  gap: "20px",
+  color: "#6b7280"
 },
 
 header: {
   marginBottom: "25px"
+},
+
+insightCard: {
+  background: "white",
+  padding: "22px",
+  borderRadius: "12px",
+  boxShadow: "0 8px 20px rgba(0,0,0,0.08)",
+  marginBottom: "25px",
+  borderLeft: "5px solid #4a90e2"
 },
 
 grid: {
@@ -169,7 +195,7 @@ card: {
   background: "white",
   padding: "20px",
   borderRadius: "12px",
-  boxShadow: "0 6px 14px rgba(0,0,0,0.08)"
+  boxShadow: "0 8px 20px rgba(0,0,0,0.08)"
 },
 
 barBackground: {
@@ -185,4 +211,4 @@ barFill: {
   borderRadius: "5px"
 }
 
-}
+          }
