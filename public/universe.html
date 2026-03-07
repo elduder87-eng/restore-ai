@@ -10,6 +10,10 @@ overflow:hidden;
 
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
 
+////////////////////////////////////////////////
+// SCENE
+////////////////////////////////////////////////
+
 const scene = new THREE.Scene();
 
 const camera = new THREE.PerspectiveCamera(
@@ -19,29 +23,107 @@ window.innerWidth/window.innerHeight,
 1000
 );
 
-camera.position.z = 5;
+camera.position.z = 8;
 
-const renderer = new THREE.WebGLRenderer();
+////////////////////////////////////////////////
+// RENDERER
+////////////////////////////////////////////////
+
+const renderer = new THREE.WebGLRenderer({antialias:true});
 
 renderer.setSize(window.innerWidth,window.innerHeight);
 
 document.body.appendChild(renderer.domElement);
 
-const geometry = new THREE.SphereGeometry(1,32,32);
+////////////////////////////////////////////////
+// STARFIELD
+////////////////////////////////////////////////
 
-const material = new THREE.MeshBasicMaterial({
+const starGeo = new THREE.BufferGeometry();
+const starVerts = [];
+
+for(let i=0;i<1500;i++){
+
+starVerts.push(
+(Math.random()-0.5)*400,
+(Math.random()-0.5)*400,
+(Math.random()-0.5)*400
+);
+
+}
+
+starGeo.setAttribute(
+"position",
+new THREE.Float32BufferAttribute(starVerts,3)
+);
+
+const starMat = new THREE.PointsMaterial({
+color:0xffffff,
+size:1
+});
+
+const stars = new THREE.Points(starGeo,starMat);
+
+scene.add(stars);
+
+////////////////////////////////////////////////
+// SEED (YOU)
+////////////////////////////////////////////////
+
+const seedGeo = new THREE.SphereGeometry(1,32,32);
+
+const seedMat = new THREE.MeshBasicMaterial({
 color:0x66ccff
 });
 
-const sphere = new THREE.Mesh(geometry,material);
+const seed = new THREE.Mesh(seedGeo,seedMat);
 
-scene.add(sphere);
+scene.add(seed);
+
+////////////////////////////////////////////////
+// NODES
+////////////////////////////////////////////////
+
+const nodes=[];
+
+function grow(){
+
+const angle = Math.random()*Math.PI*2;
+const distance = 3 + Math.random()*3;
+
+const x = Math.cos(angle)*distance;
+const y = Math.sin(angle)*distance;
+const z = (Math.random()-0.5)*3;
+
+const geo = new THREE.SphereGeometry(0.25,16,16);
+
+const mat = new THREE.MeshBasicMaterial({
+color:0xffffff
+});
+
+const node = new THREE.Mesh(geo,mat);
+
+node.position.set(x,y,z);
+
+scene.add(node);
+
+nodes.push(node);
+
+}
+
+window.addEventListener("click",grow);
+
+////////////////////////////////////////////////
+// ANIMATION
+////////////////////////////////////////////////
 
 function animate(){
 
 requestAnimationFrame(animate);
 
-sphere.rotation.y += 0.01;
+seed.rotation.y += 0.01;
+
+stars.rotation.y += 0.0004;
 
 renderer.render(scene,camera);
 
