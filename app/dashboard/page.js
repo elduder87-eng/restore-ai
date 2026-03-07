@@ -7,6 +7,32 @@ export default function Dashboard(){
 const [messages,setMessages] = useState([])
 const [input,setInput] = useState("")
 
+const pulse = {
+connecting:70,
+reflecting:55,
+curious:40,
+confused:20,
+exploring:15
+}
+
+function getThinkingMode(){
+
+if(pulse.reflecting > pulse.connecting && pulse.reflecting > pulse.curious)
+return "Reflective Learner"
+
+if(pulse.curious > pulse.reflecting)
+return "Curious Explorer"
+
+if(pulse.connecting > pulse.reflecting)
+return "Connecting Ideas"
+
+if(pulse.confused > 40)
+return "Clarifying Concepts"
+
+return "Exploring"
+
+}
+
 async function sendMessage(){
 
 if(!input) return
@@ -63,70 +89,49 @@ return(
 </div>
 
 
+{/* THINKING MODE */}
+
+<div style={styles.modeCard}>
+
+<h3>Current Thinking Mode</h3>
+
+<div style={styles.mode}>
+{getThinkingMode()}
+</div>
+
+<p style={styles.subtle}>
+Restore detects how you're learning based on your exploration and reflection patterns.
+</p>
+
+</div>
+
+
 {/* REFLECTION PANEL */}
 
 <div style={styles.reflectionPanel}>
 
-{/* Insight */}
-
 <div style={styles.reflectionBlock}>
 <h3>Today's Insight</h3>
-<p>
-You tend to form strong connections when reflecting on examples.
-Try exploring one new question today to deepen understanding.
-</p>
+<p>You tend to form strong connections when reflecting on examples. Try exploring one new question today to deepen understanding.</p>
 </div>
-
-
-{/* Thought */}
 
 <div style={styles.reflectionBlock}>
 <h3>Today's Thought</h3>
-
-<p style={styles.question}>
-Why don't planets fall into the sun if gravity constantly pulls them inward?
-</p>
-
-<p style={styles.subtle}>
-Take a moment to think about it today.
-</p>
-
+<p style={styles.question}>Why don't planets fall into the sun if gravity constantly pulls them inward?</p>
+<p style={styles.subtle}>Take a moment to think about it today.</p>
 </div>
-
-
-{/* Connection */}
 
 <div style={styles.reflectionBlock}>
 <h3>Today's Connection</h3>
-
-<p style={styles.question}>
-How might gravity, planetary motion, and orbital speed be connected?
-</p>
-
-<p style={styles.subtle}>
-Try linking ideas from past sessions.
-</p>
-
+<p style={styles.question}>How might gravity, planetary motion, and orbital speed be connected?</p>
+<p style={styles.subtle}>Try linking ideas from past sessions.</p>
 </div>
-
-
-{/* Curiosity */}
 
 <div style={styles.reflectionBlock}>
 <h3>Today's Curiosity</h3>
-
-<p style={styles.question}>
-What might happen if gravity suddenly weakened near Earth?
-</p>
-
-<p style={styles.subtle}>
-Let curiosity guide exploration today.
-</p>
-
+<p style={styles.question}>What might happen if gravity suddenly weakened near Earth?</p>
+<p style={styles.subtle}>Let curiosity guide exploration today.</p>
 </div>
-
-
-{/* Restore Guide */}
 
 <div style={styles.reflectionBlock}>
 
@@ -169,66 +174,51 @@ Ask
 <div style={styles.card}>
 <h3>Understanding Pulse</h3>
 
-<Pulse label="Connecting" value={70}/>
-<Pulse label="Reflecting" value={55}/>
-<Pulse label="Curious" value={40}/>
-<Pulse label="Confused" value={20}/>
-<Pulse label="Exploring" value={15}/>
+<Pulse label="Connecting" value={pulse.connecting}/>
+<Pulse label="Reflecting" value={pulse.reflecting}/>
+<Pulse label="Curious" value={pulse.curious}/>
+<Pulse label="Confused" value={pulse.confused}/>
+<Pulse label="Exploring" value={pulse.exploring}/>
 
 </div>
-
 
 <div style={styles.card}>
 <h3>Confusion Signals</h3>
-
 <p>🔴 Electric Circuits</p>
 <p>🟡 Limits in Calculus</p>
 <p>🟡 Plate Tectonics</p>
-
 </div>
-
 
 <div style={styles.card}>
 <h3>Curiosity Activity</h3>
-
 <ul>
 <li>Black holes</li>
 <li>Evolution</li>
 <li>Ancient civilizations</li>
 </ul>
-
 </div>
-
 
 <div style={styles.card}>
 <h3>Learning Moments</h3>
-
 <p>Emma — Connected Galileo & Motion</p>
 <p>James — Understood Ionic Bonds</p>
 <p>Sarah — Reflected on Moon Phases</p>
-
 </div>
-
 
 <div style={styles.card}>
 <h3>Suggested Next Steps</h3>
-
 <p>📚 Review: Limits in Calculus</p>
 <p>🔍 Explore: How gravity bends space</p>
 <p>🔗 Connect: Galileo → planetary motion</p>
 <p>💭 Reflect: Why do moon phases change?</p>
-
 </div>
-
 
 <div style={styles.card}>
 <h3>Current Session</h3>
-
 <p><b>Topic:</b> Gravity and Orbits</p>
 <p><b>State:</b> Reflecting</p>
 <p><b>Questions Asked:</b> 7</p>
 <p><b>Connections Made:</b> 3</p>
-
 </div>
 
 </div>
@@ -290,79 +280,23 @@ header:{
 marginBottom:"25px"
 },
 
+modeCard:{
+background:"white",
+padding:"22px",
+borderRadius:"12px",
+boxShadow:"0 8px 20px rgba(0,0,0,0.08)",
+marginBottom:"25px",
+borderLeft:"5px solid #4a90e2"
+},
+
+mode:{
+fontSize:"22px",
+fontWeight:"bold",
+marginTop:"8px"
+},
+
 reflectionPanel:{
 background:"white",
 padding:"25px",
 borderRadius:"12px",
-boxShadow:"0 8px 20px rgba(0,0,0,0.08)",
-marginBottom:"30px",
-display:"grid",
-gridTemplateColumns:"repeat(auto-fit,minmax(250px,1fr))",
-gap:"20px"
-},
-
-reflectionBlock:{
-padding:"10px"
-},
-
-question:{
-fontWeight:"600"
-},
-
-subtle:{
-opacity:.7
-},
-
-grid:{
-display:"grid",
-gridTemplateColumns:"repeat(auto-fit,minmax(250px,1fr))",
-gap:"20px"
-},
-
-card:{
-background:"white",
-padding:"20px",
-borderRadius:"12px",
-boxShadow:"0 8px 20px rgba(0,0,0,0.08)"
-},
-
-barBackground:{
-height:"10px",
-background:"#e5e8ef",
-borderRadius:"5px",
-marginTop:"4px"
-},
-
-barFill:{
-height:"10px",
-background:"#4a90e2",
-borderRadius:"5px"
-},
-
-chatBox:{
-height:"160px",
-overflowY:"auto",
-background:"#f8f9fc",
-padding:"10px",
-borderRadius:"6px",
-marginBottom:"10px"
-},
-
-input:{
-width:"100%",
-padding:"8px",
-marginBottom:"8px",
-borderRadius:"6px",
-border:"1px solid #ccc"
-},
-
-button:{
-background:"#4a90e2",
-color:"white",
-border:"none",
-padding:"8px 14px",
-borderRadius:"6px",
-cursor:"pointer"
-}
-
-  }
+boxShadow:"0
