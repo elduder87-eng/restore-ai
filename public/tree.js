@@ -1,8 +1,8 @@
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
 
-////////////////////////////////////////////////
-//// SCENE
-////////////////////////////////////////////////
+//////////////////////////////
+// SCENE
+//////////////////////////////
 
 const scene = new THREE.Scene();
 
@@ -15,73 +15,89 @@ window.innerWidth / window.innerHeight,
 
 camera.position.z = 10;
 
-////////////////////////////////////////////////
-//// RENDERER
-////////////////////////////////////////////////
+//////////////////////////////
+// RENDERER
+//////////////////////////////
 
 const renderer = new THREE.WebGLRenderer({ antialias:true });
 
 renderer.setSize(window.innerWidth, window.innerHeight);
 
+document.body.style.margin = 0;
 document.body.appendChild(renderer.domElement);
 
-////////////////////////////////////////////////
-//// STARFIELD
-////////////////////////////////////////////////
+//////////////////////////////
+// LIGHT
+//////////////////////////////
 
-const starGeo = new THREE.BufferGeometry();
-const starVerts = [];
+const light = new THREE.PointLight(0xffffff,1);
+light.position.set(10,10,10);
+scene.add(light);
 
-for(let i=0;i<2000;i++){
+//////////////////////////////
+// STARFIELD
+//////////////////////////////
 
-starVerts.push(
-(Math.random()-0.5)*600,
-(Math.random()-0.5)*600,
-(Math.random()-0.5)*600
+const starGeometry = new THREE.BufferGeometry();
+const starVertices = [];
+
+for(let i=0;i<1500;i++){
+
+starVertices.push(
+(Math.random()-0.5)*400,
+(Math.random()-0.5)*400,
+(Math.random()-0.5)*400
 );
 
 }
 
-starGeo.setAttribute(
+starGeometry.setAttribute(
 "position",
-new THREE.Float32BufferAttribute(starVerts,3)
+new THREE.Float32BufferAttribute(starVertices,3)
 );
 
-const starMat = new THREE.PointsMaterial({
+const starMaterial = new THREE.PointsMaterial({
 color:0xffffff,
 size:1
 });
 
-const stars = new THREE.Points(starGeo,starMat);
-
+const stars = new THREE.Points(starGeometry,starMaterial);
 scene.add(stars);
 
-////////////////////////////////////////////////
-//// SEED (YOU)
-////////////////////////////////////////////////
+//////////////////////////////
+// SEED
+//////////////////////////////
 
-const seedGeo = new THREE.SphereGeometry(0.45,32,32);
+const seedGeometry = new THREE.SphereGeometry(0.5,32,32);
 
-const seedMat = new THREE.MeshBasicMaterial({
-color:0x66ccff
+const seedMaterial = new THREE.MeshStandardMaterial({
+color:0x66ccff,
+emissive:0x2244ff
 });
 
-const seed = new THREE.Mesh(seedGeo,seedMat);
-
+const seed = new THREE.Mesh(seedGeometry,seedMaterial);
 scene.add(seed);
 
-////////////////////////////////////////////////
-//// NODE CREATION
-////////////////////////////////////////////////
+//////////////////////////////
+// NODE SYSTEM
+//////////////////////////////
 
 const nodes = [];
 
-function createNode(x,y,z){
+function createNode(){
 
-const geo = new THREE.SphereGeometry(0.18,16,16);
+const angle = Math.random()Math.PI2;
+const distance = 2 + Math.random()*3;
 
-const mat = new THREE.MeshBasicMaterial({
-color:0xffffff
+const x = Math.cos(angle)*distance;
+const y = Math.sin(angle)*distance;
+const z = (Math.random()-0.5)*2;
+
+const geo = new THREE.SphereGeometry(0.2,16,16);
+
+const mat = new THREE.MeshStandardMaterial({
+color:0xffffff,
+emissive:0x333333
 });
 
 const node = new THREE.Mesh(geo,mat);
@@ -92,58 +108,17 @@ scene.add(node);
 
 nodes.push(node);
 
-return node;
-
 }
 
-////////////////////////////////////////////////
-//// BRANCH CREATION
-////////////////////////////////////////////////
+//////////////////////////////
+// CLICK = GROW
+//////////////////////////////
 
-function createBranch(a,b){
+window.addEventListener("click",createNode);
 
-const points = [];
-
-points.push(a.position);
-points.push(b.position);
-
-const geo = new THREE.BufferGeometry().setFromPoints(points);
-
-const mat = new THREE.LineBasicMaterial({
-color:0x66ccff
-});
-
-const line = new THREE.Line(geo,mat);
-
-scene.add(line);
-
-}
-
-////////////////////////////////////////////////
-//// TREE GROWTH
-////////////////////////////////////////////////
-
-function grow(){
-
-const angle = Math.random()Math.PI2;
-
-const distance = 2 + Math.random()*3;
-
-const x = Math.cos(angle)*distance;
-const y = Math.sin(angle)*distance;
-const z = (Math.random()-0.5)*2;
-
-const node = createNode(x,y,z);
-
-createBranch(seed,node);
-
-}
-
-window.addEventListener("click",grow);
-
-////////////////////////////////////////////////
-//// ANIMATION
-////////////////////////////////////////////////
+//////////////////////////////
+// ANIMATE
+//////////////////////////////
 
 function animate(){
 
@@ -158,15 +133,15 @@ renderer.render(scene,camera);
 
 animate();
 
-////////////////////////////////////////////////
-//// RESIZE
-////////////////////////////////////////////////
+//////////////////////////////
+// RESIZE
+//////////////////////////////
 
 window.addEventListener("resize",()=>{
 
 camera.aspect = window.innerWidth / window.innerHeight;
 camera.updateProjectionMatrix();
 
-renderer.setSize(window.innerWidth,window.innerHeight);
+renderer.setSize(window.innerWidth, window.innerHeight);
 
 });
