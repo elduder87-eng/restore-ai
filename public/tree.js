@@ -1,26 +1,40 @@
+alert("Restore Universe Loaded")
+
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+
+////////////////////////////////////////////////
+// SCENE
+////////////////////////////////////////////////
 
 const scene = new THREE.Scene()
 
 const camera = new THREE.PerspectiveCamera(
 75,
-window.innerWidth/window.innerHeight,
+window.innerWidth / window.innerHeight,
 0.1,
 1000
 )
 
 camera.position.z = 10
 
-const renderer = new THREE.WebGLRenderer({antialias:true})
-renderer.setSize(window.innerWidth,window.innerHeight)
+////////////////////////////////////////////////
+// RENDERER
+////////////////////////////////////////////////
+
+const renderer = new THREE.WebGLRenderer({ antialias:true })
+
+renderer.setPixelRatio(window.devicePixelRatio)
+
+renderer.setSize(window.innerWidth, window.innerHeight)
 
 document.body.appendChild(renderer.domElement)
 
 ////////////////////////////////////////////////
-// STARS
+// STARFIELD
 ////////////////////////////////////////////////
 
 const starGeo = new THREE.BufferGeometry()
+
 const starVerts = []
 
 for(let i=0;i<2000;i++){
@@ -48,10 +62,10 @@ const stars = new THREE.Points(starGeo,starMat)
 scene.add(stars)
 
 ////////////////////////////////////////////////
-// SEED
+// SEED (YOU)
 ////////////////////////////////////////////////
 
-const seedGeo = new THREE.SphereGeometry(0.4,32,32)
+const seedGeo = new THREE.SphereGeometry(0.45,32,32)
 
 const seedMat = new THREE.MeshBasicMaterial({
 color:0x66ccff
@@ -62,7 +76,7 @@ const seed = new THREE.Mesh(seedGeo,seedMat)
 scene.add(seed)
 
 ////////////////////////////////////////////////
-// TREE
+// CREATE NODE
 ////////////////////////////////////////////////
 
 function createNode(x,y,z){
@@ -83,6 +97,10 @@ return node
 
 }
 
+////////////////////////////////////////////////
+// CREATE BRANCH
+////////////////////////////////////////////////
+
 function createBranch(a,b){
 
 const points = []
@@ -101,6 +119,10 @@ const line = new THREE.Line(geo,mat)
 scene.add(line)
 
 }
+
+////////////////////////////////////////////////
+// TREE GROWTH
+////////////////////////////////////////////////
 
 function grow(){
 
@@ -137,12 +159,12 @@ renderer.render(scene,camera)
 animate()
 
 ////////////////////////////////////////////////
-// RESIZE
+// WINDOW RESIZE
 ////////////////////////////////////////////////
 
 window.addEventListener("resize",()=>{
 
-camera.aspect = window.innerWidth/window.innerHeight
+camera.aspect = window.innerWidth / window.innerHeight
 camera.updateProjectionMatrix()
 
 renderer.setSize(window.innerWidth,window.innerHeight)
