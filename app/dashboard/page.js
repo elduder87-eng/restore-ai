@@ -78,15 +78,51 @@ Try exploring one new question today to deepen understanding.
 </div>
 
 
-{/* Daily Thought */}
+{/* Thought */}
 
 <div style={styles.reflectionBlock}>
-<h3>Daily Thought</h3>
-<p>
-You recently explored gravity and planetary motion.
-If gravity pulls everything inward, why don't planets fall into the sun?
+<h3>Today's Thought</h3>
+
+<p style={styles.question}>
+Why don't planets fall into the sun if gravity constantly pulls them inward?
 </p>
-<p style={{opacity:.7}}>Take a moment to think about it today.</p>
+
+<p style={styles.subtle}>
+Take a moment to think about it today.
+</p>
+
+</div>
+
+
+{/* Connection */}
+
+<div style={styles.reflectionBlock}>
+<h3>Today's Connection</h3>
+
+<p style={styles.question}>
+How might gravity, planetary motion, and orbital speed be connected?
+</p>
+
+<p style={styles.subtle}>
+Try linking ideas from past sessions.
+</p>
+
+</div>
+
+
+{/* Curiosity */}
+
+<div style={styles.reflectionBlock}>
+<h3>Today's Curiosity</h3>
+
+<p style={styles.question}>
+What might happen if gravity suddenly weakened near Earth?
+</p>
+
+<p style={styles.subtle}>
+Let curiosity guide exploration today.
+</p>
+
 </div>
 
 
@@ -267,6 +303,14 @@ gap:"20px"
 
 reflectionBlock:{
 padding:"10px"
+},
+
+question:{
+fontWeight:"600"
+},
+
+subtle:{
+opacity:.7
 },
 
 grid:{
