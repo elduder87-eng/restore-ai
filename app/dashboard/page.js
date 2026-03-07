@@ -1,54 +1,125 @@
-import CuriosityMap from "@/components/CuriosityMap"
-
 export default function Dashboard() {
-
   return (
-    <main
-      style={{
-        padding: "40px",
-        maxWidth: "1100px",
-        margin: "0 auto"
-      }}
-    >
+    <div style={{fontFamily:"Arial", background:"#f4f7fb", minHeight:"100vh", padding:"20px"}}>
 
-      <h1 style={{ fontSize: "28px", marginBottom: "25px" }}>
-        Thinking Overview
-      </h1>
+      <h1 style={{color:"#3a6fb0"}}>Restore</h1>
+      <p>A Renewed Understanding Experience</p>
 
-      <div style={{ lineHeight: "1.8", marginBottom: "40px" }}>
+      <div style={{
+        display:"grid",
+        gridTemplateColumns:"1fr 1fr 1fr",
+        gap:"20px",
+        marginTop:"20px"
+      }}>
 
-        <div style={{ marginBottom: "15px" }}>
-          <strong>Curiosity Level</strong>
-          <div>emerging</div>
+        {/* Understanding Pulse */}
+
+        <div style={card}>
+          <h3>Understanding Pulse</h3>
+
+          {pulse("Connecting",32)}
+          {pulse("Reflecting",28)}
+          {pulse("Curious",22)}
+          {pulse("Confused",12)}
+          {pulse("Exploring",6)}
+
         </div>
 
-        <div style={{ marginBottom: "15px" }}>
-          <strong>Engagement Mode</strong>
-          <div>guided</div>
+        {/* Confusion Signals */}
+
+        <div style={card}>
+          <h3>Confusion Signals</h3>
+
+          <p>🔴 Electric Circuits</p>
+          <p>🟡 Limits in Calculus</p>
+          <p>🟡 Plate Tectonics</p>
+
         </div>
 
-        <div style={{ marginBottom: "15px" }}>
-          <strong>Growth Signals</strong>
-          <ul style={{ marginTop: "5px" }}>
-            <li>Steady engagement pattern</li>
+        {/* Curiosity Activity */}
+
+        <div style={card}>
+          <h3>Curiosity Activity</h3>
+
+          <p>Students are exploring:</p>
+
+          <ul>
+            <li>Black holes</li>
+            <li>Evolution</li>
+            <li>Ancient civilizations</li>
           </ul>
-        </div>
 
-        <div style={{ marginBottom: "15px" }}>
-          <strong>Emotional Climate</strong>
-          <div>curious</div>
         </div>
 
       </div>
 
-      <hr style={{ margin: "40px 0" }} />
+      {/* Second Row */}
 
-      <h2 style={{ marginBottom: "20px" }}>
-        Curiosity Map
-      </h2>
+      <div style={{
+        display:"grid",
+        gridTemplateColumns:"1fr 1fr",
+        gap:"20px",
+        marginTop:"20px"
+      }}>
 
-      <CuriosityMap />
+        <div style={card}>
+          <h3>Learning Moments</h3>
 
-    </main>
+          <p>Emma — Connected Galileo & Motion</p>
+          <p>James — Understood Ionic Bonds</p>
+          <p>Sarah — Reflected on Moon Phases</p>
+
+        </div>
+
+        <div style={card}>
+          <h3>Suggested Next Steps</h3>
+
+          <p>🔁 Review: Limits in Calculus</p>
+          <p>🔎 Explore: How gravity bends space</p>
+          <p>🔗 Connect: Galileo → planetary motion</p>
+          <p>💭 Reflect: Why do moon phases appear to change?</p>
+
+        </div>
+
+      </div>
+
+    </div>
+  )
+}
+
+/* Styles */
+
+const card = {
+  background:"white",
+  padding:"20px",
+  borderRadius:"10px",
+  boxShadow:"0 2px 6px rgba(0,0,0,0.08)"
+}
+
+/* Pulse Component */
+
+function pulse(label,value){
+
+  return (
+    <div style={{marginBottom:"14px"}}>
+
+      <div>{label}</div>
+
+      <div style={{
+        height:"8px",
+        background:"#e4e8f0",
+        borderRadius:"4px"
+      }}>
+
+        <div style={{
+          width:value+"%",
+          height:"8px",
+          background:"#4a90e2",
+          borderRadius:"4px"
+        }}/>
+
+      </div>
+
+    </div>
   )
 }
