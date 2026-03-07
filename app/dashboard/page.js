@@ -1,33 +1,34 @@
 export default function Dashboard() {
   return (
-    <div style={{fontFamily:"Arial", background:"#f4f7fb", minHeight:"100vh", padding:"20px"}}>
+    <div style={styles.page}>
 
-      <h1 style={{color:"#3a6fb0"}}>Restore</h1>
-      <p>A Renewed Understanding Experience</p>
+      {/* Header */}
 
-      <div style={{
-        display:"grid",
-        gridTemplateColumns:"1fr 1fr 1fr",
-        gap:"20px",
-        marginTop:"20px"
-      }}>
+      <header style={styles.header}>
+        <h1 style={styles.title}>Restore</h1>
+        <p style={styles.subtitle}>A Renewed Understanding Experience</p>
+      </header>
+
+      {/* Top Grid */}
+
+      <div style={styles.grid3}>
 
         {/* Understanding Pulse */}
 
-        <div style={card}>
+        <div style={styles.card}>
           <h3>Understanding Pulse</h3>
 
-          {pulse("Connecting",32)}
-          {pulse("Reflecting",28)}
-          {pulse("Curious",22)}
-          {pulse("Confused",12)}
-          {pulse("Exploring",6)}
+          {Pulse("Connecting", 32)}
+          {Pulse("Reflecting", 28)}
+          {Pulse("Curious", 22)}
+          {Pulse("Confused", 12)}
+          {Pulse("Exploring", 6)}
 
         </div>
 
         {/* Confusion Signals */}
 
-        <div style={card}>
+        <div style={styles.card}>
           <h3>Confusion Signals</h3>
 
           <p>🔴 Electric Circuits</p>
@@ -38,10 +39,8 @@ export default function Dashboard() {
 
         {/* Curiosity Activity */}
 
-        <div style={card}>
+        <div style={styles.card}>
           <h3>Curiosity Activity</h3>
-
-          <p>Students are exploring:</p>
 
           <ul>
             <li>Black holes</li>
@@ -53,16 +52,13 @@ export default function Dashboard() {
 
       </div>
 
-      {/* Second Row */}
+      {/* Bottom Grid */}
 
-      <div style={{
-        display:"grid",
-        gridTemplateColumns:"1fr 1fr",
-        gap:"20px",
-        marginTop:"20px"
-      }}>
+      <div style={styles.grid2}>
 
-        <div style={card}>
+        {/* Learning Moments */}
+
+        <div style={styles.card}>
           <h3>Learning Moments</h3>
 
           <p>Emma — Connected Galileo & Motion</p>
@@ -71,13 +67,15 @@ export default function Dashboard() {
 
         </div>
 
-        <div style={card}>
+        {/* Suggested Next Steps */}
+
+        <div style={styles.card}>
           <h3>Suggested Next Steps</h3>
 
           <p>🔁 Review: Limits in Calculus</p>
           <p>🔎 Explore: How gravity bends space</p>
           <p>🔗 Connect: Galileo → planetary motion</p>
-          <p>💭 Reflect: Why do moon phases appear to change?</p>
+          <p>💭 Reflect: Why do moon phases change?</p>
 
         </div>
 
@@ -87,39 +85,87 @@ export default function Dashboard() {
   )
 }
 
-/* Styles */
 
-const card = {
-  background:"white",
-  padding:"20px",
-  borderRadius:"10px",
-  boxShadow:"0 2px 6px rgba(0,0,0,0.08)"
-}
+/* Pulse Bar */
 
-/* Pulse Component */
-
-function pulse(label,value){
-
+function Pulse(label, value) {
   return (
-    <div style={{marginBottom:"14px"}}>
+    <div style={{marginBottom:"12px"}}>
 
       <div>{label}</div>
 
-      <div style={{
-        height:"8px",
-        background:"#e4e8f0",
-        borderRadius:"4px"
-      }}>
+      <div style={styles.barBackground}>
 
-        <div style={{
-          width:value+"%",
-          height:"8px",
-          background:"#4a90e2",
-          borderRadius:"4px"
-        }}/>
+        <div
+          style={{
+            ...styles.barFill,
+            width: value + "%"
+          }}
+        />
 
       </div>
 
     </div>
   )
+}
+
+
+/* Styles */
+
+const styles = {
+
+page: {
+  fontFamily: "Arial",
+  background: "#f4f7fb",
+  minHeight: "100vh",
+  padding: "30px"
+},
+
+header: {
+  marginBottom: "20px"
+},
+
+title: {
+  color: "#3a6fb0",
+  margin: 0
+},
+
+subtitle: {
+  marginTop: "5px",
+  color: "#666"
+},
+
+grid3: {
+  display: "grid",
+  gridTemplateColumns: "1fr 1fr 1fr",
+  gap: "20px"
+},
+
+grid2: {
+  display: "grid",
+  gridTemplateColumns: "1fr 1fr",
+  gap: "20px",
+  marginTop: "20px"
+},
+
+card: {
+  background: "white",
+  padding: "20px",
+  borderRadius: "10px",
+  boxShadow: "0 2px 6px rgba(0,0,0,0.08)"
+},
+
+barBackground: {
+  height: "8px",
+  background: "#e4e8f0",
+  borderRadius: "4px",
+  marginTop: "4px"
+},
+
+barFill: {
+  height: "8px",
+  background: "#4a90e2",
+  borderRadius: "4px"
+}
+
 }
