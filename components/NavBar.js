@@ -27,9 +27,7 @@ Where understanding grows
 <div className="nav-links">
 
 <Link href="/dashboard">Dashboard</Link>
-
 <Link href="/chat">Chat</Link>
-
 <Link href="/profile">Profile</Link>
 
 </div>
