@@ -10,7 +10,6 @@ return(
 A Renewed Understanding Experience
 </p>
 
-
 <div className="card highlight">
 
 <h3>Current Thinking Mode</h3>
@@ -22,7 +21,6 @@ Restore detects how you're learning based on your exploration and reflection pat
 </p>
 
 </div>
-
 
 <div className="grid">
 
@@ -48,7 +46,6 @@ Restore detects how you're learning based on your exploration and reflection pat
 
 </div>
 
-
 <div className="card">
 
 <h3>Restore Guide</h3>
@@ -62,7 +59,6 @@ Guide: Ask about today's learning patterns.
 <button>Ask</button>
 
 </div>
-
 
 <div className="grid">
 
@@ -87,7 +83,6 @@ Guide: Ask about today's learning patterns.
 
 </div>
 
-
 <div className="card">
 
 <h4>Confusion Signals</h4>
@@ -97,7 +92,6 @@ Guide: Ask about today's learning patterns.
 <p>🟡 Plate Tectonics</p>
 
 </div>
-
 
 <div className="card">
 
@@ -111,7 +105,6 @@ Guide: Ask about today's learning patterns.
 
 </div>
 
-
 <div className="card">
 
 <h4>Learning Moments</h4>
@@ -121,7 +114,6 @@ Guide: Ask about today's learning patterns.
 <p>Sarah — Reflected on Moon Phases</p>
 
 </div>
-
 
 <div className="card">
 
@@ -133,7 +125,6 @@ Guide: Ask about today's learning patterns.
 
 </div>
 
-
 <div className="card">
 
 <h4>Current Session</h4>
@@ -144,7 +135,6 @@ Guide: Ask about today's learning patterns.
 <p><b>Connections Made:</b> 3</p>
 
 </div>
-
 
 </div>
 
