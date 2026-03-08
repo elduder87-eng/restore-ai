@@ -1,12 +1,8 @@
-export default function Dashboard() {
+export default function Dashboard(){
 
-return (
+return(
 
-<div style={{
-padding: "40px",
-maxWidth: "1200px",
-margin: "auto"
-}}>
+<div className="page">
 
 <h1>Dashboard</h1>
 
@@ -15,15 +11,9 @@ A Renewed Understanding Experience
 </p>
 
 
-{/* Current Thinking Mode */}
+{/* Thinking Mode */}
 
-<div style={{
-background:"#f5f7fb",
-padding:"20px",
-borderRadius:"10px",
-marginBottom:"30px",
-borderLeft:"4px solid #4FAFA6"
-}}>
+<div className="card highlight">
 
 <h3>Current Thinking Mode</h3>
 
@@ -36,21 +26,11 @@ Restore detects how you're learning based on your exploration and reflection pat
 </div>
 
 
+{/* Insight Cards */}
 
-{/* Daily Insight Grid */}
+<div className="grid">
 
-<div style={{
-display:"grid",
-gridTemplateColumns:"repeat(auto-fit,minmax(250px,1fr))",
-gap:"20px",
-marginBottom:"30px"
-}}>
-
-<div style={{
-background:"#f5f7fb",
-padding:"20px",
-borderRadius:"10px"
-}}>
+<div className="card">
 
 <h4>Today's Insight</h4>
 
@@ -62,11 +42,7 @@ Try exploring one new question today to deepen understanding.
 </div>
 
 
-<div style={{
-background:"#f5f7fb",
-padding:"20px",
-borderRadius:"10px"
-}}>
+<div className="card">
 
 <h4>Today's Thought</h4>
 
@@ -81,11 +57,7 @@ Take a moment to think about it today.
 </div>
 
 
-<div style={{
-background:"#f5f7fb",
-padding:"20px",
-borderRadius:"10px"
-}}>
+<div className="card">
 
 <h4>Today's Connection</h4>
 
@@ -100,11 +72,7 @@ Try linking ideas from past sessions.
 </div>
 
 
-<div style={{
-background:"#f5f7fb",
-padding:"20px",
-borderRadius:"10px"
-}}>
+<div className="card">
 
 <h4>Today's Curiosity</h4>
 
@@ -124,75 +92,32 @@ Let curiosity guide exploration today.
 
 {/* Restore Guide */}
 
-<div style={{
-background:"#f5f7fb",
-padding:"20px",
-borderRadius:"10px",
-marginBottom:"30px"
-}}>
+<div className="card">
 
 <h3>Restore Guide</h3>
 
-<div style={{
-background:"#e9edf5",
-height:"120px",
-borderRadius:"8px",
-display:"flex",
-alignItems:"center",
-justifyContent:"center",
-marginBottom:"10px"
-}}>
+<div className="guide-box">
 
 Guide: Ask about today's learning patterns.
 
 </div>
 
-<input
-placeholder="Ask about today's learning..."
-style={{
-width:"100%",
-padding:"10px",
-borderRadius:"6px",
-border:"1px solid #ccc",
-marginBottom:"10px"
-}}
-/>
+<input placeholder="Ask about today's learning..." />
 
-<button
-style={{
-background:"#4FAFA6",
-color:"white",
-padding:"10px 18px",
-borderRadius:"6px",
-border:"none"
-}}
->
-
+<button>
 Ask
-
 </button>
 
 </div>
 
 
 
-{/* Lower Dashboard Cards */}
+{/* Lower Dashboard */}
 
-<div style={{
-display:"grid",
-gridTemplateColumns:"repeat(auto-fit,minmax(250px,1fr))",
-gap:"20px"
-}}>
+<div className="grid">
 
 
-
-{/* Understanding Pulse */}
-
-<div style={{
-background:"#f5f7fb",
-padding:"20px",
-borderRadius:"10px"
-}}>
+<div className="card">
 
 <h4>Understanding Pulse</h4>
 
@@ -206,13 +131,7 @@ borderRadius:"10px"
 
 
 
-{/* Confusion Signals */}
-
-<div style={{
-background:"#f5f7fb",
-padding:"20px",
-borderRadius:"10px"
-}}>
+<div className="card">
 
 <h4>Confusion Signals</h4>
 
@@ -224,13 +143,7 @@ borderRadius:"10px"
 
 
 
-{/* Curiosity Activity */}
-
-<div style={{
-background:"#f5f7fb",
-padding:"20px",
-borderRadius:"10px"
-}}>
+<div className="card">
 
 <h4>Curiosity Activity</h4>
 
@@ -246,13 +159,7 @@ borderRadius:"10px"
 
 
 
-{/* Learning Moments */}
-
-<div style={{
-background:"#f5f7fb",
-padding:"20px",
-borderRadius:"10px"
-}}>
+<div className="card">
 
 <h4>Learning Moments</h4>
 
@@ -264,13 +171,7 @@ borderRadius:"10px"
 
 
 
-{/* Suggested Next Steps */}
-
-<div style={{
-background:"#f5f7fb",
-padding:"20px",
-borderRadius:"10px"
-}}>
+<div className="card">
 
 <h4>Suggested Next Steps</h4>
 
@@ -283,13 +184,7 @@ borderRadius:"10px"
 
 
 
-{/* Current Session */}
-
-<div style={{
-background:"#f5f7fb",
-padding:"20px",
-borderRadius:"10px"
-}}>
+<div className="card">
 
 <h4>Current Session</h4>
 
