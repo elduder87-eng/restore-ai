@@ -9,9 +9,8 @@ export default function RootLayout({ children }) {
       <body
         style={{
           margin: 0,
-          padding: 0,
           fontFamily: "system-ui",
-          background: "#000",
+          background: "#f5f7fa",
         }}
       >
         {children}
