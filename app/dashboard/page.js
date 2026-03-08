@@ -11,7 +11,8 @@ margin:"auto"
 }}>
 
 <h1 style={{
-fontSize:"42px"
+fontSize:"42px",
+marginBottom:"10px"
 }}>
 Restore
 </h1>
@@ -35,7 +36,7 @@ padding:"30px",
 borderRadius:"12px"
 }}>
 <h2>Learning Progress</h2>
-<p>Your curiosity map will appear here.</p>
+<p>Your curiosity map and thinking patterns will appear here.</p>
 </div>
 
 <div style={{
@@ -44,7 +45,7 @@ padding:"30px",
 borderRadius:"12px"
 }}>
 <h2>Recent Sessions</h2>
-<p>Your past conversations.</p>
+<p>Review previous conversations and topics.</p>
 </div>
 
 <div style={{
@@ -53,7 +54,7 @@ padding:"30px",
 borderRadius:"12px"
 }}>
 <h2>Daily Thought</h2>
-<p>What idea surprised you today?</p>
+<p>What idea changed your perspective recently?</p>
 </div>
 
 <div style={{
@@ -62,7 +63,7 @@ padding:"30px",
 borderRadius:"12px"
 }}>
 <h2>Continue Learning</h2>
-<p>Jump back into learning.</p>
+<p>Pick up where you left off.</p>
 </div>
 
 </div>
