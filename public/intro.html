@@ -5,19 +5,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Restore — Intro</title>
+<title>Restore</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400&family=Jost:wght@200;300;400&display=swap" rel="stylesheet">
 
 <style>
 
-*{margin:0;padding:0;box-sizing:border-box;}
+*{margin:0;padding:0;box-sizing:border-box}
 
 body{
-background:#120c06;
+background:#0e1117;
 overflow:hidden;
-font-family:'Jost',sans-serif;
-color:#fff;
+font-family:"Jost",sans-serif;
+color:white;
 }
 
 canvas{
@@ -33,14 +33,19 @@ transform:translate(-50%,-50%);
 text-align:center;
 }
 
+.logo{
+width:120px;
+margin-bottom:20px;
+}
+
 h1{
-font-family:'Cormorant Garamond',serif;
+font-family:"Cormorant Garamond",serif;
 font-size:8vw;
 letter-spacing:.15em;
 font-weight:300;
 }
 
-p{
+.tagline{
 margin-top:10px;
 opacity:.6;
 letter-spacing:.4em;
@@ -66,6 +71,7 @@ background:#8fb87a22;
 }
 
 </style>
+
 </head>
 
 <body>
@@ -73,8 +79,15 @@ background:#8fb87a22;
 <canvas id="bg"></canvas>
 
 <div class="center">
-<h1>RESTORE</h1>
-<p>Where Understanding Grows</p>
+
+<img src="/sprout.png" class="logo">
+
+<h1>Restore</h1>
+
+<div class="tagline">
+Where Understanding Grows
+</div>
+
 </div>
 
 <button class="enter" onclick="enterRestore()">ENTER</button>
@@ -95,8 +108,8 @@ w=canvas.width=window.innerWidth
 h=canvas.height=window.innerHeight
 }
 
-window.addEventListener("resize",resize)
 resize()
+window.addEventListener("resize",resize)
 
 const particles=[]
 
@@ -108,9 +121,9 @@ this.reset()
 
 reset(){
 this.x=Math.random()*w
-this.y=h*.5+Math.random()*h*.4
+this.y=h*.6+Math.random()*h*.3
+this.vy=-0.5-Math.random()
 this.r=Math.random()*2
-this.vy=-.3-Math.random()
 this.life=0
 this.max=200+Math.random()*200
 }
@@ -136,7 +149,7 @@ particles.push(new Particle())
 
 function loop(){
 
-ctx.fillStyle="#120c06"
+ctx.fillStyle="#0e1117"
 ctx.fillRect(0,0,w,h)
 
 particles.forEach(p=>{
