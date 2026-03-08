@@ -16,31 +16,51 @@ color:#1a1a1a;
 /* NAVBAR */
 
 .navbar{
+
 position:sticky;
+
 top:0;
+
 width:100%;
+
 display:flex;
+
 justify-content:space-between;
+
 align-items:center;
+
 padding:18px 30px;
+
 background:white;
+
 box-shadow:0 4px 14px rgba(0,0,0,0.05);
+
 z-index:100;
+
 }
 
 .nav-links{
+
 display:flex;
+
 gap:24px;
+
 }
 
 .nav-links a{
+
 text-decoration:none;
+
 color:#444;
+
 font-weight:500;
+
 }
 
 .nav-links a:hover{
+
 color:#5ec2a8;
+
 }
 
 
@@ -60,9 +80,17 @@ align-items:center;
 
 background:radial-gradient(circle at center,#eef6ff,#dde6f4);
 
-position:relative;
+position:fixed;
+
+top:0;
+
+left:0;
+
+width:100%;
 
 overflow:hidden;
+
+z-index:9999;
 
 }
 
@@ -88,7 +116,7 @@ z-index:1;
 }
 
 
-/* particle field */
+/* particles */
 
 .intro-particles{
 
@@ -117,44 +145,44 @@ z-index:0;
 
 position:absolute;
 
-font-size:28px;
+font-size:34px;
 
-opacity:.7;
+opacity:.8;
 
-z-index:2;
+z-index:5;
 
 animation:seedFloat linear infinite;
 
 }
 
 .seed1{
-left:10%;
-animation-duration:12s;
-animation-delay:0s;
+left:8%;
+top:-50px;
+animation-duration:8s;
 }
 
 .seed2{
 left:25%;
-animation-duration:14s;
-animation-delay:2s;
+top:-80px;
+animation-duration:10s;
 }
 
 .seed3{
-left:50%;
-animation-duration:16s;
-animation-delay:4s;
+left:45%;
+top:-100px;
+animation-duration:9s;
 }
 
 .seed4{
-left:75%;
-animation-duration:13s;
-animation-delay:1s;
+left:65%;
+top:-60px;
+animation-duration:11s;
 }
 
 .seed5{
-left:90%;
-animation-duration:15s;
-animation-delay:3s;
+left:85%;
+top:-120px;
+animation-duration:12s;
 }
 
 
@@ -166,7 +194,7 @@ font-size:180px;
 
 animation:seedFall 1.6s ease-out forwards;
 
-z-index:3;
+z-index:6;
 
 filter:drop-shadow(0 30px 60px rgba(0,0,0,0.25));
 
@@ -245,12 +273,12 @@ opacity:1;
 @keyframes seedFloat{
 
 0%{
-transform:translateY(-200px) rotate(0deg);
+transform:translateY(-100px) rotate(0deg);
 opacity:0;
 }
 
 10%{
-opacity:.7;
+opacity:.8;
 }
 
 100%{
