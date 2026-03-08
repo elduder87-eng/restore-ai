@@ -1,6 +1,8 @@
 "use client"
 
-export default function NavBar({setView}){
+import Link from "next/link"
+
+export default function NavBar(){
 
 return(
 
@@ -11,9 +13,11 @@ padding:"20px",
 borderBottom:"1px solid #eee"
 }}>
 
-<button onClick={()=>setView("dashboard")}>Dashboard</button>
-<button onClick={()=>setView("universe")}>Universe</button>
-<button onClick={()=>setView("profile")}>Profile</button>
+<Link href="/dashboard">Dashboard</Link>
+
+<Link href="/universe">Chat</Link>
+
+<Link href="/profile">Profile</Link>
 
 </div>
 
