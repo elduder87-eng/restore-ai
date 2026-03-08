@@ -6,15 +6,19 @@ import Dashboard from "./dashboard/page";
 
 export default function Home() {
 
-  const [loading, setLoading] = useState(true);
+  const [showIntro, setShowIntro] = useState(true);
 
   useEffect(() => {
-    setTimeout(() => {
-      setLoading(false);
-    }, 3500);
+
+    const timer = setTimeout(() => {
+      setShowIntro(false);
+    }, 3500); // length of intro
+
+    return () => clearTimeout(timer);
+
   }, []);
 
-  if (loading) {
+  if (showIntro) {
     return <LoadingScreen />;
   }
 
