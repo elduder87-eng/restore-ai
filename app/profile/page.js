@@ -1,35 +1,15 @@
-"use client";
+export default function Profile(){
 
-import { useEffect, useState } from "react";
+return(
 
-export default function ProfilePage() {
-  const [profile, setProfile] = useState(null);
+<div style={{padding:"40px"}}>
 
-  useEffect(() => {
-    async function loadProfile() {
-      const res = await fetch("/api/profile");
-      const data = await res.json();
-      setProfile(data.profile);
-    }
+<h1>Your Profile</h1>
 
-    loadProfile();
-  }, []);
+<p>This will show your learning history and thinking patterns.</p>
 
-  if (!profile) return <p>Loading...</p>;
+</div>
 
-  return (
-    <div style={{ padding: 20 }}>
-      <h1>Learning Profile</h1>
+)
 
-      <h2>Interests</h2>
-      <ul>
-        {profile.interests.map((i, idx) => (
-          <li key={idx}>{i}</li>
-        ))}
-      </ul>
-
-      <h2>Learning Style</h2>
-      <p>{profile.learningStyle}</p>
-    </div>
-  );
 }
