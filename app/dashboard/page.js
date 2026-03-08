@@ -1,72 +1,70 @@
-"use client"
+export default function Dashboard() {
 
-export default function Dashboard(){
-
-return(
+return (
 
 <div style={{
 padding:"40px",
-maxWidth:"1100px",
-margin:"auto"
+fontFamily:"sans-serif",
+background:"#f6f7fb",
+minHeight:"100vh"
 }}>
 
-<h1 style={{
-fontSize:"42px",
-marginBottom:"10px"
-}}>
-Restore
-</h1>
+<h1 style={{marginBottom:"6px"}}>Restore</h1>
+<p style={{color:"#666",marginBottom:"30px"}}>Where Understanding Grows</p>
 
-<p style={{
-opacity:.7,
-marginBottom:"40px"
-}}>
-Where Understanding Grows
-</p>
 
 <div style={{
 display:"grid",
 gridTemplateColumns:"1fr 1fr",
-gap:"30px"
+gap:"20px"
 }}>
+
+
+<Card
+title="Learning Progress"
+text="Your curiosity map will appear here."
+/>
+
+<Card
+title="Recent Sessions"
+text="Review previous conversations."
+/>
+
+<Card
+title="Daily Thought"
+text="What idea changed your thinking today?"
+/>
+
+<Card
+title="Continue Learning"
+text="Resume where you left off."
+/>
+
+
+</div>
+
+</div>
+
+)
+
+}
+
+
+
+function Card({title,text}){
+
+return(
 
 <div style={{
-background:"#161616",
-padding:"30px",
-borderRadius:"12px"
+background:"#ffffff",
+padding:"24px",
+borderRadius:"16px",
+boxShadow:"0 10px 25px rgba(0,0,0,.08)"
 }}>
-<h2>Learning Progress</h2>
-<p>Your curiosity map will appear here.</p>
-</div>
 
-<div style={{
-background:"#161616",
-padding:"30px",
-borderRadius:"12px"
-}}>
-<h2>Recent Sessions</h2>
-<p>Review previous conversations.</p>
-</div>
+<h3 style={{marginBottom:"10px"}}>{title}</h3>
 
-<div style={{
-background:"#161616",
-padding:"30px",
-borderRadius:"12px"
-}}>
-<h2>Daily Thought</h2>
-<p>What idea changed your thinking today?</p>
-</div>
-
-<div style={{
-background:"#161616",
-padding:"30px",
-borderRadius:"12px"
-}}>
-<h2>Continue Learning</h2>
-<p>Resume where you left off.</p>
-</div>
-
-</div>
+<p style={{color:"#666"}}>{text}</p>
 
 </div>
 
