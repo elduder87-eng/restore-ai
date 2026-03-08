@@ -4,19 +4,38 @@ return (
 
 <div style={{
 padding:"40px",
-fontFamily:"sans-serif",
-background:"#f6f7fb",
+fontFamily:"system-ui, sans-serif",
+background:"#f5f7fb",
 minHeight:"100vh"
 }}>
 
-<h1 style={{marginBottom:"6px"}}>Restore</h1>
-<p style={{color:"#666",marginBottom:"30px"}}>Where Understanding Grows</p>
+{/* Header */}
 
+<div style={{marginBottom:"30px"}}>
+
+<h1 style={{
+fontSize:"28px",
+fontWeight:"600"
+}}>
+Restore
+</h1>
+
+<p style={{
+color:"#666",
+marginTop:"4px"
+}}>
+Where Understanding Grows
+</p>
+
+</div>
+
+
+{/* Dashboard Grid */}
 
 <div style={{
 display:"grid",
 gridTemplateColumns:"1fr 1fr",
-gap:"20px"
+gap:"24px"
 }}>
 
 
@@ -57,14 +76,38 @@ return(
 
 <div style={{
 background:"#ffffff",
-padding:"24px",
+padding:"28px",
 borderRadius:"16px",
-boxShadow:"0 10px 25px rgba(0,0,0,.08)"
+boxShadow:"0 12px 24px rgba(0,0,0,0.08)",
+transition:"transform .2s ease, box-shadow .2s ease",
+cursor:"pointer"
+}}
+
+onMouseEnter={e=>{
+e.currentTarget.style.transform="translateY(-4px)"
+e.currentTarget.style.boxShadow="0 16px 30px rgba(0,0,0,0.12)"
+}}
+
+onMouseLeave={e=>{
+e.currentTarget.style.transform="translateY(0)"
+e.currentTarget.style.boxShadow="0 12px 24px rgba(0,0,0,0.08)"
+}}
+
+>
+
+<h3 style={{
+fontSize:"18px",
+marginBottom:"8px"
 }}>
+{title}
+</h3>
 
-<h3 style={{marginBottom:"10px"}}>{title}</h3>
-
-<p style={{color:"#666"}}>{text}</p>
+<p style={{
+color:"#666",
+fontSize:"14px"
+}}>
+{text}
+</p>
 
 </div>
 
