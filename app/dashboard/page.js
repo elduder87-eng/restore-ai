@@ -8,7 +8,7 @@ background:"#e6edf5",
 minHeight:"100vh"
 }}>
 
-{/* TOP NAVBAR */}
+{/* NAVBAR */}
 
 <div style={{
 display:"flex",
@@ -24,23 +24,18 @@ borderBottom:"1px solid #ddd"
 <span style={{fontSize:"20px"}}>🌱</span>
 
 <div>
-
 <div style={{fontWeight:"600"}}>Restore</div>
-
 <div style={{fontSize:"12px",color:"#777"}}>
 Where understanding grows
 </div>
-
 </div>
 
 </div>
 
 <div style={{display:"flex",gap:"20px"}}>
-
 <a href="/dashboard">Dashboard</a>
 <a href="/chat">Chat</a>
 <a href="/profile">Profile</a>
-
 </div>
 
 </div>
@@ -52,7 +47,6 @@ Where understanding grows
 <div style={{padding:"30px"}}>
 
 <h1 style={{marginBottom:"20px"}}>Dashboard</h1>
-
 
 
 {/* THINKING MODE */}
@@ -77,7 +71,7 @@ Restore detects how you're learning based on your exploration and reflection pat
 
 
 
-{/* FIRST CARD ROW */}
+{/* INSIGHT ROW */}
 
 <div style={{
 display:"grid",
@@ -105,13 +99,13 @@ text="How might gravity, planetary motion, and orbital speed be connected?"
 
 
 
-{/* SECOND ROW */}
+{/* CURIOSITY */}
 
 <div style={{
 display:"grid",
-gridTemplateColumns:"repeat(3,1fr)",
+gridTemplateColumns:"1fr",
 gap:"18px",
-marginBottom:"25px"
+marginBottom:"30px"
 }}>
 
 <Card
@@ -119,32 +113,23 @@ title="Today's Curiosity"
 text="What might happen if gravity suddenly weakened near Earth?"
 />
 
-<Card
-title="Restore Guide"
-text="Guide: Ask about today's learning patterns."
-/>
-
-<Card
-title="Ask Restore"
-text=""
-/>
-
 </div>
 
 
 
-{/* RESTORE GUIDE INPUT */}
+{/* RESTORE GUIDE */}
 
 <div style={{
 background:"#ffffff",
-padding:"20px",
+padding:"24px",
 borderRadius:"14px",
-marginBottom:"25px"
+marginBottom:"30px",
+boxShadow:"0 4px 10px rgba(0,0,0,0.05)"
 }}>
 
-<h3>Restore Guide</h3>
+<h3 style={{marginBottom:"8px"}}>Restore Guide</h3>
 
-<p style={{marginBottom:"12px",color:"#555"}}>
+<p style={{marginBottom:"16px",color:"#555"}}>
 Guide: Ask about today's learning patterns.
 </p>
 
@@ -154,7 +139,7 @@ Guide: Ask about today's learning patterns.
 placeholder="Ask about today's learning..."
 style={{
 flex:1,
-padding:"10px",
+padding:"12px",
 borderRadius:"8px",
 border:"1px solid #ddd"
 }}
@@ -164,8 +149,9 @@ border:"1px solid #ddd"
 background:"#46b39d",
 border:"none",
 color:"white",
-padding:"10px 16px",
-borderRadius:"8px"
+padding:"12px 18px",
+borderRadius:"8px",
+fontWeight:"500"
 }}>
 Ask
 </button>
@@ -187,11 +173,11 @@ marginBottom:"20px"
 
 <Card
 title="Understanding Pulse"
-text={`Connecting
-Reflecting
-Curious
-Confused
-Exploring`}
+text={`Connecting  ████████░░
+Reflecting  ██████░░░░
+Curious     ███░░░░░░░
+Confused    ██░░░░░░░░
+Exploring   ███████░░░`}
 />
 
 <Card
