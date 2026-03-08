@@ -1,373 +1,314 @@
-"use client"
+export default function Dashboard() {
 
-import { useState } from "react"
+return (
 
-export default function Dashboard(){
+<div style={{
+padding: "40px",
+maxWidth: "1200px",
+margin: "auto"
+}}>
 
-const [messages,setMessages] = useState([])
-const [input,setInput] = useState("")
-
-const pulse = {
-connecting:70,
-reflecting:55,
-curious:40,
-confused:20,
-exploring:15
-}
-
-function getThinkingMode(){
-
-if(pulse.reflecting > pulse.connecting && pulse.reflecting > pulse.curious)
-return "Reflective Learner"
-
-if(pulse.curious > pulse.reflecting)
-return "Curious Explorer"
-
-if(pulse.connecting > pulse.reflecting)
-return "Connecting Ideas"
-
-if(pulse.confused > 40)
-return "Clarifying Concepts"
-
-return "Exploring"
-
-}
-
-async function sendMessage(){
-
-if(!input) return
-
-const newMessages=[...messages,{role:"user",content:input}]
-setMessages(newMessages)
-setInput("")
-
-try{
-
-const res=await fetch("/api/chat",{
-method:"POST",
-headers:{ "Content-Type":"application/json" },
-body:JSON.stringify({message:input})
-})
-
-const data=await res.json()
-
-setMessages([...newMessages,{role:"ai",content:data.reply}])
-
-}catch{
-
-setMessages([...newMessages,{role:"ai",content:"Guide unavailable."}])
-
-}
-
-}
-
-return(
-
-<div style={styles.page}>
-
-{/* NAVBAR */}
-
-<div style={styles.navbar}>
-
-<div style={styles.logo}>Restore</div>
-
-<div style={styles.navlinks}>
-<a href="/">Home</a>
-<a href="/dashboard">Dashboard</a>
-<a href="/universe">Universe</a>
-<a href="/profile">Profile</a>
-</div>
-
-</div>
-
-
-{/* HEADER */}
-
-<div style={styles.header}>
 <h1>Dashboard</h1>
-<p>A Renewed Understanding Experience</p>
-</div>
+
+<p style={{marginBottom:"30px"}}>
+A Renewed Understanding Experience
+</p>
 
 
-{/* THINKING MODE */}
+{/* Current Thinking Mode */}
 
-<div style={styles.modeCard}>
+<div style={{
+background:"#f5f7fb",
+padding:"20px",
+borderRadius:"10px",
+marginBottom:"30px",
+borderLeft:"4px solid #4FAFA6"
+}}>
 
 <h3>Current Thinking Mode</h3>
 
-<div style={styles.mode}>
-{getThinkingMode()}
-</div>
+<h2>Connecting Ideas</h2>
 
-<p style={styles.subtle}>
+<p>
 Restore detects how you're learning based on your exploration and reflection patterns.
 </p>
 
 </div>
 
 
-{/* REFLECTION PANEL */}
 
-<div style={styles.reflectionPanel}>
+{/* Daily Insight Grid */}
 
-<div style={styles.reflectionBlock}>
-<h3>Today's Insight</h3>
-<p>You tend to form strong connections when reflecting on examples. Try exploring one new question today to deepen understanding.</p>
+<div style={{
+display:"grid",
+gridTemplateColumns:"repeat(auto-fit,minmax(250px,1fr))",
+gap:"20px",
+marginBottom:"30px"
+}}>
+
+<div style={{
+background:"#f5f7fb",
+padding:"20px",
+borderRadius:"10px"
+}}>
+
+<h4>Today's Insight</h4>
+
+<p>
+You tend to form strong connections when reflecting on examples.
+Try exploring one new question today to deepen understanding.
+</p>
+
 </div>
 
-<div style={styles.reflectionBlock}>
-<h3>Today's Thought</h3>
-<p style={styles.question}>Why don't planets fall into the sun if gravity constantly pulls them inward?</p>
-<p style={styles.subtle}>Take a moment to think about it today.</p>
+
+<div style={{
+background:"#f5f7fb",
+padding:"20px",
+borderRadius:"10px"
+}}>
+
+<h4>Today's Thought</h4>
+
+<p>
+Why don't planets fall into the sun if gravity constantly pulls them inward?
+</p>
+
+<p style={{opacity:.6}}>
+Take a moment to think about it today.
+</p>
+
 </div>
 
-<div style={styles.reflectionBlock}>
-<h3>Today's Connection</h3>
-<p style={styles.question}>How might gravity, planetary motion, and orbital speed be connected?</p>
-<p style={styles.subtle}>Try linking ideas from past sessions.</p>
+
+<div style={{
+background:"#f5f7fb",
+padding:"20px",
+borderRadius:"10px"
+}}>
+
+<h4>Today's Connection</h4>
+
+<p>
+How might gravity, planetary motion, and orbital speed be connected?
+</p>
+
+<p style={{opacity:.6}}>
+Try linking ideas from past sessions.
+</p>
+
 </div>
 
-<div style={styles.reflectionBlock}>
-<h3>Today's Curiosity</h3>
-<p style={styles.question}>What might happen if gravity suddenly weakened near Earth?</p>
-<p style={styles.subtle}>Let curiosity guide exploration today.</p>
+
+<div style={{
+background:"#f5f7fb",
+padding:"20px",
+borderRadius:"10px"
+}}>
+
+<h4>Today's Curiosity</h4>
+
+<p>
+What might happen if gravity suddenly weakened near Earth?
+</p>
+
+<p style={{opacity:.6}}>
+Let curiosity guide exploration today.
+</p>
+
 </div>
 
-<div style={styles.reflectionBlock}>
+</div>
+
+
+
+{/* Restore Guide */}
+
+<div style={{
+background:"#f5f7fb",
+padding:"20px",
+borderRadius:"10px",
+marginBottom:"30px"
+}}>
 
 <h3>Restore Guide</h3>
 
-<div style={styles.chatBox}>
+<div style={{
+background:"#e9edf5",
+height:"120px",
+borderRadius:"8px",
+display:"flex",
+alignItems:"center",
+justifyContent:"center",
+marginBottom:"10px"
+}}>
 
-{messages.length===0 && (
-<p><b>Guide:</b> Ask about today's learning patterns.</p>
-)}
-
-{messages.map((msg,i)=>(
-<p key={i}>
-<b>{msg.role==="user"?"You":"Guide"}:</b> {msg.content}
-</p>
-))}
+Guide: Ask about today's learning patterns.
 
 </div>
 
 <input
-style={styles.input}
-value={input}
-onChange={(e)=>setInput(e.target.value)}
 placeholder="Ask about today's learning..."
+style={{
+width:"100%",
+padding:"10px",
+borderRadius:"6px",
+border:"1px solid #ccc",
+marginBottom:"10px"
+}}
 />
 
-<button style={styles.button} onClick={sendMessage}>
+<button
+style={{
+background:"#4FAFA6",
+color:"white",
+padding:"10px 18px",
+borderRadius:"6px",
+border:"none"
+}}
+>
+
 Ask
+
 </button>
 
 </div>
 
+
+
+{/* Lower Dashboard Cards */}
+
+<div style={{
+display:"grid",
+gridTemplateColumns:"repeat(auto-fit,minmax(250px,1fr))",
+gap:"20px"
+}}>
+
+
+
+{/* Understanding Pulse */}
+
+<div style={{
+background:"#f5f7fb",
+padding:"20px",
+borderRadius:"10px"
+}}>
+
+<h4>Understanding Pulse</h4>
+
+<p>Connecting</p>
+<p>Reflecting</p>
+<p>Curious</p>
+<p>Confused</p>
+<p>Exploring</p>
+
 </div>
 
 
-{/* DASHBOARD GRID */}
 
-<div style={styles.grid}>
+{/* Confusion Signals */}
 
-<div style={styles.card}>
-<h3>Understanding Pulse</h3>
+<div style={{
+background:"#f5f7fb",
+padding:"20px",
+borderRadius:"10px"
+}}>
 
-<Pulse label="Connecting" value={pulse.connecting}/>
-<Pulse label="Reflecting" value={pulse.reflecting}/>
-<Pulse label="Curious" value={pulse.curious}/>
-<Pulse label="Confused" value={pulse.confused}/>
-<Pulse label="Exploring" value={pulse.exploring}/>
+<h4>Confusion Signals</h4>
 
-</div>
-
-<div style={styles.card}>
-<h3>Confusion Signals</h3>
 <p>🔴 Electric Circuits</p>
 <p>🟡 Limits in Calculus</p>
 <p>🟡 Plate Tectonics</p>
+
 </div>
 
-<div style={styles.card}>
-<h3>Curiosity Activity</h3>
+
+
+{/* Curiosity Activity */}
+
+<div style={{
+background:"#f5f7fb",
+padding:"20px",
+borderRadius:"10px"
+}}>
+
+<h4>Curiosity Activity</h4>
+
 <ul>
+
 <li>Black holes</li>
 <li>Evolution</li>
 <li>Ancient civilizations</li>
+
 </ul>
+
 </div>
 
-<div style={styles.card}>
-<h3>Learning Moments</h3>
+
+
+{/* Learning Moments */}
+
+<div style={{
+background:"#f5f7fb",
+padding:"20px",
+borderRadius:"10px"
+}}>
+
+<h4>Learning Moments</h4>
+
 <p>Emma — Connected Galileo & Motion</p>
 <p>James — Understood Ionic Bonds</p>
 <p>Sarah — Reflected on Moon Phases</p>
+
 </div>
 
-<div style={styles.card}>
-<h3>Suggested Next Steps</h3>
+
+
+{/* Suggested Next Steps */}
+
+<div style={{
+background:"#f5f7fb",
+padding:"20px",
+borderRadius:"10px"
+}}>
+
+<h4>Suggested Next Steps</h4>
+
 <p>📚 Review: Limits in Calculus</p>
 <p>🔍 Explore: How gravity bends space</p>
 <p>🔗 Connect: Galileo → planetary motion</p>
 <p>💭 Reflect: Why do moon phases change?</p>
-</div>
-
-<div style={styles.card}>
-<h3>Current Session</h3>
-<p><b>Topic:</b> Gravity and Orbits</p>
-<p><b>State:</b> Reflecting</p>
-<p><b>Questions Asked:</b> 7</p>
-<p><b>Connections Made:</b> 3</p>
-</div>
 
 </div>
 
-</div>
-
-)
-
-}
 
 
-function Pulse({label,value}){
+{/* Current Session */}
 
-return(
-
-<div style={{marginBottom:10}}>
-
-<div>{label}</div>
-
-<div style={styles.barBackground}>
-<div style={{...styles.barFill,width:value+"%"}}/>
-</div>
-
-</div>
-
-)
-
-}
-
-
-const styles={
-
-page:{
-fontFamily:"Arial",
-background:"#f4f7fb",
-minHeight:"100vh",
-padding:"24px"
-},
-
-navbar:{
-display:"flex",
-justifyContent:"space-between",
-alignItems:"center",
-marginBottom:"30px"
-},
-
-logo:{
-fontSize:"24px",
-fontWeight:"bold",
-color:"#3a6fb0"
-},
-
-navlinks:{
-display:"flex",
-gap:"20px"
-},
-
-header:{
-marginBottom:"25px"
-},
-
-modeCard:{
-background:"white",
-padding:"22px",
-borderRadius:"12px",
-boxShadow:"0 8px 20px rgba(0,0,0,0.08)",
-marginBottom:"25px",
-borderLeft:"5px solid #4a90e2"
-},
-
-mode:{
-fontSize:"22px",
-fontWeight:"bold",
-marginTop:"8px"
-},
-
-reflectionPanel:{
-background:"white",
-padding:"25px",
-borderRadius:"12px",
-boxShadow:"0 8px 20px rgba(0,0,0,0.08)",
-marginBottom:"30px",
-display:"grid",
-gridTemplateColumns:"repeat(auto-fit,minmax(250px,1fr))",
-gap:"20px"
-},
-
-reflectionBlock:{
-padding:"10px"
-},
-
-question:{
-fontWeight:"600"
-},
-
-subtle:{
-opacity:.7
-},
-
-grid:{
-display:"grid",
-gridTemplateColumns:"repeat(auto-fit,minmax(250px,1fr))",
-gap:"20px"
-},
-
-card:{
-background:"white",
+<div style={{
+background:"#f5f7fb",
 padding:"20px",
-borderRadius:"12px",
-boxShadow:"0 8px 20px rgba(0,0,0,0.08)"
-},
+borderRadius:"10px"
+}}>
 
-barBackground:{
-height:"10px",
-background:"#e5e8ef",
-borderRadius:"5px",
-marginTop:"4px"
-},
+<h4>Current Session</h4>
 
-barFill:{
-height:"10px",
-background:"#4a90e2",
-borderRadius:"5px"
-},
+<p><b>Topic:</b> Gravity and Orbits</p>
 
-chatBox:{
-height:"160px",
-overflowY:"auto",
-background:"#f8f9fc",
-padding:"10px",
-borderRadius:"6px",
-marginBottom:"10px"
-},
+<p><b>State:</b> Reflecting</p>
 
-input:{
-width:"100%",
-padding:"8px",
-marginBottom:"8px",
-borderRadius:"6px",
-border:"1px solid #ccc"
-},
+<p><b>Questions Asked:</b> 7</p>
 
-button:{
-background:"#4a90e2",
-color:"white",
-border:"none",
-padding:"8px 14px",
-borderRadius:"6px",
-cursor:"pointer"
-}
+<p><b>Connections Made:</b> 3</p>
+
+</div>
+
+
+</div>
+
+
+</div>
+
+)
 
   }
