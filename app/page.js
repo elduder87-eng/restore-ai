@@ -1,12 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
-
 export default function Home() {
-
-  useEffect(() => {
-    window.location.href = "/dashboard"
-  }, [])
 
   return (
     <iframe
@@ -16,9 +10,9 @@ export default function Home() {
         inset: 0,
         width: "100%",
         height: "100%",
-        border: "none",
-        zIndex: 9999
+        border: "none"
       }}
     />
   )
+
 }
