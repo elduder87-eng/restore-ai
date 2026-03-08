@@ -2,25 +2,21 @@
 
 import Link from "next/link"
 
-export default function NavBar(){
+export default function NavBar() {
+  return (
+    <div
+      style={{
+        display: "flex",
+        gap: "25px",
+        padding: "20px",
+        borderBottom: "1px solid #eee"
+      }}
+    >
+      <Link href="/dashboard">Dashboard</Link>
 
-return(
+      <Link href="/chat">Chat</Link>
 
-<div style={{
-display:"flex",
-gap:"25px",
-padding:"20px",
-borderBottom:"1px solid #eee"
-}}>
-
-<Link href="/dashboard">Dashboard</Link>
-
-<Link href="/chat">Chat</Link>
-
-<Link href="/profile">Profile</Link>
-
-</div>
-
-)
-
+      <Link href="/profile">Profile</Link>
+    </div>
+  )
 }
