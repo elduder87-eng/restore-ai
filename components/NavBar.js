@@ -1,32 +1,22 @@
-"use client"
-
 import Link from "next/link"
 
-export default function NavBar() {
+export default function NavBar(){
 
-return (
+return(
 
-<div style={{
-display:"flex",
-justifyContent:"space-between",
-alignItems:"center",
-padding:"20px",
-borderBottom:"1px solid #eee"
-}}>
+<nav>
 
-{/* Logo + Brand */}
+<div style={{display:"flex",alignItems:"center"}}>
 
-<div style={{
-display:"flex",
-alignItems:"center",
-gap:"10px"
-}}>
-
-<span style={{fontSize:"22px"}}>🌱</span>
+<span style={{fontSize:"20px",marginRight:"8px"}}>
+🌱
+</span>
 
 <div>
 
-<div style={{fontWeight:"600"}}>Restore</div>
+<div style={{fontWeight:"600"}}>
+Restore
+</div>
 
 <div style={{fontSize:"12px",opacity:.6}}>
 Where understanding grows
@@ -36,12 +26,7 @@ Where understanding grows
 
 </div>
 
-{/* Navigation */}
-
-<div style={{
-display:"flex",
-gap:"25px"
-}}>
+<div className="nav-links">
 
 <Link href="/dashboard">Dashboard</Link>
 
@@ -51,7 +36,7 @@ gap:"25px"
 
 </div>
 
-</div>
+</nav>
 
 )
 
