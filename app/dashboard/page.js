@@ -1,153 +1,191 @@
 "use client";
 
 export default function Dashboard() {
-  return (
-    <div className="page">
 
-      {/* NAVBAR */}
-      <div className="nav">
-        <div className="logo">
-          <span>🌱</span>
-          <div>
-            <div className="brand">Restore</div>
-            <div className="tag">Where understanding grows</div>
-          </div>
-        </div>
+return (
 
-        <div className="links">
-          <a href="/dashboard">Dashboard</a>
-          <a href="/chat">Chat</a>
-          <a href="/profile">Profile</a>
-        </div>
-      </div>
+<div className="page">
 
-      <div className="container">
+{/* NAVBAR */}
 
-        <h1>Dashboard</h1>
+<div className="nav">
 
-        {/* THINKING MODE */}
-        <div className="mode">
-          <div className="mode-title">Current Thinking Mode</div>
-          <h2>Connecting Ideas</h2>
-          <p>
-            Restore detects how you're learning based on your exploration
-            and reflection patterns.
-          </p>
-        </div>
+<div className="logo">
 
+<span className="icon">🌱</span>
 
-        {/* INSIGHTS */}
-        <div className="grid">
+<div>
 
-          <Card
-            title="Today's Insight"
-            text="You tend to form strong connections when reflecting on examples."
-          />
+<div className="brand">Restore</div>
 
-          <Card
-            title="Today's Thought"
-            text="Why don't planets fall into the sun if gravity constantly pulls them inward?"
-          />
+<div className="tag">Where understanding grows</div>
 
-          <Card
-            title="Today's Connection"
-            text="How might gravity, planetary motion, and orbital speed be connected?"
-          />
+</div>
 
-        </div>
+</div>
+
+<div className="links">
+
+<a href="/dashboard">Dashboard</a>
+
+<a href="/chat">Chat</a>
+
+<a href="/profile">Profile</a>
+
+</div>
+
+</div>
 
 
-        {/* CURIOSITY */}
-        <div className="grid">
+<div className="container">
 
-          <Card
-            title="Today's Curiosity"
-            text="What might happen if gravity suddenly weakened near Earth?"
-          />
-
-        </div>
+<h1>Dashboard</h1>
 
 
-        {/* RESTORE GUIDE */}
-        <div className="guide card">
+{/* THINKING MODE */}
 
-          <h3>Restore Guide</h3>
+<div className="mode">
 
-          <p>Guide: Ask about today's learning patterns.</p>
+<div className="mode-title">Current Thinking Mode</div>
 
-          <div className="ask">
+<h2>Connecting Ideas</h2>
 
-            <input placeholder="Ask about today's learning..." />
+<p>
 
-            <button>Ask</button>
+Restore detects how you're learning based on your exploration and reflection patterns.
 
-          </div>
+</p>
 
-        </div>
-
-
-        {/* ANALYTICS */}
-        <div className="grid">
-
-          <div className="card">
-
-            <h3>Understanding Pulse</h3>
-
-            <Bar label="Connecting" value="60%" />
-            <Bar label="Reflecting" value="45%" />
-            <Bar label="Curious" value="25%" />
-            <Bar label="Confused" value="12%" />
-            <Bar label="Exploring" value="50%" />
-
-          </div>
+</div>
 
 
-          <Card
-            title="Confusion Signals"
-            text={`🔴 Electric Circuits
+
+{/* INSIGHT CARDS */}
+
+<div className="grid">
+
+<Card
+title="Today's Insight"
+text="You tend to form strong connections when reflecting on examples."
+/>
+
+<Card
+title="Today's Thought"
+text="Why don't planets fall into the sun if gravity constantly pulls them inward?"
+/>
+
+<Card
+title="Today's Connection"
+text="How might gravity, planetary motion, and orbital speed be connected?"
+/>
+
+</div>
+
+
+
+{/* CURIOSITY */}
+
+<div className="grid">
+
+<Card
+title="Today's Curiosity"
+text="What might happen if gravity suddenly weakened near Earth?"
+/>
+
+</div>
+
+
+
+{/* RESTORE GUIDE */}
+
+<div className="guide card">
+
+<h3>Restore Guide</h3>
+
+<p>Guide: Ask about today's learning patterns.</p>
+
+<div className="ask">
+
+<input placeholder="Ask about today's learning..." />
+
+<button>Ask</button>
+
+</div>
+
+</div>
+
+
+
+{/* ANALYTICS */}
+
+<div className="grid">
+
+<div className="card">
+
+<h3>Understanding Pulse</h3>
+
+<Bar label="Connecting" value="60%" />
+
+<Bar label="Reflecting" value="45%" />
+
+<Bar label="Curious" value="25%" />
+
+<Bar label="Confused" value="12%" />
+
+<Bar label="Exploring" value="50%" />
+
+</div>
+
+
+<Card
+title="Confusion Signals"
+text={`🔴 Electric Circuits
 🟡 Limits in Calculus
 🟡 Plate Tectonics`}
-          />
+/>
 
 
-          <Card
-            title="Curiosity Activity"
-            text={`• Black holes
+<Card
+title="Curiosity Activity"
+text={`• Black holes
 • Evolution
 • Ancient civilizations`}
-          />
+/>
 
-        </div>
+</div>
 
 
-        {/* FINAL ROW */}
-        <div className="grid">
 
-          <Card
-            title="Learning Moments"
-            text={`Emma — Connected Galileo & Motion
+{/* FINAL ROW */}
+
+<div className="grid">
+
+<Card
+title="Learning Moments"
+text={`Emma — Connected Galileo & Motion
 James — Understood Ionic Bonds
 Sarah — Reflected on Moon Phases`}
-          />
+/>
 
-          <Card
-            title="Suggested Next Steps"
-            text={`📚 Review: Limits in Calculus
+<Card
+title="Suggested Next Steps"
+text={`📚 Review: Limits in Calculus
 🔎 Explore: How gravity bends space
 🔗 Connect: Galileo → planetary motion`}
-          />
+/>
 
-          <Card
-            title="Current Session"
-            text={`Topic: Gravity and Orbits
+<Card
+title="Current Session"
+text={`Topic: Gravity and Orbits
 State: Reflecting
 Questions Asked: 7
 Connections Made: 3`}
-          />
+/>
 
-        </div>
+</div>
 
-      </div>
+</div>
+
 
 
 <style jsx>{`
@@ -162,7 +200,7 @@ font-family:system-ui;
 display:flex;
 justify-content:space-between;
 align-items:center;
-padding:14px 28px;
+padding:16px 32px;
 background:#f7f8fb;
 border-bottom:1px solid #ddd;
 }
@@ -184,94 +222,114 @@ color:#777;
 
 .links a{
 margin-left:20px;
+font-size:14px;
 }
 
 .container{
-max-width:1100px;
+max-width:1050px;
 margin:auto;
-padding:30px;
+padding:40px 30px;
+}
+
+h1{
+margin-bottom:26px;
 }
 
 .mode{
 background:#dbe6f3;
-padding:22px;
-border-radius:14px;
+padding:26px;
+border-radius:16px;
 border-left:5px solid #46b39d;
-margin-bottom:26px;
+margin-bottom:34px;
 }
 
 .mode-title{
 font-size:14px;
-color:#555;
+color:#666;
 }
 
 .grid{
 display:grid;
-grid-template-columns:repeat(3,1fr);
-gap:20px;
-margin-bottom:24px;
+grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+gap:24px;
+margin-bottom:30px;
 }
 
 .card{
 background:white;
-padding:20px;
-border-radius:14px;
-box-shadow:0 4px 10px rgba(0,0,0,0.05);
+padding:24px;
+border-radius:16px;
+box-shadow:0 10px 20px rgba(0,0,0,0.06);
+}
+
+.card h3{
+margin-bottom:10px;
 }
 
 .card p{
-white-space:pre-line;
 color:#555;
+white-space:pre-line;
+line-height:1.4;
 }
 
 .guide{
-margin-bottom:24px;
+margin-bottom:34px;
 }
 
 .ask{
 display:flex;
-gap:10px;
-margin-top:10px;
+gap:12px;
+margin-top:12px;
 }
 
 .ask input{
 flex:1;
-padding:12px;
-border-radius:8px;
+padding:14px;
+border-radius:10px;
 border:1px solid #ddd;
+font-size:14px;
 }
 
 .ask button{
 background:#46b39d;
 border:none;
 color:white;
-padding:10px 18px;
-border-radius:8px;
+padding:12px 20px;
+border-radius:10px;
 cursor:pointer;
+font-weight:500;
+}
+
+.ask button:hover{
+background:#3aa18c;
 }
 
 .bar{
-margin-top:10px;
+margin-top:14px;
+font-size:14px;
 }
 
 .bar-track{
-height:6px;
+height:7px;
 background:#dfe5ec;
 border-radius:6px;
-margin-top:4px;
+margin-top:6px;
 }
 
 .bar-fill{
-height:6px;
+height:7px;
 background:#46b39d;
 border-radius:6px;
 }
 
 `}</style>
 
-    </div>
-  )
+</div>
+
+)
+
 }
+
 
 
 function Card({title,text}){
@@ -291,6 +349,7 @@ return(
 }
 
 
+
 function Bar({label,value}){
 
 return(
@@ -301,7 +360,10 @@ return(
 
 <div className="bar-track">
 
-<div className="bar-fill" style={{width:value}}></div>
+<div
+className="bar-fill"
+style={{width:value}}
+></div>
 
 </div>
 
