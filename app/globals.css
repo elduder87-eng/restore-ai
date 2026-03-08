@@ -248,9 +248,9 @@ overflow:hidden;
 
 position:absolute;
 
-width:600px;
+width:700px;
 
-height:600px;
+height:700px;
 
 background:radial-gradient(circle,#b9f3d7 0%,transparent 70%);
 
@@ -280,23 +280,29 @@ animation:particlesMove 30s linear infinite;
 
 .intro-seed{
 
-font-size:80px;
+font-size:120px;
 
 animation:seedGrow 2s ease;
+
+margin-bottom:20px;
 
 }
 
 .intro-title{
 
-font-size:44px;
+font-size:64px;
 
-margin-top:10px;
+font-weight:700;
 
 }
 
 .intro-subtitle{
 
-opacity:.7;
+font-size:20px;
+
+margin-top:14px;
+
+opacity:.8;
 
 }
 
