@@ -6,21 +6,21 @@ import Dashboard from "./dashboard/page";
 
 export default function Home() {
 
-const [loading, setLoading] = useState(true);
+const [loading,setLoading] = useState(true);
 
-useEffect(() => {
+useEffect(()=>{
 
-const timer = setTimeout(() => {
+const timer = setTimeout(()=>{
 
 setLoading(false);
 
-}, 3500);
+},3500);
 
-return () => clearTimeout(timer);
+return ()=>clearTimeout(timer);
 
-}, []);
+},[]);
 
-if (loading) {
+if(loading){
 
 return <LoadingScreen/>
 
