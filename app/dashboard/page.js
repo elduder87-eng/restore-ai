@@ -1,16 +1,18 @@
+"use client";
+
 export default function Dashboard() {
 
 return (
 
 <div className="page">
 
-{/* NAV */}
+{/* NAVBAR */}
 
 <div className="nav">
 
 <div className="logo">
 
-<span>🌱</span>
+<span className="icon">🌱</span>
 
 <div>
 <div className="brand">Restore</div>
@@ -28,7 +30,7 @@ return (
 </div>
 
 
-<div className="content">
+<div className="container">
 
 <h1>Dashboard</h1>
 
@@ -49,7 +51,7 @@ and reflection patterns.
 </div>
 
 
-{/* TOP ROW */}
+{/* TOP CARDS */}
 
 <div className="grid3">
 
@@ -71,7 +73,7 @@ text="How might gravity, planetary motion, and orbital speed be connected?"
 </div>
 
 
-{/* SECOND ROW */}
+{/* CURIOSITY */}
 
 <div className="grid3">
 
@@ -129,7 +131,6 @@ text={`🔴 Electric Circuits
 🟡 Plate Tectonics`}
 />
 
-
 <Card
 title="Curiosity Activity"
 text={`• Black holes
@@ -151,14 +152,12 @@ James — Understood Ionic Bonds
 Sarah — Reflected on Moon Phases`}
 />
 
-
 <Card
 title="Suggested Next Steps"
 text={`📚 Review: Limits in Calculus
 🔎 Explore: How gravity bends space
 🔗 Connect: Galileo → planetary motion`}
 />
-
 
 <Card
 title="Current Session"
@@ -176,9 +175,9 @@ Connections Made: 3`}
 <style jsx>{`
 
 .page{
-font-family:system-ui;
 background:#e6edf5;
 min-height:100vh;
+font-family:system-ui;
 }
 
 .nav{
@@ -192,8 +191,8 @@ border-bottom:1px solid #ddd;
 
 .logo{
 display:flex;
-gap:10px;
 align-items:center;
+gap:10px;
 }
 
 .brand{
@@ -209,10 +208,10 @@ color:#777;
 margin-left:20px;
 }
 
-.content{
-padding:30px;
+.container{
 max-width:1100px;
 margin:auto;
+padding:30px;
 }
 
 .mode{
@@ -243,8 +242,8 @@ box-shadow:0 4px 10px rgba(0,0,0,0.05);
 }
 
 .card p{
-color:#555;
 white-space:pre-line;
+color:#555;
 }
 
 .guide{
@@ -274,6 +273,7 @@ border:none;
 color:white;
 padding:10px 18px;
 border-radius:8px;
+cursor:pointer;
 }
 
 .bar{
@@ -298,19 +298,27 @@ border-radius:6px;
 </div>
 
 )
+
 }
+
 
 
 function Card({title,text}){
 
 return(
+
 <div className="card">
+
 <h3>{title}</h3>
+
 <p>{text}</p>
+
 </div>
+
 )
 
 }
+
 
 
 function Bar({label,value}){
