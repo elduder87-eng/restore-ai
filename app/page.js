@@ -1,23 +1,27 @@
 "use client"
 
-import { useEffect } from "react"
-import { useRouter } from "next/navigation"
-import LoadingScreen from "../components/LoadingScreen"
+import { useState } from "react"
+import Dashboard from "../components/Dashboard"
+import Universe from "../components/Universe"
+import Profile from "../components/Profile"
+import NavBar from "../components/NavBar"
 
 export default function Home(){
 
-const router = useRouter()
+const [view,setView] = useState("dashboard")
 
-useEffect(()=>{
+return(
 
-setTimeout(()=>{
+<div>
 
-router.push("/dashboard")
+<NavBar setView={setView}/>
 
-},2500)
+{view === "dashboard" && <Dashboard/>}
+{view === "universe" && <Universe/>}
+{view === "profile" && <Profile/>}
 
-},[])
+</div>
 
-return <LoadingScreen/>
+)
 
 }
