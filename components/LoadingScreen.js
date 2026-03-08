@@ -6,39 +6,22 @@ export default function LoadingScreen(){
 
 return(
 
-<div style={styles.container}>
-
-<RestoreLogo/>
-
-<h1 style={styles.title}>Restore</h1>
-
-<p style={styles.tagline}>Where Understanding Grows</p>
-
-</div>
-
-)
-
-}
-
-const styles={
-
-container:{
+<div style={{
 display:"flex",
 flexDirection:"column",
 justifyContent:"center",
 alignItems:"center",
 height:"100vh",
 background:"#f4f7fb"
-},
+}}>
 
-title:{
-marginTop:"20px",
-fontSize:"32px",
-fontWeight:"600"
-},
+<RestoreLogo/>
 
-tagline:{
-opacity:.7
-}
+<h1 style={{marginTop:"20px"}}>Restore</h1>
+<p>Where Understanding Grows</p>
+
+</div>
+
+)
 
 }
