@@ -6,7 +6,7 @@ return(
 
 <h1>Your Profile</h1>
 
-<p>This will show your learning history and thinking patterns.</p>
+<p>This page will track your learning journey.</p>
 
 </div>
 
