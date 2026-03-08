@@ -85,8 +85,6 @@ function enterRestore(){
 window.location.href="/dashboard"
 }
 
-/* particle animation */
-
 const canvas=document.getElementById("bg")
 const ctx=canvas.getContext("2d")
 
@@ -118,22 +116,16 @@ this.max=200+Math.random()*200
 }
 
 step(){
-
 this.life++
-
 this.y+=this.vy
-
 if(this.life>this.max) this.reset()
-
 }
 
 draw(){
-
 ctx.beginPath()
 ctx.arc(this.x,this.y,this.r,0,Math.PI*2)
 ctx.fillStyle="rgba(143,184,122,.6)"
 ctx.fill()
-
 }
 
 }
