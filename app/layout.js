@@ -14,7 +14,7 @@ setTimeout(()=>{
 
 setLoading(false)
 
-},2500)
+},3000)
 
 },[])
 
@@ -27,9 +27,10 @@ return(
 
 <div className="intro-screen">
 
-<div className="intro-bg"></div>
+<div className="intro-light"></div>
+<div className="intro-particles"></div>
 
-<div className="intro-logo">🌱</div>
+<div className="intro-seed">🌱</div>
 
 <h1 className="intro-title">
 Restore
