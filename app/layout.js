@@ -2,7 +2,7 @@
 
 import "./globals.css"
 import NavBar from "../components/NavBar"
-import { useState, useEffect } from "react"
+import { useState,useEffect } from "react"
 
 export default function RootLayout({ children }) {
 
@@ -11,7 +11,9 @@ const [loading,setLoading] = useState(true)
 useEffect(()=>{
 
 setTimeout(()=>{
+
 setLoading(false)
+
 },2500)
 
 },[])
@@ -25,11 +27,9 @@ return (
 
 <div className="intro-screen">
 
-<div className="intro-orb"></div>
+<div className="intro-bg"></div>
 
-<div className="intro-logo">
-🌱
-</div>
+<div className="intro-logo">🌱</div>
 
 <h1 className="intro-title">
 Restore
