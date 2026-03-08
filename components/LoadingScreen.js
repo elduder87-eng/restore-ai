@@ -8,7 +8,7 @@ return (
 
 <div className="intro-particles"></div>
 
-{/* falling seeds */}
+{/* Falling seeds */}
 
 <div className="seed seed1">🌱</div>
 <div className="seed seed2">🌱</div>
@@ -16,7 +16,7 @@ return (
 <div className="seed seed4">🌱</div>
 <div className="seed seed5">🌱</div>
 
-{/* main seed */}
+{/* Main seed */}
 
 <div className="seed-drop">🌱</div>
 
