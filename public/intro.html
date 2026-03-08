@@ -1,23 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>Restore</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400&family=Jost:wght@200;300;400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300&family=Jost:wght@300&display=swap" rel="stylesheet">
 
 <style>
 
-*{margin:0;padding:0;box-sizing:border-box}
-
-body{
-background:#0e1117;
+html,body{
+margin:0;
+height:100%;
 overflow:hidden;
-font-family:"Jost",sans-serif;
+background:#0c0805;
 color:white;
+font-family:Jost;
 }
 
 canvas{
@@ -26,52 +25,40 @@ inset:0;
 }
 
 .center{
-position:fixed;
+position:absolute;
 top:50%;
 left:50%;
 transform:translate(-50%,-50%);
 text-align:center;
 }
 
-.logo{
-width:120px;
-margin-bottom:20px;
-}
-
-h1{
-font-family:"Cormorant Garamond",serif;
-font-size:8vw;
-letter-spacing:.15em;
-font-weight:300;
+.title{
+font-family:"Cormorant Garamond";
+font-size:70px;
+letter-spacing:.25em;
 }
 
 .tagline{
-margin-top:10px;
-opacity:.6;
-letter-spacing:.4em;
-text-transform:uppercase;
-font-size:.8rem;
+letter-spacing:.35em;
+font-size:12px;
+margin-top:15px;
+color:#8fb87a;
 }
 
 .enter{
-position:fixed;
+position:absolute;
 bottom:8%;
 left:50%;
 transform:translateX(-50%);
+padding:14px 40px;
 border:1px solid #8fb87a;
-padding:12px 40px;
-letter-spacing:.4em;
 background:none;
 color:#8fb87a;
+letter-spacing:.3em;
 cursor:pointer;
 }
 
-.enter:hover{
-background:#8fb87a22;
-}
-
 </style>
-
 </head>
 
 <body>
@@ -80,9 +67,11 @@ background:#8fb87a22;
 
 <div class="center">
 
-<img src="/sprout.png" class="logo">
+<div style="font-size:40px">🌱</div>
 
-<h1>Restore</h1>
+<div class="title">
+RESTORE
+</div>
 
 <div class="tagline">
 Where Understanding Grows
@@ -90,11 +79,11 @@ Where Understanding Grows
 
 </div>
 
-<button class="enter" onclick="enterRestore()">ENTER</button>
+<button class="enter" onclick="enterApp()">ENTER</button>
 
 <script>
 
-function enterRestore(){
+function enterApp(){
 window.location.href="/dashboard"
 }
 
@@ -111,57 +100,44 @@ h=canvas.height=window.innerHeight
 resize()
 window.addEventListener("resize",resize)
 
-const particles=[]
+let particles=[]
 
-class Particle{
-
-constructor(){
-this.reset()
+for(let i=0;i<80;i++){
+particles.push({
+x:Math.random()*w,
+y:Math.random()*h,
+r:Math.random()*2,
+v:Math.random()*0.5
+})
 }
 
-reset(){
-this.x=Math.random()*w
-this.y=h*.6+Math.random()*h*.3
-this.vy=-0.5-Math.random()
-this.r=Math.random()*2
-this.life=0
-this.max=200+Math.random()*200
-}
+function draw(){
 
-step(){
-this.life++
-this.y+=this.vy
-if(this.life>this.max) this.reset()
-}
-
-draw(){
-ctx.beginPath()
-ctx.arc(this.x,this.y,this.r,0,Math.PI*2)
-ctx.fillStyle="rgba(143,184,122,.6)"
-ctx.fill()
-}
-
-}
-
-for(let i=0;i<100;i++){
-particles.push(new Particle())
-}
-
-function loop(){
-
-ctx.fillStyle="#0e1117"
+ctx.fillStyle="#0c0805"
 ctx.fillRect(0,0,w,h)
 
+ctx.fillStyle="rgba(143,184,122,.6)"
+
 particles.forEach(p=>{
-p.step()
-p.draw()
+
+p.y-=p.v
+
+if(p.y<0){
+p.y=h
+p.x=Math.random()*w
+}
+
+ctx.beginPath()
+ctx.arc(p.x,p.y,p.r,0,Math.PI*2)
+ctx.fill()
+
 })
 
-requestAnimationFrame(loop)
+requestAnimationFrame(draw)
 
 }
 
-loop()
+draw()
 
 </script>
 
