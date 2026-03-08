@@ -4,11 +4,11 @@ return(
 
 <div className="page">
 
-<h1 style={{fontSize:"34px"}}>
+<h1 style={{fontSize:"36px"}}>
 Dashboard
 </h1>
 
-<p style={{marginBottom:"30px",opacity:.6}}>
+<p style={{opacity:.6,marginBottom:"32px"}}>
 A Renewed Understanding Experience
 </p>
 
@@ -23,7 +23,6 @@ Restore detects how you're learning based on your exploration and reflection pat
 </p>
 
 </div>
-
 
 <div className="grid">
 
@@ -74,7 +73,6 @@ What might happen if gravity suddenly weakened near Earth?
 
 </div>
 
-
 <div className="card">
 
 <h3>Restore Guide</h3>
@@ -88,45 +86,6 @@ Guide: Ask about today's learning patterns.
 <button>
 Ask
 </button>
-
-</div>
-
-
-<div className="grid">
-
-<div className="card">
-
-<h4>Understanding Pulse</h4>
-
-<p>Connecting</p>
-<p>Reflecting</p>
-<p>Curious</p>
-<p>Confused</p>
-<p>Exploring</p>
-
-</div>
-
-<div className="card">
-
-<h4>Confusion Signals</h4>
-
-<p>🔴 Electric Circuits</p>
-<p>🟡 Limits in Calculus</p>
-<p>🟡 Plate Tectonics</p>
-
-</div>
-
-<div className="card">
-
-<h4>Curiosity Activity</h4>
-
-<ul>
-<li>Black holes</li>
-<li>Evolution</li>
-<li>Ancient civilizations</li>
-</ul>
-
-</div>
 
 </div>
 
