@@ -3,6 +3,7 @@
 import Link from "next/link"
 
 export default function NavBar() {
+
   return (
     <div
       style={{
@@ -12,11 +13,14 @@ export default function NavBar() {
         borderBottom: "1px solid #eee"
       }}
     >
+
       <Link href="/dashboard">Dashboard</Link>
 
       <Link href="/chat">Chat</Link>
 
       <Link href="/profile">Profile</Link>
+
     </div>
   )
+
 }
