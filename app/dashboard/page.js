@@ -1,173 +1,69 @@
-"use client";
+"use client"
 
 export default function Dashboard(){
 
 return(
 
-<div className="dashboard">
+<div style={{
+padding:"40px",
+maxWidth:"1100px",
+margin:"auto"
+}}>
 
-<h1 className="section-title">Dashboard</h1>
+<h1 style={{
+fontSize:"42px"
+}}>
+Restore
+</h1>
 
-<div className="mode-card">
-
-<h3>Current Thinking Mode</h3>
-
-<h2>Connecting Ideas</h2>
-
-<p>
-Restore detects how you're learning based on your exploration and reflection patterns.
+<p style={{
+opacity:.7,
+marginBottom:"40px"
+}}>
+Where Understanding Grows
 </p>
 
+<div style={{
+display:"grid",
+gridTemplateColumns:"1fr 1fr",
+gap:"30px"
+}}>
+
+<div style={{
+background:"#161616",
+padding:"30px",
+borderRadius:"12px"
+}}>
+<h2>Learning Progress</h2>
+<p>Your curiosity map will appear here.</p>
 </div>
 
-
-<div className="card-grid">
-
-<div className="card">
-
-<h4>Today's Insight</h4>
-
-<p>
-You tend to form strong connections when reflecting on examples.
-</p>
-
+<div style={{
+background:"#161616",
+padding:"30px",
+borderRadius:"12px"
+}}>
+<h2>Recent Sessions</h2>
+<p>Your past conversations.</p>
 </div>
 
-
-<div className="card">
-
-<h4>Today's Thought</h4>
-
-<p>
-Why don't planets fall into the sun if gravity constantly pulls them inward?
-</p>
-
+<div style={{
+background:"#161616",
+padding:"30px",
+borderRadius:"12px"
+}}>
+<h2>Daily Thought</h2>
+<p>What idea surprised you today?</p>
 </div>
 
-
-<div className="card">
-
-<h4>Today's Connection</h4>
-
-<p>
-How might gravity, planetary motion, and orbital speed be connected?
-</p>
-
+<div style={{
+background:"#161616",
+padding:"30px",
+borderRadius:"12px"
+}}>
+<h2>Continue Learning</h2>
+<p>Jump back into learning.</p>
 </div>
-
-
-<div className="card">
-
-<h4>Today's Curiosity</h4>
-
-<p>
-What might happen if gravity suddenly weakened near Earth?
-</p>
-
-</div>
-
-</div>
-
-
-<div className="guide-box">
-
-<h3>Restore Guide</h3>
-
-<p>Guide: Ask about today's learning patterns.</p>
-
-<div className="guide-input">
-
-<input placeholder="Ask about today's learning..." />
-
-<button>Ask</button>
-
-</div>
-
-</div>
-
-
-<div className="card-grid">
-
-
-<div className="card">
-
-<h4>Understanding Pulse</h4>
-
-<p>Connecting</p>
-<div className="pulse-bar"><div className="pulse-fill" style={{width:"60%"}}></div></div>
-
-<p>Reflecting</p>
-<div className="pulse-bar"><div className="pulse-fill" style={{width:"45%"}}></div></div>
-
-<p>Curious</p>
-<div className="pulse-bar"><div className="pulse-fill" style={{width:"30%"}}></div></div>
-
-<p>Confused</p>
-<div className="pulse-bar"><div className="pulse-fill" style={{width:"10%"}}></div></div>
-
-<p>Exploring</p>
-<div className="pulse-bar"><div className="pulse-fill" style={{width:"50%"}}></div></div>
-
-</div>
-
-
-<div className="card">
-
-<h4>Confusion Signals</h4>
-
-<p>🔴 Electric Circuits</p>
-<p>🟡 Limits in Calculus</p>
-<p>🟡 Plate Tectonics</p>
-
-</div>
-
-
-<div className="card">
-
-<h4>Curiosity Activity</h4>
-
-<ul>
-<li>Black holes</li>
-<li>Evolution</li>
-<li>Ancient civilizations</li>
-</ul>
-
-</div>
-
-
-<div className="card">
-
-<h4>Learning Moments</h4>
-
-<p>Emma — Connected Galileo & Motion</p>
-<p>James — Understood Ionic Bonds</p>
-<p>Sarah — Reflected on Moon Phases</p>
-
-</div>
-
-
-<div className="card">
-
-<h4>Suggested Next Steps</h4>
-
-<p>📚 Review: Limits in Calculus</p>
-<p>🔎 Explore: How gravity bends space</p>
-<p>🔗 Connect: Galileo → planetary motion</p>
-
-</div>
-
-
-<div className="card">
-
-<h4>Current Session</h4>
-
-<p>Topic: Gravity and Orbits</p>
-<p>State: Reflecting</p>
-<p>Questions Asked: 7</p>
-<p>Connections Made: 3</p>
-
-</div>
-
 
 </div>
 
