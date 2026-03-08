@@ -1,80 +1,13 @@
-import OpenAI from "openai"
-import { addMessage, getRecentMessages } from "@/lib/memory"
-import { updateLearningProfile } from "@/lib/profile"
+export async function POST(req){
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+const { message } = await req.json()
+
+// simple response placeholder
+
+return Response.json({
+
+reply: `Let's think about that. You asked: "${message}". What connections do you see with things you've explored before?`
+
 })
 
-export async function POST(req) {
-  try {
-    const { message, userId } = await req.json()
-
-    if (!message || !userId) {
-      return Response.json({
-        reply: "I need a message and user ID to continue."
-      })
-    }
-
-    // -------- LOAD MEMORY (parallel) --------
-    let history = []
-    const memoryPromise = getRecentMessages(userId)
-      .then(data => { history = data })
-      .catch(err => console.error("Memory Load Error:", err))
-
-    // -------- UPDATE PROFILE (background) --------
-    updateLearningProfile(userId, message)
-      .catch(err => console.error("Profile Update Error:", err))
-
-    await memoryPromise
-
-    // -------- OPENAI CALL --------
-    let aiResponse = "I'm here — something small glitched. Let's try that again."
-
-    try {
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [
-          {
-            role: "system",
-            content:
-              "You are Restore: warm, intelligent, supportive. Encourage deeper thinking naturally without being overbearing."
-          },
-          ...history,
-          { role: "user", content: message }
-        ],
-      })
-
-      aiResponse = completion.choices[0].message.content
-
-      // -------- REFLECTION MODE (Subtle 30% Trigger) --------
-      const shouldReflect =
-        aiResponse.length > 300 && Math.random() < 0.3
-
-      if (shouldReflect) {
-        aiResponse +=
-          "\n\nBefore we move on — what part of this stood out most to you?"
-      }
-
-    } catch (err) {
-      console.error("OpenAI Error:", err)
-    }
-
-    // -------- SAVE MEMORY (non-blocking) --------
-    addMessage(userId, "user", message)
-      .catch(err => console.error("Memory Save Error:", err))
-
-    addMessage(userId, "assistant", aiResponse)
-      .catch(err => console.error("Memory Save Error:", err))
-
-    return Response.json({ reply: aiResponse })
-
-  } catch (err) {
-    console.error("Critical Chat Error:", err)
-
-    return Response.json({
-      reply:
-        "I hit a small technical hiccup, but I’m still here. Let’s try that again."
-    })
-  }
 }
