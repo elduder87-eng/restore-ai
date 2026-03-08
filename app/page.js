@@ -4,20 +4,22 @@ import { useEffect, useState } from "react"
 import LoadingScreen from "../components/LoadingScreen"
 import Dashboard from "./dashboard/page"
 
-export default function Home(){
+export default function Home() {
 
-const [loading,setLoading] = useState(true)
+  const [loading, setLoading] = useState(true)
 
-useEffect(()=>{
-setTimeout(()=>{
-setLoading(false)
-},2600)
-},[])
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false)
+    }, 2500)
 
-if(loading){
-return <LoadingScreen/>
-}
+    return () => clearTimeout(timer)
+  }, [])
 
-return <Dashboard/>
+  if (loading) {
+    return <LoadingScreen />
+  }
+
+  return <Dashboard />
 
 }
