@@ -8,11 +8,6 @@ return(
 
 <h1 className="section-title">Dashboard</h1>
 
-<p className="section-sub">
-A Renewed Understanding Experience
-</p>
-
-
 <div className="mode-card">
 
 <h3>Current Thinking Mode</h3>
@@ -25,8 +20,6 @@ Restore detects how you're learning based on your exploration and reflection pat
 
 </div>
 
-
-{/* TOP CARDS */}
 
 <div className="card-grid">
 
@@ -76,8 +69,6 @@ What might happen if gravity suddenly weakened near Earth?
 </div>
 
 
-{/* GUIDE */}
-
 <div className="guide-box">
 
 <h3>Restore Guide</h3>
@@ -95,8 +86,6 @@ What might happen if gravity suddenly weakened near Earth?
 </div>
 
 
-{/* LOWER GRID */}
-
 <div className="card-grid">
 
 
@@ -104,59 +93,20 @@ What might happen if gravity suddenly weakened near Earth?
 
 <h4>Understanding Pulse</h4>
 
-<div className="pulse-item">
-
 <p>Connecting</p>
-
-<div className="pulse-bar">
-<div className="pulse-fill" style={{width:"60%"}}></div>
-</div>
-
-</div>
-
-
-<div className="pulse-item">
+<div className="pulse-bar"><div className="pulse-fill" style={{width:"60%"}}></div></div>
 
 <p>Reflecting</p>
-
-<div className="pulse-bar">
-<div className="pulse-fill" style={{width:"45%"}}></div>
-</div>
-
-</div>
-
-
-<div className="pulse-item">
+<div className="pulse-bar"><div className="pulse-fill" style={{width:"45%"}}></div></div>
 
 <p>Curious</p>
-
-<div className="pulse-bar">
-<div className="pulse-fill" style={{width:"30%"}}></div>
-</div>
-
-</div>
-
-
-<div className="pulse-item">
+<div className="pulse-bar"><div className="pulse-fill" style={{width:"30%"}}></div></div>
 
 <p>Confused</p>
-
-<div className="pulse-bar">
-<div className="pulse-fill" style={{width:"10%"}}></div>
-</div>
-
-</div>
-
-
-<div className="pulse-item">
+<div className="pulse-bar"><div className="pulse-fill" style={{width:"10%"}}></div></div>
 
 <p>Exploring</p>
-
-<div className="pulse-bar">
-<div className="pulse-fill" style={{width:"50%"}}></div>
-</div>
-
-</div>
+<div className="pulse-bar"><div className="pulse-fill" style={{width:"50%"}}></div></div>
 
 </div>
 
@@ -177,11 +127,9 @@ What might happen if gravity suddenly weakened near Earth?
 <h4>Curiosity Activity</h4>
 
 <ul>
-
 <li>Black holes</li>
 <li>Evolution</li>
 <li>Ancient civilizations</li>
-
 </ul>
 
 </div>
@@ -192,9 +140,7 @@ What might happen if gravity suddenly weakened near Earth?
 <h4>Learning Moments</h4>
 
 <p>Emma — Connected Galileo & Motion</p>
-
 <p>James — Understood Ionic Bonds</p>
-
 <p>Sarah — Reflected on Moon Phases</p>
 
 </div>
@@ -205,9 +151,7 @@ What might happen if gravity suddenly weakened near Earth?
 <h4>Suggested Next Steps</h4>
 
 <p>📚 Review: Limits in Calculus</p>
-
 <p>🔎 Explore: How gravity bends space</p>
-
 <p>🔗 Connect: Galileo → planetary motion</p>
 
 </div>
@@ -218,11 +162,8 @@ What might happen if gravity suddenly weakened near Earth?
 <h4>Current Session</h4>
 
 <p>Topic: Gravity and Orbits</p>
-
 <p>State: Reflecting</p>
-
 <p>Questions Asked: 7</p>
-
 <p>Connections Made: 3</p>
 
 </div>
