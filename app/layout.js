@@ -1,59 +1,14 @@
-"use client"
+export const metadata = {
+  title: "Restore",
+  description: "Where Understanding Grows",
+};
 
-import "./globals.css"
-import NavBar from "../components/NavBar"
-import { useState,useEffect } from "react"
+import "./globals.css";
 
 export default function RootLayout({ children }) {
-
-const [loading,setLoading] = useState(true)
-
-useEffect(()=>{
-
-setTimeout(()=>{
-
-setLoading(false)
-
-},3000)
-
-},[])
-
-return(
-
-<html>
-<body>
-
-{loading ? (
-
-<div className="intro-screen">
-
-<div className="intro-light"></div>
-<div className="intro-particles"></div>
-
-<div className="intro-seed">🌱</div>
-
-<h1 className="intro-title">
-Restore
-</h1>
-
-<p className="intro-subtitle">
-Where Understanding Grows
-</p>
-
-</div>
-
-) : (
-
-<>
-<NavBar/>
-{children}
-</>
-
-)}
-
-</body>
-</html>
-
-)
-
+  return (
+    <html lang="en">
+      <body>{children}</body>
+    </html>
+  );
 }
