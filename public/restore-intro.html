@@ -349,7 +349,6 @@
   <p class="tagline">Where Understanding Grows</p>
 </div>
 
-<button class="enter-btn" id="enterBtn">Enter</button>
 <div class="fade-overlay" id="fadeOverlay"></div>
 
 <script>
@@ -422,14 +421,14 @@
   }
   loop();
 
-  /* ── ENTER BUTTON ── */
-  document.getElementById('enterBtn').addEventListener('click', () => {
+  /* ── AUTO REDIRECT after animation completes ── */
+  setTimeout(() => {
     const overlay = document.getElementById('fadeOverlay');
     overlay.classList.add('active');
     setTimeout(() => {
-      window.location.href = 'https://restore-ai-opal.vercel.app/';
+      window.open('https://restore-ai-opal.vercel.app/', '_blank');
     }, 1000);
-  });
+  }, 3500);
   const pollenEl = document.getElementById('pollen');
   for (let i = 0; i < 18; i++) {
     const d = document.createElement('span');
