@@ -36,7 +36,7 @@ padding:"30px",
 borderRadius:"12px"
 }}>
 <h2>Learning Progress</h2>
-<p>Your curiosity map and thinking patterns will appear here.</p>
+<p>Your curiosity map will appear here.</p>
 </div>
 
 <div style={{
@@ -45,7 +45,7 @@ padding:"30px",
 borderRadius:"12px"
 }}>
 <h2>Recent Sessions</h2>
-<p>Review previous conversations and topics.</p>
+<p>Review previous conversations.</p>
 </div>
 
 <div style={{
@@ -54,7 +54,7 @@ padding:"30px",
 borderRadius:"12px"
 }}>
 <h2>Daily Thought</h2>
-<p>What idea changed your perspective recently?</p>
+<p>What idea changed your thinking today?</p>
 </div>
 
 <div style={{
@@ -63,7 +63,7 @@ padding:"30px",
 borderRadius:"12px"
 }}>
 <h2>Continue Learning</h2>
-<p>Pick up where you left off.</p>
+<p>Resume where you left off.</p>
 </div>
 
 </div>
