@@ -13,7 +13,6 @@ color:#1a1a1a;
 }
 
 
-
 /* NAVBAR */
 
 .navbar{
@@ -45,96 +44,87 @@ color:#5ec2a8;
 }
 
 
-
 /* INTRO SCREEN */
 
 .intro-screen{
+
 height:100vh;
+
 display:flex;
+
 flex-direction:column;
+
 justify-content:center;
+
 align-items:center;
+
 background:radial-gradient(circle at center,#eef6ff,#dde6f4);
+
 position:relative;
+
 overflow:hidden;
+
 }
 
 
-
-/* MAIN SEED */
-
-.seed-drop{
-font-size:180px;
-animation:seedFall 1.6s ease-out forwards;
-z-index:3;
-filter:drop-shadow(0 30px 60px rgba(0,0,0,0.25));
-}
-
-
-
-/* TITLE */
-
-.intro-title{
-font-size:90px;
-font-weight:800;
-margin-top:10px;
-letter-spacing:-2px;
-opacity:0;
-animation:titleReveal 1.5s ease forwards;
-animation-delay:1.5s;
-}
-
-
-
-/* SUBTITLE */
-
-.intro-subtitle{
-font-size:34px;
-margin-top:20px;
-font-weight:500;
-letter-spacing:1px;
-color:#3d4a55;
-opacity:0;
-animation:subtitleReveal 1.8s ease forwards;
-animation-delay:2.2s;
-}
-
-
-
-/* GLOW */
+/* glow */
 
 .intro-light{
+
 position:absolute;
+
 width:1000px;
+
 height:1000px;
+
 background:radial-gradient(circle,#b9f3d7 0%,transparent 70%);
+
 opacity:.35;
+
 animation:glowPulse 4s infinite ease-in-out;
+
+z-index:1;
+
 }
 
 
-
-/* PARTICLE FIELD */
+/* particle field */
 
 .intro-particles{
+
 position:absolute;
+
 width:200%;
+
 height:200%;
+
 background-image:radial-gradient(#ffffff 1px,transparent 1px);
+
 background-size:40px 40px;
+
 opacity:.25;
+
 animation:particlesMove 45s linear infinite;
+
+z-index:0;
+
 }
 
 
-
-/* FALLING SEEDS */
+/* falling seeds */
 
 .seed{
+
 position:absolute;
+
 font-size:28px;
-opacity:.6;
+
+opacity:.7;
+
+z-index:2;
+
 animation:seedFloat linear infinite;
+
 }
 
 .seed1{
@@ -168,8 +158,66 @@ animation-delay:3s;
 }
 
 
+/* main seed */
 
-/* ANIMATIONS */
+.seed-drop{
+
+font-size:180px;
+
+animation:seedFall 1.6s ease-out forwards;
+
+z-index:3;
+
+filter:drop-shadow(0 30px 60px rgba(0,0,0,0.25));
+
+}
+
+
+/* title */
+
+.intro-title{
+
+font-size:90px;
+
+font-weight:800;
+
+margin-top:10px;
+
+letter-spacing:-2px;
+
+opacity:0;
+
+animation:titleReveal 1.5s ease forwards;
+
+animation-delay:1.5s;
+
+}
+
+
+/* subtitle */
+
+.intro-subtitle{
+
+font-size:34px;
+
+margin-top:20px;
+
+font-weight:500;
+
+letter-spacing:1px;
+
+color:#3d4a55;
+
+opacity:0;
+
+animation:subtitleReveal 1.8s ease forwards;
+
+animation-delay:2.2s;
+
+}
+
+
+/* animations */
 
 @keyframes seedFall{
 
@@ -194,7 +242,6 @@ opacity:1;
 }
 
 
-
 @keyframes seedFloat{
 
 0%{
@@ -214,7 +261,6 @@ opacity:0;
 }
 
 
-
 @keyframes titleReveal{
 
 0%{
@@ -230,7 +276,6 @@ transform:translateY(0);
 }
 
 
-
 @keyframes subtitleReveal{
 
 0%{
@@ -244,7 +289,6 @@ transform:translateY(0);
 }
 
 }
-
 
 
 @keyframes glowPulse{
@@ -265,7 +309,6 @@ opacity:.3;
 }
 
 }
-
 
 
 @keyframes particlesMove{
