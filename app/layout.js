@@ -2,7 +2,7 @@
 
 import "./globals.css"
 import NavBar from "../components/NavBar"
-import { useEffect, useState } from "react"
+import { useState, useEffect } from "react"
 
 export default function RootLayout({ children }) {
 
@@ -24,6 +24,8 @@ return (
 {loading ? (
 
 <div className="intro-screen">
+
+<div className="intro-orb"></div>
 
 <div className="intro-logo">
 🌱
