@@ -9,17 +9,23 @@ return(
 <div style={{display:"flex",alignItems:"center"}}>
 
 <span style={{fontSize:"20px",marginRight:"8px"}}>
+
 🌱
+
 </span>
 
 <div>
 
 <div style={{fontWeight:"600"}}>
+
 Restore
+
 </div>
 
 <div style={{fontSize:"12px",opacity:.6}}>
+
 Where understanding grows
+
 </div>
 
 </div>
