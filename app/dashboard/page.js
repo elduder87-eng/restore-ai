@@ -66,7 +66,6 @@ Guide: Ask about today's learning patterns.
 
 <div className="grid">
 
-
 <div className="card">
 
 <h4>Understanding Pulse</h4>
