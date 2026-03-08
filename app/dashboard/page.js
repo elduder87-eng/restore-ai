@@ -4,16 +4,12 @@ return(
 
 <div className="page">
 
-<h1 style={{fontSize:"36px"}}>
-Dashboard
-</h1>
+<h1>Dashboard</h1>
 
-<p style={{opacity:.6,marginBottom:"32px"}}>
+<p className="subtitle">
 A Renewed Understanding Experience
 </p>
 
-
-{/* Thinking Mode */}
 
 <div className="card highlight">
 
@@ -28,59 +24,30 @@ Restore detects how you're learning based on your exploration and reflection pat
 </div>
 
 
-{/* Daily Cards */}
-
 <div className="grid">
 
 <div className="card">
-
 <h4>Today's Insight</h4>
-
-<p>
-You tend to form strong connections when reflecting on examples.
-Try exploring one new question today to deepen understanding.
-</p>
-
+<p>You tend to form strong connections when reflecting on examples.</p>
 </div>
 
 <div className="card">
-
 <h4>Today's Thought</h4>
-
-<p>
-Why don't planets fall into the sun if gravity constantly pulls them inward?
-</p>
-
-<p style={{opacity:.6}}>
-Take a moment to think about it today.
-</p>
-
+<p>Why don't planets fall into the sun if gravity constantly pulls them inward?</p>
 </div>
 
 <div className="card">
-
 <h4>Today's Connection</h4>
-
-<p>
-How might gravity, planetary motion, and orbital speed be connected?
-</p>
-
+<p>How might gravity, planetary motion, and orbital speed be connected?</p>
 </div>
 
 <div className="card">
-
 <h4>Today's Curiosity</h4>
-
-<p>
-What might happen if gravity suddenly weakened near Earth?
-</p>
-
+<p>What might happen if gravity suddenly weakened near Earth?</p>
 </div>
 
 </div>
 
-
-{/* Restore Guide */}
 
 <div className="card">
 
@@ -92,14 +59,10 @@ Guide: Ask about today's learning patterns.
 
 <input placeholder="Ask about today's learning..." />
 
-<button>
-Ask
-</button>
+<button>Ask</button>
 
 </div>
 
-
-{/* Understanding Grid */}
 
 <div className="grid">
 
@@ -108,10 +71,19 @@ Ask
 
 <h4>Understanding Pulse</h4>
 
+<div className="pulse-bar"><div style={{width:"70%"}}></div></div>
 <p>Connecting</p>
+
+<div className="pulse-bar"><div style={{width:"55%"}}></div></div>
 <p>Reflecting</p>
+
+<div className="pulse-bar"><div style={{width:"35%"}}></div></div>
 <p>Curious</p>
+
+<div className="pulse-bar"><div style={{width:"20%"}}></div></div>
 <p>Confused</p>
+
+<div className="pulse-bar"><div style={{width:"10%"}}></div></div>
 <p>Exploring</p>
 
 </div>
@@ -157,7 +129,7 @@ Ask
 <h4>Suggested Next Steps</h4>
 
 <p>📚 Review: Limits in Calculus</p>
-<p>🔍 Explore: How gravity bends space</p>
+<p>🔎 Explore: How gravity bends space</p>
 <p>🔗 Connect: Galileo → planetary motion</p>
 
 </div>
@@ -176,7 +148,6 @@ Ask
 
 
 </div>
-
 
 </div>
 
