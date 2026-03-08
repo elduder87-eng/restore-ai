@@ -14,7 +14,7 @@ function Bar({ label, value }) {
     <div className="bar">
       <div className="bar-label">{label}</div>
       <div className="bar-track">
-        <div className="bar-fill" style={{ width: value }}></div>
+        <div className="bar-fill" style={{ width: value }} />
       </div>
     </div>
   );
@@ -24,13 +24,11 @@ export default function Dashboard() {
   return (
     <div className="page">
 
-      {/* NAVBAR */}
+      {/* NAV */}
 
       <div className="nav">
-
         <div className="logo">
-          <span className="icon">🌱</span>
-
+          🌱
           <div>
             <div className="brand">Restore</div>
             <div className="tag">Where understanding grows</div>
@@ -42,25 +40,26 @@ export default function Dashboard() {
           <a href="/chat">Chat</a>
           <a href="/profile">Profile</a>
         </div>
-
       </div>
+
 
       <div className="container">
 
         <h1>Dashboard</h1>
 
-        {/* THINKING MODE */}
+
+        {/* MODE */}
 
         <div className="mode">
           <div className="mode-title">Current Thinking Mode</div>
           <h2>Connecting Ideas</h2>
-
           <p>
             Restore detects how you're learning based on your exploration and reflection patterns.
           </p>
         </div>
 
-        {/* INSIGHT ROW */}
+
+        {/* TOP CARDS */}
 
         <div className="grid">
 
@@ -81,7 +80,6 @@ export default function Dashboard() {
 
         </div>
 
-        {/* CURIOSITY */}
 
         <div className="grid">
 
@@ -92,11 +90,13 @@ export default function Dashboard() {
 
         </div>
 
-        {/* RESTORE GUIDE */}
 
-        <div className="guide card">
+        {/* GUIDE */}
+
+        <div className="card guide">
 
           <h3>Restore Guide</h3>
+
           <p>Guide: Ask about today's learning patterns.</p>
 
           <div className="ask">
@@ -105,6 +105,7 @@ export default function Dashboard() {
           </div>
 
         </div>
+
 
         {/* ANALYTICS */}
 
@@ -122,12 +123,14 @@ export default function Dashboard() {
 
           </div>
 
+
           <Card
             title="Confusion Signals"
             text={`🔴 Electric Circuits
 🟡 Limits in Calculus
 🟡 Plate Tectonics`}
           />
+
 
           <Card
             title="Curiosity Activity"
@@ -138,7 +141,8 @@ export default function Dashboard() {
 
         </div>
 
-        {/* FINAL ROW */}
+
+        {/* BOTTOM */}
 
         <div className="grid">
 
@@ -166,7 +170,9 @@ Connections Made: 3`}
 
         </div>
 
+
       </div>
+
 
 <style jsx>{`
 
@@ -189,10 +195,10 @@ border-bottom:1px solid #e5e7eb;
 display:flex;
 gap:10px;
 align-items:center;
+font-weight:600;
 }
 
 .brand{
-font-weight:600;
 font-size:15px;
 }
 
@@ -216,7 +222,6 @@ padding:50px 30px 80px;
 
 h1{
 margin-bottom:30px;
-font-size:28px;
 }
 
 .mode{
@@ -255,31 +260,25 @@ box-shadow:0 16px 36px rgba(0,0,0,0.12);
 
 .card h3{
 margin-bottom:10px;
-font-size:16px;
 }
 
 .card p{
 color:#555;
-line-height:1.45;
 white-space:pre-line;
-}
-
-.guide{
-margin-bottom:36px;
+line-height:1.4;
 }
 
 .ask{
 display:flex;
 gap:12px;
-margin-top:14px;
+margin-top:12px;
 }
 
 .ask input{
 flex:1;
 padding:14px;
-border-radius:12px;
+border-radius:10px;
 border:1px solid #ddd;
-font-size:14px;
 }
 
 .ask button{
@@ -289,19 +288,17 @@ color:white;
 padding:12px 20px;
 border-radius:10px;
 cursor:pointer;
-font-weight:500;
 }
 
 .bar{
-margin-top:14px;
-font-size:14px;
+margin-top:12px;
 }
 
 .bar-track{
 height:8px;
-background:#dfe5ec;
+background:#e2e8f0;
 border-radius:6px;
-margin-top:6px;
+margin-top:4px;
 }
 
 .bar-fill{
@@ -314,4 +311,4 @@ border-radius:6px;
 
     </div>
   );
-          }
+}
