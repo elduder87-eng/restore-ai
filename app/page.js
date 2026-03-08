@@ -1,12 +1,24 @@
-"use client";
+"use client"
 
-import { useEffect } from "react";
+import { useEffect } from "react"
 
 export default function Home() {
 
   useEffect(() => {
-    window.location.href = "/intro.html";
-  }, []);
+    window.location.href = "/dashboard"
+  }, [])
 
-  return null;
+  return (
+    <iframe
+      src="/intro.html"
+      style={{
+        position: "fixed",
+        inset: 0,
+        width: "100%",
+        height: "100%",
+        border: "none",
+        zIndex: 9999
+      }}
+    />
+  )
 }
