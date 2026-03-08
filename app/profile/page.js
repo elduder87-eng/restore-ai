@@ -4,9 +4,17 @@ return(
 
 <div className="page">
 
-<h1>Profile</h1>
+<h1>
 
-<p>Your learning journey will appear here.</p>
+Profile
+
+</h1>
+
+<p>
+
+Your learning journey will appear here.
+
+</p>
 
 </div>
 
