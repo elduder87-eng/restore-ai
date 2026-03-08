@@ -1,27 +1,26 @@
 "use client";
 
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import LoadingScreen from "../components/LoadingScreen";
 import Dashboard from "./dashboard/page";
 
-export default function Home(){
+export default function Home() {
 
-const [loading,setLoading] = useState(true);
+const [loading, setLoading] = useState(true);
 
-useEffect(()=>{
+useEffect(() => {
 
-const timer = setTimeout(()=>{
+const timer = setTimeout(() => {
 
 setLoading(false);
 
-},3500);
+}, 3500);
 
-return ()=>clearTimeout(timer);
+return () => clearTimeout(timer);
 
-},[]);
+}, []);
 
-
-if(loading){
+if (loading) {
 
 return <LoadingScreen/>
 
