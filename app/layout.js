@@ -1,21 +1,27 @@
-import "./globals.css";
-import NavBar from "../components/NavBar";
-
 export const metadata = {
-  title: "Restore",
-  description: "Where Understanding Grows",
-};
+title: "Restore",
+description: "Where Understanding Grows"
+}
 
-export default function RootLayout({ children }) {
-  return (
-    <html lang="en">
-      <body>
+export default function RootLayout({children}){
 
-        <NavBar />
+return(
 
-        {children}
+<html lang="en">
 
-      </body>
-    </html>
-  );
+<body style={{
+margin:0,
+background:"#0f0f0f",
+color:"#fff",
+fontFamily:"system-ui"
+}}>
+
+{children}
+
+</body>
+
+</html>
+
+)
+
 }
