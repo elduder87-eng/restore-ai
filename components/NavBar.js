@@ -15,7 +15,7 @@ borderBottom:"1px solid #eee"
 
 <Link href="/dashboard">Dashboard</Link>
 
-<Link href="/universe">Chat</Link>
+<Link href="/chat">Chat</Link>
 
 <Link href="/profile">Profile</Link>
 
