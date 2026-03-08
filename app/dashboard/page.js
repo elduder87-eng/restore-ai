@@ -11,8 +11,6 @@ A Renewed Understanding Experience
 </p>
 
 
-{/* Thinking Mode */}
-
 <div className="card highlight">
 
 <h3>Current Thinking Mode</h3>
@@ -26,8 +24,6 @@ Restore detects how you're learning based on your exploration and reflection pat
 </div>
 
 
-{/* Insight Cards */}
-
 <div className="grid">
 
 <div className="card">
@@ -40,7 +36,6 @@ Try exploring one new question today to deepen understanding.
 </p>
 
 </div>
-
 
 <div className="card">
 
@@ -56,7 +51,6 @@ Take a moment to think about it today.
 
 </div>
 
-
 <div className="card">
 
 <h4>Today's Connection</h4>
@@ -70,7 +64,6 @@ Try linking ideas from past sessions.
 </p>
 
 </div>
-
 
 <div className="card">
 
@@ -90,16 +83,12 @@ Let curiosity guide exploration today.
 
 
 
-{/* Restore Guide */}
-
 <div className="card">
 
 <h3>Restore Guide</h3>
 
 <div className="guide-box">
-
 Guide: Ask about today's learning patterns.
-
 </div>
 
 <input placeholder="Ask about today's learning..." />
@@ -112,10 +101,7 @@ Ask
 
 
 
-{/* Lower Dashboard */}
-
 <div className="grid">
-
 
 <div className="card">
 
@@ -130,7 +116,6 @@ Ask
 </div>
 
 
-
 <div className="card">
 
 <h4>Confusion Signals</h4>
@@ -142,21 +127,17 @@ Ask
 </div>
 
 
-
 <div className="card">
 
 <h4>Curiosity Activity</h4>
 
 <ul>
-
 <li>Black holes</li>
 <li>Evolution</li>
 <li>Ancient civilizations</li>
-
 </ul>
 
 </div>
-
 
 
 <div className="card">
@@ -170,7 +151,6 @@ Ask
 </div>
 
 
-
 <div className="card">
 
 <h4>Suggested Next Steps</h4>
@@ -181,7 +161,6 @@ Ask
 <p>💭 Reflect: Why do moon phases change?</p>
 
 </div>
-
 
 
 <div className="card">
@@ -198,9 +177,7 @@ Ask
 
 </div>
 
-
 </div>
-
 
 </div>
 
