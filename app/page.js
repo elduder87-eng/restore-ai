@@ -1,138 +1,38 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useEffect,useState } from "react"
+import LoadingScreen from "../components/LoadingScreen"
 
-function getOrCreateUserId() {
-  let userId = localStorage.getItem("restore_user_id")
+export default function Home(){
 
-  if (!userId) {
-    userId = crypto.randomUUID()
-    localStorage.setItem("restore_user_id", userId)
-  }
+const [loading,setLoading]=useState(true)
 
-  return userId
+useEffect(()=>{
+
+setTimeout(()=>{
+
+setLoading(false)
+
+},2600)
+
+},[])
+
+if(loading){
+
+return <LoadingScreen/>
+
 }
 
-export default function Home() {
-  const [input, setInput] = useState("")
-  const [messages, setMessages] = useState([])
-  const [loading, setLoading] = useState(false)
-  const [voiceOn, setVoiceOn] = useState(true)
-  const bottomRef = useRef(null)
+return(
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [messages])
+<div style={{padding:"40px"}}>
 
-  function speak(text) {
-    if (!voiceOn) return
+<h1>Welcome to Restore</h1>
 
-    window.speechSynthesis.cancel()
+<p>Your learning environment is ready.</p>
 
-    const utterance = new SpeechSynthesisUtterance(text)
-    utterance.rate = 1
-    utterance.pitch = 1
-    window.speechSynthesis.speak(utterance)
-  }
+</div>
 
-  async function sendMessage() {
-    if (!input.trim()) return
+)
 
-    const userId = getOrCreateUserId()
-
-    const userMessage = { role: "user", content: input }
-    setMessages(prev => [...prev, userMessage])
-    setInput("")
-    setLoading(true)
-
-    try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          message: input,
-          userId,
-        }),
-      })
-
-      const data = await res.json()
-
-      const assistantMessage = {
-        role: "assistant",
-        content: data.reply,
-      }
-
-      setMessages(prev => [...prev, assistantMessage])
-
-      speak(data.reply)
-    } catch (error) {
-      setMessages(prev => [
-        ...prev,
-        { role: "assistant", content: "Something went wrong." },
-      ])
-    }
-
-    setLoading(false)
-  }
-
-  return (
-    <main style={{ padding: "20px", maxWidth: "700px", margin: "0 auto" }}>
-      <h1>Restore AI</h1>
-
-      <button
-        onClick={() => setVoiceOn(!voiceOn)}
-        style={{
-          marginBottom: "15px",
-          padding: "6px 12px",
-          cursor: "pointer",
-        }}
-      >
-        Voice: {voiceOn ? "ON" : "OFF"}
-      </button>
-
-      <div style={{ marginBottom: "20px" }}>
-        {messages.map((msg, i) => (
-          <div
-            key={i}
-            style={{
-              textAlign: msg.role === "user" ? "right" : "left",
-              marginBottom: "10px",
-            }}
-          >
-            <div
-              style={{
-                display: "inline-block",
-                padding: "10px 14px",
-                borderRadius: "16px",
-                background:
-                  msg.role === "user" ? "#0070f3" : "#e5e5ea",
-                color: msg.role === "user" ? "white" : "black",
-                maxWidth: "80%",
-              }}
-            >
-              {msg.content}
-            </div>
-          </div>
-        ))}
-
-        {loading && <div>Restore is thinking...</div>}
-        <div ref={bottomRef} />
-      </div>
-
-      <div style={{ display: "flex", gap: "10px" }}>
-        <input
-          style={{ flex: 1, padding: "10px" }}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask Restore something..."
-          onKeyDown={(e) => {
-            if (e.key === "Enter") sendMessage()
-          }}
-        />
-        <button onClick={sendMessage}>Send</button>
-      </div>
-    </main>
-  )
 }
