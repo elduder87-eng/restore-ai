@@ -24,9 +24,10 @@ export default function Dashboard() {
   return (
     <div className="page">
 
-      {/* NAV */}
+      {/* NAVBAR */}
 
       <div className="nav">
+
         <div className="logo">
           🌱
           <div>
@@ -40,6 +41,7 @@ export default function Dashboard() {
           <a href="/chat">Chat</a>
           <a href="/profile">Profile</a>
         </div>
+
       </div>
 
 
@@ -48,18 +50,22 @@ export default function Dashboard() {
         <h1>Dashboard</h1>
 
 
-        {/* MODE */}
+        {/* THINKING MODE */}
 
         <div className="mode">
+
           <div className="mode-title">Current Thinking Mode</div>
+
           <h2>Connecting Ideas</h2>
+
           <p>
             Restore detects how you're learning based on your exploration and reflection patterns.
           </p>
+
         </div>
 
 
-        {/* TOP CARDS */}
+        {/* TOP INSIGHTS */}
 
         <div className="grid">
 
@@ -81,6 +87,8 @@ export default function Dashboard() {
         </div>
 
 
+        {/* CURIOSITY */}
+
         <div className="grid">
 
           <Card
@@ -91,7 +99,7 @@ export default function Dashboard() {
         </div>
 
 
-        {/* GUIDE */}
+        {/* RESTORE GUIDE */}
 
         <div className="card guide">
 
@@ -100,8 +108,11 @@ export default function Dashboard() {
           <p>Guide: Ask about today's learning patterns.</p>
 
           <div className="ask">
+
             <input placeholder="Ask about today's learning..." />
+
             <button>Ask</button>
+
           </div>
 
         </div>
@@ -142,7 +153,7 @@ export default function Dashboard() {
         </div>
 
 
-        {/* BOTTOM */}
+        {/* FINAL ROW */}
 
         <div className="grid">
 
@@ -170,14 +181,14 @@ Connections Made: 3`}
 
         </div>
 
-
       </div>
+
 
 
 <style jsx>{`
 
 .page{
-background:#d7e0ea;
+background:#d9e1ea;
 min-height:100vh;
 font-family:system-ui;
 }
@@ -187,7 +198,7 @@ display:flex;
 justify-content:space-between;
 align-items:center;
 padding:18px 40px;
-background:#f8f9fc;
+background:#f9fafc;
 border-bottom:1px solid #e5e7eb;
 }
 
@@ -196,10 +207,6 @@ display:flex;
 gap:10px;
 align-items:center;
 font-weight:600;
-}
-
-.brand{
-font-size:15px;
 }
 
 .tag{
@@ -228,14 +235,9 @@ margin-bottom:30px;
 background:#dbe6f3;
 padding:28px;
 border-radius:18px;
-border-left:5px solid #4db39a;
+border-left:5px solid #46b39d;
 margin-bottom:40px;
-box-shadow:0 6px 20px rgba(0,0,0,0.05);
-}
-
-.mode-title{
-font-size:14px;
-color:#666;
+box-shadow:0 6px 18px rgba(0,0,0,0.06);
 }
 
 .grid{
@@ -249,13 +251,7 @@ margin-bottom:32px;
 background:white;
 padding:24px;
 border-radius:18px;
-box-shadow:0 12px 30px rgba(0,0,0,0.08);
-transition:all .2s ease;
-}
-
-.card:hover{
-transform:translateY(-2px);
-box-shadow:0 16px 36px rgba(0,0,0,0.12);
+box-shadow:0 12px 28px rgba(0,0,0,0.08);
 }
 
 .card h3{
@@ -265,24 +261,23 @@ margin-bottom:10px;
 .card p{
 color:#555;
 white-space:pre-line;
-line-height:1.4;
 }
 
 .ask{
 display:flex;
-gap:12px;
+gap:10px;
 margin-top:12px;
 }
 
 .ask input{
 flex:1;
-padding:14px;
+padding:12px;
 border-radius:10px;
 border:1px solid #ddd;
 }
 
 .ask button{
-background:#4db39a;
+background:#46b39d;
 border:none;
 color:white;
 padding:12px 20px;
@@ -296,14 +291,14 @@ margin-top:12px;
 
 .bar-track{
 height:8px;
-background:#e2e8f0;
+background:#e3e8ef;
 border-radius:6px;
 margin-top:4px;
 }
 
 .bar-fill{
 height:8px;
-background:#4db39a;
+background:#46b39d;
 border-radius:6px;
 }
 
