@@ -19,43 +19,65 @@ body: JSON.stringify({ message })
 
 const data = await res.json()
 
-setMessages([...messages,{user:message, ai:data.reply}])
+setMessages([...messages,{
+user: message,
+ai: data.reply
+}])
 
 setMessage("")
-
 }
 
 return(
 
-<div style={{padding:"40px", maxWidth:"800px", margin:"auto"}}>
+<div style={{
+padding:"40px",
+maxWidth:"800px",
+margin:"auto"
+}}>
 
 <h1>Restore Chat</h1>
 
-<div style={{marginTop:"30px"}}>
+<div style={{
+marginTop:"30px",
+marginBottom:"30px"
+}}>
 
 {messages.map((m,i)=>(
 <div key={i} style={{marginBottom:"20px"}}>
+
 <p><b>You:</b> {m.user}</p>
+
 <p><b>Restore:</b> {m.ai}</p>
+
 </div>
 ))}
 
 </div>
 
-<div style={{marginTop:"20px"}}>
+<div style={{display:"flex",gap:"10px"}}>
 
 <input
 value={message}
 onChange={(e)=>setMessage(e.target.value)}
 placeholder="Ask Restore something..."
 style={{
-width:"70%",
+flex:1,
 padding:"10px",
-marginRight:"10px"
+borderRadius:"6px",
+border:"1px solid #ccc"
 }}
 />
 
-<button onClick={sendMessage}>
+<button
+onClick={sendMessage}
+style={{
+padding:"10px 20px",
+background:"#4FAFA6",
+color:"white",
+border:"none",
+borderRadius:"6px"
+}}
+>
 Send
 </button>
 
