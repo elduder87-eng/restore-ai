@@ -1,25 +1,23 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
 import LoadingScreen from "../components/LoadingScreen"
-import Dashboard from "./dashboard/page"
 
-export default function Home() {
+export default function Home(){
 
-  const [loading, setLoading] = useState(true)
+const router = useRouter()
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false)
-    }, 2500)
+useEffect(()=>{
 
-    return () => clearTimeout(timer)
-  }, [])
+setTimeout(()=>{
 
-  if (loading) {
-    return <LoadingScreen />
-  }
+router.push("/dashboard")
 
-  return <Dashboard />
+},2500)
+
+},[])
+
+return <LoadingScreen/>
 
 }
