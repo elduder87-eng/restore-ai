@@ -1,12 +1,22 @@
-export default function LoadingScreen(){
+export default function LoadingScreen() {
 
-return(
+return (
 
 <div className="intro-screen">
 
+<div className="intro-light"></div>
+
 <div className="intro-particles"></div>
 
-<div className="intro-light"></div>
+{/* falling seeds */}
+
+<div className="seed seed1">🌱</div>
+<div className="seed seed2">🌱</div>
+<div className="seed seed3">🌱</div>
+<div className="seed seed4">🌱</div>
+<div className="seed seed5">🌱</div>
+
+{/* main seed */}
 
 <div className="seed-drop">🌱</div>
 
