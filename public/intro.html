@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Restore — Intro</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400&family=Jost:wght@200;300;400&display=swap" rel="stylesheet">
+
+<style>
+
+*{margin:0;padding:0;box-sizing:border-box;}
+
+body{
+background:#120c06;
+overflow:hidden;
+font-family:'Jost',sans-serif;
+color:#fff;
+}
+
+canvas{
+position:fixed;
+inset:0;
+}
+
+.center{
+position:fixed;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+text-align:center;
+}
+
+h1{
+font-family:'Cormorant Garamond',serif;
+font-size:8vw;
+letter-spacing:.15em;
+font-weight:300;
+}
+
+p{
+margin-top:10px;
+opacity:.6;
+letter-spacing:.4em;
+text-transform:uppercase;
+font-size:.8rem;
+}
+
+.enter{
+position:fixed;
+bottom:8%;
+left:50%;
+transform:translateX(-50%);
+border:1px solid #8fb87a;
+padding:12px 40px;
+letter-spacing:.4em;
+background:none;
+color:#8fb87a;
+cursor:pointer;
+}
+
+.enter:hover{
+background:#8fb87a22;
+}
+
+</style>
+</head>
+
+<body>
+
+<canvas id="bg"></canvas>
+
+<div class="center">
+<h1>RESTORE</h1>
+<p>Where Understanding Grows</p>
+</div>
+
+<button class="enter" onclick="enterRestore()">ENTER</button>
+
+<script>
+
+function enterRestore(){
+window.location.href="/dashboard"
+}
+
+/* particle animation */
+
+const canvas=document.getElementById("bg")
+const ctx=canvas.getContext("2d")
+
+let w,h
+
+function resize(){
+w=canvas.width=window.innerWidth
+h=canvas.height=window.innerHeight
+}
+
+window.addEventListener("resize",resize)
+resize()
+
+const particles=[]
+
+class Particle{
+
+constructor(){
+this.reset()
+}
+
+reset(){
+this.x=Math.random()*w
+this.y=h*.5+Math.random()*h*.4
+this.r=Math.random()*2
+this.vy=-.3-Math.random()
+this.life=0
+this.max=200+Math.random()*200
+}
+
+step(){
+
+this.life++
+
+this.y+=this.vy
+
+if(this.life>this.max) this.reset()
+
+}
+
+draw(){
+
+ctx.beginPath()
+ctx.arc(this.x,this.y,this.r,0,Math.PI*2)
+ctx.fillStyle="rgba(143,184,122,.6)"
+ctx.fill()
+
+}
+
+}
+
+for(let i=0;i<100;i++){
+particles.push(new Particle())
+}
+
+function loop(){
+
+ctx.fillStyle="#120c06"
+ctx.fillRect(0,0,w,h)
+
+particles.forEach(p=>{
+p.step()
+p.draw()
+})
+
+requestAnimationFrame(loop)
+
+}
+
+loop()
+
+</script>
+
+</body>
+</html>
