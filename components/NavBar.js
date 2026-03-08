@@ -12,7 +12,9 @@ return(
 
 <div>
 
-<div style={{fontWeight:"600"}}>Restore</div>
+<div style={{fontWeight:"600"}}>
+Restore
+</div>
 
 <div style={{fontSize:"12px",opacity:.6}}>
 Where understanding grows
