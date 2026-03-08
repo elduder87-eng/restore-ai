@@ -1,16 +1,19 @@
+"use client";
+
 export default function Dashboard(){
 
 return(
 
-<div className="page">
+<div className="dashboard">
 
-<h1>Dashboard</h1>
+<h1 className="section-title">Dashboard</h1>
 
-<p className="subtitle">
+<p className="section-sub">
 A Renewed Understanding Experience
 </p>
 
-<div className="card highlight">
+
+<div className="mode-card">
 
 <h3>Current Thinking Mode</h3>
 
@@ -22,37 +25,66 @@ Restore detects how you're learning based on your exploration and reflection pat
 
 </div>
 
-<div className="grid">
+
+{/* TOP CARDS */}
+
+<div className="card-grid">
 
 <div className="card">
+
 <h4>Today's Insight</h4>
-<p>You tend to form strong connections when reflecting on examples.</p>
+
+<p>
+You tend to form strong connections when reflecting on examples.
+</p>
+
 </div>
 
+
 <div className="card">
+
 <h4>Today's Thought</h4>
-<p>Why don't planets fall into the sun if gravity constantly pulls them inward?</p>
+
+<p>
+Why don't planets fall into the sun if gravity constantly pulls them inward?
+</p>
+
 </div>
 
+
 <div className="card">
+
 <h4>Today's Connection</h4>
-<p>How might gravity, planetary motion, and orbital speed be connected?</p>
+
+<p>
+How might gravity, planetary motion, and orbital speed be connected?
+</p>
+
 </div>
 
+
 <div className="card">
+
 <h4>Today's Curiosity</h4>
-<p>What might happen if gravity suddenly weakened near Earth?</p>
-</div>
+
+<p>
+What might happen if gravity suddenly weakened near Earth?
+</p>
 
 </div>
 
-<div className="card">
+</div>
+
+
+{/* GUIDE */}
+
+<div className="guide-box">
 
 <h3>Restore Guide</h3>
 
-<div className="guide-box">
-Guide: Ask about today's learning patterns.
-</div>
+<p>Guide: Ask about today's learning patterns.</p>
+
+<div className="guide-input">
 
 <input placeholder="Ask about today's learning..." />
 
@@ -60,28 +92,74 @@ Guide: Ask about today's learning patterns.
 
 </div>
 
-<div className="grid">
+</div>
+
+
+{/* LOWER GRID */}
+
+<div className="card-grid">
+
 
 <div className="card">
 
 <h4>Understanding Pulse</h4>
 
-<div className="pulse-bar"><div style={{width:"70%"}}></div></div>
+<div className="pulse-item">
+
 <p>Connecting</p>
 
-<div className="pulse-bar"><div style={{width:"55%"}}></div></div>
-<p>Reflecting</p>
-
-<div className="pulse-bar"><div style={{width:"35%"}}></div></div>
-<p>Curious</p>
-
-<div className="pulse-bar"><div style={{width:"20%"}}></div></div>
-<p>Confused</p>
-
-<div className="pulse-bar"><div style={{width:"10%"}}></div></div>
-<p>Exploring</p>
+<div className="pulse-bar">
+<div className="pulse-fill" style={{width:"60%"}}></div>
+</div>
 
 </div>
+
+
+<div className="pulse-item">
+
+<p>Reflecting</p>
+
+<div className="pulse-bar">
+<div className="pulse-fill" style={{width:"45%"}}></div>
+</div>
+
+</div>
+
+
+<div className="pulse-item">
+
+<p>Curious</p>
+
+<div className="pulse-bar">
+<div className="pulse-fill" style={{width:"30%"}}></div>
+</div>
+
+</div>
+
+
+<div className="pulse-item">
+
+<p>Confused</p>
+
+<div className="pulse-bar">
+<div className="pulse-fill" style={{width:"10%"}}></div>
+</div>
+
+</div>
+
+
+<div className="pulse-item">
+
+<p>Exploring</p>
+
+<div className="pulse-bar">
+<div className="pulse-fill" style={{width:"50%"}}></div>
+</div>
+
+</div>
+
+</div>
+
 
 <div className="card">
 
@@ -93,48 +171,62 @@ Guide: Ask about today's learning patterns.
 
 </div>
 
+
 <div className="card">
 
 <h4>Curiosity Activity</h4>
 
 <ul>
+
 <li>Black holes</li>
 <li>Evolution</li>
 <li>Ancient civilizations</li>
+
 </ul>
 
 </div>
+
 
 <div className="card">
 
 <h4>Learning Moments</h4>
 
 <p>Emma — Connected Galileo & Motion</p>
+
 <p>James — Understood Ionic Bonds</p>
+
 <p>Sarah — Reflected on Moon Phases</p>
 
 </div>
+
 
 <div className="card">
 
 <h4>Suggested Next Steps</h4>
 
 <p>📚 Review: Limits in Calculus</p>
+
 <p>🔎 Explore: How gravity bends space</p>
+
 <p>🔗 Connect: Galileo → planetary motion</p>
 
 </div>
+
 
 <div className="card">
 
 <h4>Current Session</h4>
 
-<p><b>Topic:</b> Gravity and Orbits</p>
-<p><b>State:</b> Reflecting</p>
-<p><b>Questions Asked:</b> 7</p>
-<p><b>Connections Made:</b> 3</p>
+<p>Topic: Gravity and Orbits</p>
+
+<p>State: Reflecting</p>
+
+<p>Questions Asked: 7</p>
+
+<p>Connections Made: 3</p>
 
 </div>
+
 
 </div>
 
