@@ -4,12 +4,13 @@ return(
 
 <div className="page">
 
-<h1>Dashboard</h1>
+<h1 style={{fontSize:"34px"}}>
+Dashboard
+</h1>
 
-<p style={{marginBottom:"30px"}}>
+<p style={{marginBottom:"30px",opacity:.6}}>
 A Renewed Understanding Experience
 </p>
-
 
 <div className="card highlight">
 
@@ -59,10 +60,6 @@ Take a moment to think about it today.
 How might gravity, planetary motion, and orbital speed be connected?
 </p>
 
-<p style={{opacity:.6}}>
-Try linking ideas from past sessions.
-</p>
-
 </div>
 
 <div className="card">
@@ -73,14 +70,9 @@ Try linking ideas from past sessions.
 What might happen if gravity suddenly weakened near Earth?
 </p>
 
-<p style={{opacity:.6}}>
-Let curiosity guide exploration today.
-</p>
-
 </div>
 
 </div>
-
 
 
 <div className="card">
@@ -100,7 +92,6 @@ Ask
 </div>
 
 
-
 <div className="grid">
 
 <div className="card">
@@ -115,7 +106,6 @@ Ask
 
 </div>
 
-
 <div className="card">
 
 <h4>Confusion Signals</h4>
@@ -126,7 +116,6 @@ Ask
 
 </div>
 
-
 <div className="card">
 
 <h4>Curiosity Activity</h4>
@@ -136,44 +125,6 @@ Ask
 <li>Evolution</li>
 <li>Ancient civilizations</li>
 </ul>
-
-</div>
-
-
-<div className="card">
-
-<h4>Learning Moments</h4>
-
-<p>Emma — Connected Galileo & Motion</p>
-<p>James — Understood Ionic Bonds</p>
-<p>Sarah — Reflected on Moon Phases</p>
-
-</div>
-
-
-<div className="card">
-
-<h4>Suggested Next Steps</h4>
-
-<p>📚 Review: Limits in Calculus</p>
-<p>🔍 Explore: How gravity bends space</p>
-<p>🔗 Connect: Galileo → planetary motion</p>
-<p>💭 Reflect: Why do moon phases change?</p>
-
-</div>
-
-
-<div className="card">
-
-<h4>Current Session</h4>
-
-<p><b>Topic:</b> Gravity and Orbits</p>
-
-<p><b>State:</b> Reflecting</p>
-
-<p><b>Questions Asked:</b> 7</p>
-
-<p><b>Connections Made:</b> 3</p>
 
 </div>
 
