@@ -49,39 +49,25 @@ color:#5ec2a8;
 /* INTRO SCREEN */
 
 .intro-screen{
-
 height:100vh;
-
 display:flex;
-
 flex-direction:column;
-
 justify-content:center;
-
 align-items:center;
-
 background:radial-gradient(circle at center,#eef6ff,#dde6f4);
-
 position:relative;
-
 overflow:hidden;
-
 }
 
 
 
-/* SEED DROP */
+/* MAIN SEED */
 
 .seed-drop{
-
 font-size:180px;
-
 animation:seedFall 1.6s ease-out forwards;
-
 z-index:3;
-
 filter:drop-shadow(0 30px 60px rgba(0,0,0,0.25));
-
 }
 
 
@@ -89,21 +75,13 @@ filter:drop-shadow(0 30px 60px rgba(0,0,0,0.25));
 /* TITLE */
 
 .intro-title{
-
 font-size:90px;
-
 font-weight:800;
-
 margin-top:10px;
-
 letter-spacing:-2px;
-
 opacity:0;
-
 animation:titleReveal 1.5s ease forwards;
-
 animation-delay:1.5s;
-
 }
 
 
@@ -111,23 +89,14 @@ animation-delay:1.5s;
 /* SUBTITLE */
 
 .intro-subtitle{
-
 font-size:34px;
-
 margin-top:20px;
-
 font-weight:500;
-
 letter-spacing:1px;
-
 color:#3d4a55;
-
 opacity:0;
-
 animation:subtitleReveal 1.8s ease forwards;
-
 animation-delay:2.2s;
-
 }
 
 
@@ -135,41 +104,67 @@ animation-delay:2.2s;
 /* GLOW */
 
 .intro-light{
-
 position:absolute;
-
 width:1000px;
-
 height:1000px;
-
 background:radial-gradient(circle,#b9f3d7 0%,transparent 70%);
-
 opacity:.35;
-
 animation:glowPulse 4s infinite ease-in-out;
-
 }
 
 
 
-/* PARTICLES */
+/* PARTICLE FIELD */
 
 .intro-particles{
-
 position:absolute;
-
 width:200%;
-
 height:200%;
-
 background-image:radial-gradient(#ffffff 1px,transparent 1px);
-
 background-size:40px 40px;
-
 opacity:.25;
-
 animation:particlesMove 45s linear infinite;
+}
 
+
+
+/* FALLING SEEDS */
+
+.seed{
+position:absolute;
+font-size:28px;
+opacity:.6;
+animation:seedFloat linear infinite;
+}
+
+.seed1{
+left:10%;
+animation-duration:12s;
+animation-delay:0s;
+}
+
+.seed2{
+left:25%;
+animation-duration:14s;
+animation-delay:2s;
+}
+
+.seed3{
+left:50%;
+animation-duration:16s;
+animation-delay:4s;
+}
+
+.seed4{
+left:75%;
+animation-duration:13s;
+animation-delay:1s;
+}
+
+.seed5{
+left:90%;
+animation-duration:15s;
+animation-delay:3s;
 }
 
 
@@ -194,6 +189,26 @@ transform:translateY(-15px);
 100%{
 transform:translateY(0) scale(1);
 opacity:1;
+}
+
+}
+
+
+
+@keyframes seedFloat{
+
+0%{
+transform:translateY(-200px) rotate(0deg);
+opacity:0;
+}
+
+10%{
+opacity:.7;
+}
+
+100%{
+transform:translateY(120vh) rotate(360deg);
+opacity:0;
 }
 
 }
