@@ -2,11 +2,11 @@ export default function Profile(){
 
 return(
 
-<div style={{padding:"40px"}}>
+<div className="page">
 
-<h1>Your Profile</h1>
+<h1>Profile</h1>
 
-<p>This page will track your learning journey.</p>
+<p>Your learning journey will appear here.</p>
 
 </div>
 
