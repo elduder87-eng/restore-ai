@@ -1,9 +1,13 @@
-export default function Home(){
+"use client"
 
-if(typeof window !== "undefined"){
-window.location.href="/intro.html"
-}
+import { useEffect } from "react"
 
-return null
+export default function Home() {
+
+  useEffect(() => {
+    window.location.href = "/intro.html"
+  }, [])
+
+  return null
 
 }
