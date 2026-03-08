@@ -2,37 +2,24 @@ export default function Dashboard() {
 
 return (
 
-<div style={{
-fontFamily:"system-ui",
-background:"#e6edf5",
-minHeight:"100vh"
-}}>
+<div className="page">
 
-{/* NAVBAR */}
+{/* NAV */}
 
-<div style={{
-display:"flex",
-alignItems:"center",
-justifyContent:"space-between",
-padding:"14px 30px",
-background:"#f7f8fb",
-borderBottom:"1px solid #ddd"
-}}>
+<div className="nav">
 
-<div style={{display:"flex",alignItems:"center",gap:"10px"}}>
+<div className="logo">
 
-<span style={{fontSize:"20px"}}>🌱</span>
+<span>🌱</span>
 
 <div>
-<div style={{fontWeight:"600"}}>Restore</div>
-<div style={{fontSize:"12px",color:"#777"}}>
-Where understanding grows
-</div>
+<div className="brand">Restore</div>
+<div className="tag">Where understanding grows</div>
 </div>
 
 </div>
 
-<div style={{display:"flex",gap:"20px"}}>
+<div className="links">
 <a href="/dashboard">Dashboard</a>
 <a href="/chat">Chat</a>
 <a href="/profile">Profile</a>
@@ -41,44 +28,30 @@ Where understanding grows
 </div>
 
 
+<div className="content">
 
-{/* PAGE CONTENT */}
-
-<div style={{padding:"30px"}}>
-
-<h1 style={{marginBottom:"20px"}}>Dashboard</h1>
+<h1>Dashboard</h1>
 
 
 {/* THINKING MODE */}
 
-<div style={{
-background:"#dbe6f3",
-padding:"20px",
-borderRadius:"14px",
-borderLeft:"5px solid #46b39d",
-marginBottom:"25px"
-}}>
+<div className="mode">
 
-<h4>Current Thinking Mode</h4>
+<div className="mode-title">Current Thinking Mode</div>
 
 <h2>Connecting Ideas</h2>
 
-<p style={{color:"#555"}}>
-Restore detects how you're learning based on your exploration and reflection patterns.
+<p>
+Restore detects how you're learning based on your exploration
+and reflection patterns.
 </p>
 
 </div>
 
 
+{/* TOP ROW */}
 
-{/* INSIGHT ROW */}
-
-<div style={{
-display:"grid",
-gridTemplateColumns:"repeat(3,1fr)",
-gap:"18px",
-marginBottom:"20px"
-}}>
+<div className="grid3">
 
 <Card
 title="Today's Insight"
@@ -98,87 +71,56 @@ text="How might gravity, planetary motion, and orbital speed be connected?"
 </div>
 
 
+{/* SECOND ROW */}
 
-{/* CURIOSITY */}
-
-<div style={{
-display:"grid",
-gridTemplateColumns:"1fr",
-gap:"18px",
-marginBottom:"30px"
-}}>
+<div className="grid3">
 
 <Card
 title="Today's Curiosity"
 text="What might happen if gravity suddenly weakened near Earth?"
 />
 
-</div>
+<div></div>
+<div></div>
 
+</div>
 
 
 {/* RESTORE GUIDE */}
 
-<div style={{
-background:"#ffffff",
-padding:"24px",
-borderRadius:"14px",
-marginBottom:"30px",
-boxShadow:"0 4px 10px rgba(0,0,0,0.05)"
-}}>
+<div className="guide">
 
-<h3 style={{marginBottom:"8px"}}>Restore Guide</h3>
+<h3>Restore Guide</h3>
 
-<p style={{marginBottom:"16px",color:"#555"}}>
-Guide: Ask about today's learning patterns.
-</p>
+<p>Guide: Ask about today's learning patterns.</p>
 
-<div style={{display:"flex",gap:"10px"}}>
+<div className="ask">
 
-<input
-placeholder="Ask about today's learning..."
-style={{
-flex:1,
-padding:"12px",
-borderRadius:"8px",
-border:"1px solid #ddd"
-}}
-/>
+<input placeholder="Ask about today's learning..." />
 
-<button style={{
-background:"#46b39d",
-border:"none",
-color:"white",
-padding:"12px 18px",
-borderRadius:"8px",
-fontWeight:"500"
-}}>
-Ask
-</button>
+<button>Ask</button>
 
 </div>
 
 </div>
-
 
 
 {/* ANALYTICS */}
 
-<div style={{
-display:"grid",
-gridTemplateColumns:"repeat(3,1fr)",
-gap:"18px",
-marginBottom:"20px"
-}}>
+<div className="grid3">
 
-<Card
-title="Understanding Pulse"
-text={`Connecting  ████████░░
-Reflecting  ██████░░░░
-Curious     ███░░░░░░░
-Confused    ██░░░░░░░░
-Exploring   ███████░░░`}
-/>
+<div className="card">
+
+<h3>Understanding Pulse</h3>
+
+<Bar label="Connecting" value="60%" />
+<Bar label="Reflecting" value="45%" />
+<Bar label="Curious" value="25%" />
+<Bar label="Confused" value="12%" />
+<Bar label="Exploring" value="50%" />
+
+</div>
+
 
 <Card
 title="Confusion Signals"
@@ -186,6 +128,7 @@ text={`🔴 Electric Circuits
 🟡 Limits in Calculus
 🟡 Plate Tectonics`}
 />
+
 
 <Card
 title="Curiosity Activity"
@@ -197,14 +140,9 @@ text={`• Black holes
 </div>
 
 
-
 {/* FINAL ROW */}
 
-<div style={{
-display:"grid",
-gridTemplateColumns:"repeat(3,1fr)",
-gap:"18px"
-}}>
+<div className="grid3">
 
 <Card
 title="Learning Moments"
@@ -213,12 +151,14 @@ James — Understood Ionic Bonds
 Sarah — Reflected on Moon Phases`}
 />
 
+
 <Card
 title="Suggested Next Steps"
 text={`📚 Review: Limits in Calculus
 🔎 Explore: How gravity bends space
 🔗 Connect: Galileo → planetary motion`}
 />
+
 
 <Card
 title="Current Session"
@@ -232,34 +172,163 @@ Connections Made: 3`}
 
 </div>
 
+
+<style jsx>{`
+
+.page{
+font-family:system-ui;
+background:#e6edf5;
+min-height:100vh;
+}
+
+.nav{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:14px 28px;
+background:#f7f8fb;
+border-bottom:1px solid #ddd;
+}
+
+.logo{
+display:flex;
+gap:10px;
+align-items:center;
+}
+
+.brand{
+font-weight:600;
+}
+
+.tag{
+font-size:12px;
+color:#777;
+}
+
+.links a{
+margin-left:20px;
+}
+
+.content{
+padding:30px;
+max-width:1100px;
+margin:auto;
+}
+
+.mode{
+background:#dbe6f3;
+padding:22px;
+border-radius:14px;
+border-left:5px solid #46b39d;
+margin-bottom:26px;
+}
+
+.mode-title{
+font-size:14px;
+color:#555;
+}
+
+.grid3{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:18px;
+margin-bottom:20px;
+}
+
+.card{
+background:white;
+padding:18px;
+border-radius:14px;
+box-shadow:0 4px 10px rgba(0,0,0,0.05);
+}
+
+.card p{
+color:#555;
+white-space:pre-line;
+}
+
+.guide{
+background:white;
+padding:22px;
+border-radius:14px;
+box-shadow:0 4px 10px rgba(0,0,0,0.05);
+margin-bottom:24px;
+}
+
+.ask{
+display:flex;
+gap:10px;
+margin-top:10px;
+}
+
+.ask input{
+flex:1;
+padding:12px;
+border-radius:8px;
+border:1px solid #ddd;
+}
+
+.ask button{
+background:#46b39d;
+border:none;
+color:white;
+padding:10px 18px;
+border-radius:8px;
+}
+
+.bar{
+margin-top:10px;
+}
+
+.bar-track{
+height:6px;
+background:#dfe5ec;
+border-radius:6px;
+margin-top:4px;
+}
+
+.bar-fill{
+height:6px;
+background:#46b39d;
+border-radius:6px;
+}
+
+`}</style>
+
 </div>
 
 )
-
 }
-
 
 
 function Card({title,text}){
 
 return(
+<div className="card">
+<h3>{title}</h3>
+<p>{text}</p>
+</div>
+)
 
-<div style={{
-background:"#ffffff",
-padding:"18px",
-borderRadius:"14px",
-boxShadow:"0 4px 10px rgba(0,0,0,0.05)"
-}}>
+}
 
-<h3 style={{marginBottom:"8px"}}>{title}</h3>
 
-<p style={{
-fontSize:"14px",
-color:"#555",
-whiteSpace:"pre-line"
-}}>
-{text}
-</p>
+function Bar({label,value}){
+
+return(
+
+<div className="bar">
+
+<div>{label}</div>
+
+<div className="bar-track">
+
+<div
+className="bar-fill"
+style={{width:value}}
+></div>
+
+</div>
 
 </div>
 
