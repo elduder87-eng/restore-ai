@@ -38,11 +38,8 @@ return(
 {messages.map((m,i)=>(
 
 <div key={i}>
-
 <b>{m.role==="user"?"You":"Restore"}:</b>
-
 <p>{m.text}</p>
-
 </div>
 
 ))}
