@@ -9,12 +9,12 @@ function Card({ title, text }) {
   );
 }
 
-function Bar({ label, value }) {
+function PulseBar({ label, value }) {
   return (
-    <div className="bar">
-      <div className="bar-label">{label}</div>
-      <div className="bar-track">
-        <div className="bar-fill" style={{ width: value }}></div>
+    <div className="pulse">
+      <div className="pulse-label">{label}</div>
+      <div className="pulse-track">
+        <div className="pulse-fill" style={{ width: value }} />
       </div>
     </div>
   );
@@ -25,7 +25,6 @@ export default function Dashboard() {
     <div className="page">
 
       <div className="nav">
-
         <div className="logo">
           🌱
           <div>
@@ -39,7 +38,6 @@ export default function Dashboard() {
           <a href="/chat">Chat</a>
           <a href="/profile">Profile</a>
         </div>
-
       </div>
 
 
@@ -47,19 +45,13 @@ export default function Dashboard() {
 
         <h1>Dashboard</h1>
 
-
         <div className="mode">
-
           <div className="mode-title">Current Thinking Mode</div>
-
           <h2>Connecting Ideas</h2>
-
           <p>
             Restore detects how you're learning based on your exploration and reflection patterns.
           </p>
-
         </div>
-
 
 
         <div className="grid">
@@ -82,16 +74,10 @@ export default function Dashboard() {
         </div>
 
 
-
-        <div className="grid">
-
-          <div className="card curiosity">
-            <h3>Today's Curiosity</h3>
-            <p>What might happen if gravity suddenly weakened near Earth?</p>
-          </div>
-
+        <div className="card curiosity">
+          <h3>Today's Curiosity</h3>
+          <p>What might happen if gravity suddenly weakened near Earth?</p>
         </div>
-
 
 
         <div className="card guide">
@@ -101,15 +87,11 @@ export default function Dashboard() {
           <p>Guide: Ask about today's learning patterns.</p>
 
           <div className="ask">
-
             <input placeholder="Ask about today's learning..." />
-
             <button>Ask</button>
-
           </div>
 
         </div>
-
 
 
         <div className="grid">
@@ -118,11 +100,11 @@ export default function Dashboard() {
 
             <h3>Understanding Pulse</h3>
 
-            <Bar label="Connecting" value="65%" />
-            <Bar label="Reflecting" value="45%" />
-            <Bar label="Curious" value="30%" />
-            <Bar label="Confused" value="15%" />
-            <Bar label="Exploring" value="55%" />
+            <PulseBar label="Connecting" value="65%" />
+            <PulseBar label="Reflecting" value="45%" />
+            <PulseBar label="Curious" value="30%" />
+            <PulseBar label="Confused" value="15%" />
+            <PulseBar label="Exploring" value="55%" />
 
           </div>
 
@@ -143,7 +125,6 @@ export default function Dashboard() {
           />
 
         </div>
-
 
 
         <div className="grid">
@@ -254,6 +235,7 @@ padding:24px;
 border-radius:18px;
 box-shadow:0 12px 28px rgba(0,0,0,0.08);
 transition:all .2s ease;
+margin-bottom:26px;
 }
 
 .card:hover{
@@ -272,7 +254,7 @@ white-space:pre-line;
 }
 
 .curiosity{
-grid-column:span 3;
+margin-bottom:32px;
 }
 
 .ask{
@@ -297,23 +279,23 @@ border-radius:10px;
 cursor:pointer;
 }
 
-.bar{
-margin-top:14px;
-font-size:14px;
+.pulse{
+margin-top:12px;
 }
 
-.bar-label{
+.pulse-label{
+font-size:14px;
 margin-bottom:4px;
 }
 
-.bar-track{
+.pulse-track{
 height:8px;
 background:#e3e8ef;
 border-radius:6px;
 overflow:hidden;
 }
 
-.bar-fill{
+.pulse-fill{
 height:8px;
 background:#46b39d;
 border-radius:6px;
@@ -323,4 +305,4 @@ border-radius:6px;
 
     </div>
   );
-}
+              }
