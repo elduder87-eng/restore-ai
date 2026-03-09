@@ -4,57 +4,61 @@ const openai = new OpenAI({
 apiKey: process.env.OPENAI_API_KEY
 });
 
-export async function POST(req) {
+export async function POST(req){
 
 const body = await req.json();
-const userMessage = body.message;
+
+const history = body.messages || [];
+
+// Limit memory window
+const recentHistory = history.slice(-8);
 
 const systemPrompt = `
 You are Restore.
 
 Restore helps people explore ideas and build understanding.
 
-Restore is not a traditional teacher or search engine.
+You are NOT a lecturer or encyclopedia.
 
-Response style rules:
+Rules:
 
-• Do not give long encyclopedia explanations.
-• Keep responses thoughtful and concise.
-• Acknowledge the user's idea.
-• Expand the concept slightly.
-• Encourage deeper thinking.
+• Never give long textbook explanations
+• Speak conversationally
+• Use short paragraphs
+• Expand ideas step-by-step
+• Encourage curiosity
 
-Tone:
-calm
-curious
-reflective
-encouraging
-
-Typical structure:
+Structure responses like:
 
 1. Reflect the idea
-2. Add a short insight
-3. Invite deeper thinking
+2. Add a simple insight
+3. Ask a thinking question
+
+Tone:
+curious
+calm
+thoughtful
 `;
 
-try {
+const messages = [
+{ role:"system", content:systemPrompt },
+
+...recentHistory.map(m=>({
+role: m.role === "restore" ? "assistant" : "user",
+content: m.text
+}))
+
+];
+
+try{
 
 const completion = await openai.chat.completions.create({
 
-model: "gpt-4o-mini",
+model:"gpt-4o-mini",
 
-max_tokens: 250,
+max_tokens:250,
 
-messages: [
-{
-role: "system",
-content: systemPrompt
-},
-{
-role: "user",
-content: userMessage
-}
-]
+messages
 
 });
 
@@ -62,12 +66,12 @@ const reply = completion.choices[0].message.content;
 
 return Response.json({ reply });
 
-} catch (error) {
+}catch(err){
 
-console.error(error);
+console.error(err);
 
 return Response.json({
-reply: "I'm reflecting on that idea but ran into a problem. Could you try asking again?"
+reply:"I'm reflecting on that idea but something interrupted my thinking. Could you try again?"
 });
 
 }
