@@ -5,33 +5,33 @@ import { useState } from "react";
 export default function ChatPage() {
 
 const [messages, setMessages] = useState([
-{ role: "restore", text: "Welcome back. What idea are you exploring today?" }
+{ role:"restore", text:"Welcome back. What idea are you exploring today?" }
 ]);
 
-const [input, setInput] = useState("");
-const [loading, setLoading] = useState(false);
+const [input,setInput] = useState("");
+const [loading,setLoading] = useState(false);
 
-async function sendMessage() {
+async function sendMessage(){
 
-if (!input.trim()) return;
+if(!input.trim()) return;
 
-const userMessage = { role: "user", text: input };
+const userMessage = { role:"user", text:input };
 
-const newMessages = [...messages, userMessage];
+const updated = [...messages,userMessage];
 
-setMessages(newMessages);
+setMessages(updated);
 setInput("");
 setLoading(true);
 
-const res = await fetch("/api/chat", {
-method: "POST",
-headers: { "Content-Type": "application/json" },
-body: JSON.stringify({ messages: newMessages })
+const res = await fetch("/api/chat",{
+method:"POST",
+headers:{ "Content-Type":"application/json"},
+body:JSON.stringify({messages:updated})
 });
 
 const data = await res.json();
 
-setMessages([...newMessages, { role: "restore", text: data.reply }]);
+setMessages([...updated,{role:"restore",text:data.reply}]);
 
 setLoading(false);
 
@@ -45,19 +45,14 @@ return (
 
 <div className="chatWindow">
 
-{messages.map((msg, i) => (
+{messages.map((m,i)=>(
+<div key={i} className={m.role==="user"?"userMsg":"restoreMsg"}>
 
-<div
-key={i}
-className={msg.role === "user" ? "userMsg" : "restoreMsg"}
->
+<strong>{m.role==="user"?"You":"Restore"}</strong>
 
-<strong>{msg.role === "user" ? "You" : "Restore"}</strong>
-
-<div>{msg.text}</div>
+<div>{m.text}</div>
 
 </div>
-
 ))}
 
 {loading && <div className="restoreMsg">Restore is reflecting...</div>}
@@ -70,7 +65,7 @@ className={msg.role === "user" ? "userMsg" : "restoreMsg"}
 value={input}
 onChange={(e)=>setInput(e.target.value)}
 placeholder="Ask Restore something..."
-onKeyDown={(e)=>{ if(e.key==="Enter") sendMessage() }}
+onKeyDown={(e)=>{if(e.key==="Enter") sendMessage()}}
 />
 
 <button onClick={sendMessage}>Send</button>
