@@ -29,7 +29,7 @@ body{position:fixed;inset:0;}
 
 /* TOPBAR */
 .topbar{display:flex;align-items:center;padding:0 16px;gap:12px;
-  background:rgba(5,8,15,0.82);border-bottom:1px solid var(--border);backdrop-filter:blur(20px);}
+  background:rgba(5,8,15,0.75);border-bottom:1px solid var(--border);}
 .brand{display:flex;align-items:center;gap:8px;min-width:0;}
 .brand-icon{width:34px;height:34px;flex-shrink:0;border-radius:50%;
   background:conic-gradient(from 180deg,#38bdf8,#818cf8,#c084fc,#38bdf8);
@@ -54,7 +54,7 @@ body{position:fixed;inset:0;}
 /* MAIN GRID */
 .main{display:grid;grid-template-columns:240px 1fr 255px;overflow:hidden;height:100%;}
 .left,.right{padding:12px 10px;display:flex;flex-direction:column;gap:9px;
-  background:rgba(5,8,15,0.65);backdrop-filter:blur(20px);overflow-y:auto;
+  background:rgba(5,8,15,0.72);overflow-y:auto;
   scrollbar-width:none;}
 .left::-webkit-scrollbar,.right::-webkit-scrollbar{display:none;}
 .left{border-right:1px solid var(--border);}
@@ -64,7 +64,7 @@ body{position:fixed;inset:0;}
 .center>*{pointer-events:all;}
 
 /* PANEL CARD */
-.pc{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:14px;padding:12px;flex-shrink:0;}
+.pc{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:12px;flex-shrink:0;}
 .pt{font-size:12px;font-weight:600;color:#fff;margin-bottom:10px;display:flex;justify-content:space-between;}
 .pt-dots{color:var(--muted);letter-spacing:.1em;cursor:pointer;}
 
@@ -132,7 +132,7 @@ body{position:fixed;inset:0;}
 
 /* BOTTOM */
 .bot{background:rgba(5,8,15,0.72);border-top:1px solid var(--border);
-  backdrop-filter:blur(20px);padding:10px 20px;display:flex;align-items:center;flex-shrink:0;}
+  padding:10px 20px;display:flex;align-items:center;flex-shrink:0;}
 .sc{flex:1;text-align:center;border-right:1px solid var(--border);padding:0 6px;}
 .sc:last-child{border-right:none;}
 .sn{font-size:22px;font-weight:800;letter-spacing:-.03em;line-height:1.1;}
@@ -140,7 +140,7 @@ body{position:fixed;inset:0;}
 
 /* THINKING */
 .thk{background:rgba(5,8,15,0.72);border-top:1px solid var(--border);
-  backdrop-filter:blur(20px);padding:10px 20px;flex-shrink:0;}
+  padding:10px 20px;flex-shrink:0;}
 .thkt{font-size:12px;font-weight:600;color:#fff;margin-bottom:8px;}
 .thkr{display:flex;align-items:center;}
 .tn{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;}
