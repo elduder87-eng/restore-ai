@@ -5,26 +5,61 @@ import { useState } from "react";
 export default function ChatPage() {
 
 const [messages, setMessages] = useState([
-  { role: "restore", text: "Welcome to Restore. What idea are you exploring today?" }
+  {
+    role: "restore",
+    text: "Welcome back. What idea are you exploring today?"
+  }
 ]);
 
 const [input, setInput] = useState("");
+const [loading, setLoading] = useState(false);
 
-function sendMessage() {
+async function sendMessage() {
 
 if (!input.trim()) return;
 
-const newMessages = [
-  ...messages,
-  { role: "user", text: input },
-  {
-    role: "restore",
-    text: "Interesting thought. What connections can you make with something you've explored before?"
-  }
-];
+const userMessage = {
+  role: "user",
+  text: input
+};
 
-setMessages(newMessages);
+setMessages(m => [...m, userMessage]);
 setInput("");
+setLoading(true);
+
+try {
+
+const response = await fetch("/api/chat", {
+method: "POST",
+headers: {
+"Content-Type": "application/json"
+},
+body: JSON.stringify({ message: input })
+});
+
+const data = await response.json();
+
+setMessages(m => [
+...m,
+{
+role: "restore",
+text: data.reply
+}
+]);
+
+} catch (err) {
+
+setMessages(m => [
+...m,
+{
+role: "restore",
+text: "Something went wrong while thinking about that idea."
+}
+]);
+
+}
+
+setLoading(false);
 
 }
 
@@ -43,13 +78,21 @@ key={i}
 className={msg.role === "user" ? "userMsg" : "restoreMsg"}
 >
 
-<strong>{msg.role === "user" ? "You" : "Restore"}:</strong>
+<strong>{msg.role === "user" ? "You" : "Restore"}</strong>
 
 <div>{msg.text}</div>
 
 </div>
 
 ))}
+
+{loading && (
+
+<div className="restoreMsg">
+Restore is reflecting...
+</div>
+
+)}
 
 </div>
 
@@ -59,6 +102,9 @@ className={msg.role === "user" ? "userMsg" : "restoreMsg"}
 value={input}
 onChange={(e) => setInput(e.target.value)}
 placeholder="Ask Restore something..."
+onKeyDown={(e) => {
+if (e.key === "Enter") sendMessage();
+}}
 />
 
 <button onClick={sendMessage}>
@@ -77,10 +123,10 @@ font-family:system-ui;
 }
 
 .chatWindow{
-margin-top:30px;
 display:flex;
 flex-direction:column;
-gap:16px;
+gap:18px;
+margin-top:30px;
 }
 
 .restoreMsg{
@@ -91,12 +137,12 @@ max-width:70%;
 }
 
 .userMsg{
-background:#ffffff;
+background:white;
 padding:14px;
 border-radius:12px;
 max-width:70%;
 align-self:flex-end;
-box-shadow:0 3px 10px rgba(0,0,0,0.08);
+box-shadow:0 4px 12px rgba(0,0,0,0.08);
 }
 
 .chatInput{
@@ -126,4 +172,5 @@ cursor:pointer;
 </div>
 
 );
+
 }
