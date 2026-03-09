@@ -1,21 +1,25 @@
 "use client";
 
+function Pulse({ label, value }) {
+  return (
+    <div className="pulse">
+      <div className="pulseLabel">{label}</div>
+
+      <div className="pulseTrack">
+        <div
+          className="pulseFill"
+          style={{ width: value }}
+        />
+      </div>
+    </div>
+  );
+}
+
 function Card({ title, text }) {
   return (
     <div className="card">
       <h3>{title}</h3>
       <p>{text}</p>
-    </div>
-  );
-}
-
-function PulseBar({ label, percent }) {
-  return (
-    <div className="pulse">
-      <div className="pulse-label">{label}</div>
-      <div className="pulse-track">
-        <div className="pulse-fill" style={{ width: percent }} />
-      </div>
     </div>
   );
 }
@@ -46,7 +50,7 @@ export default function Dashboard() {
         <h1>Dashboard</h1>
 
         <div className="mode">
-          <div className="mode-title">Current Thinking Mode</div>
+          <div className="modeTitle">Current Thinking Mode</div>
           <h2>Connecting Ideas</h2>
           <p>
             Restore detects how you're learning based on your exploration and reflection patterns.
@@ -74,23 +78,21 @@ export default function Dashboard() {
         </div>
 
 
-        <div className="card curiosity">
+        <div className="card wide">
           <h3>Today's Curiosity</h3>
           <p>What might happen if gravity suddenly weakened near Earth?</p>
         </div>
 
 
-        <div className="card guide">
-
+        <div className="card wide">
           <h3>Restore Guide</h3>
 
           <p>Guide: Ask about today's learning patterns.</p>
 
-          <div className="ask">
+          <div className="askRow">
             <input placeholder="Ask about today's learning..." />
             <button>Ask</button>
           </div>
-
         </div>
 
 
@@ -100,11 +102,11 @@ export default function Dashboard() {
 
             <h3>Understanding Pulse</h3>
 
-            <PulseBar label="Connecting" percent="65%" />
-            <PulseBar label="Reflecting" percent="45%" />
-            <PulseBar label="Curious" percent="30%" />
-            <PulseBar label="Confused" percent="15%" />
-            <PulseBar label="Exploring" percent="55%" />
+            <Pulse label="Connecting" value="65%" />
+            <Pulse label="Reflecting" value="45%" />
+            <Pulse label="Curious" value="30%" />
+            <Pulse label="Confused" value="15%" />
+            <Pulse label="Exploring" value="55%" />
 
           </div>
 
@@ -115,7 +117,6 @@ export default function Dashboard() {
 🟡 Limits in Calculus
 🟡 Plate Tectonics`}
           />
-
 
           <Card
             title="Curiosity Activity"
@@ -203,70 +204,46 @@ margin:auto;
 padding:50px 30px 80px;
 }
 
-h1{
-margin-bottom:30px;
-}
-
 .mode{
 background:#dbe6f3;
 padding:28px;
 border-radius:18px;
 border-left:5px solid #46b39d;
 margin-bottom:40px;
-box-shadow:0 6px 18px rgba(0,0,0,0.06);
 }
 
 .grid{
 display:grid;
 grid-template-columns:repeat(3,1fr);
 gap:26px;
-margin-bottom:32px;
-}
-
-@media (max-width:900px){
-.grid{
-grid-template-columns:1fr;
-}
+margin-bottom:30px;
 }
 
 .card{
 background:white;
 padding:24px;
 border-radius:18px;
-box-shadow:0 12px 28px rgba(0,0,0,0.08);
-transition:all .2s ease;
+box-shadow:0 10px 25px rgba(0,0,0,0.08);
+}
+
+.wide{
 margin-bottom:26px;
 }
 
-.card:hover{
-transform:translateY(-2px);
-box-shadow:0 18px 36px rgba(0,0,0,0.12);
-}
-
-.card h3{
-margin-bottom:10px;
-}
-
-.card p{
-color:#555;
-line-height:1.4;
-white-space:pre-line;
-}
-
-.ask{
+.askRow{
 display:flex;
 gap:10px;
 margin-top:12px;
 }
 
-.ask input{
+.askRow input{
 flex:1;
 padding:12px;
 border-radius:10px;
 border:1px solid #ddd;
 }
 
-.ask button{
+.askRow button{
 background:#46b39d;
 border:none;
 color:white;
@@ -279,22 +256,21 @@ cursor:pointer;
 margin-top:12px;
 }
 
-.pulse-label{
+.pulseLabel{
 font-size:14px;
 margin-bottom:4px;
 }
 
-.pulse-track{
+.pulseTrack{
 height:8px;
-background:#e3e8ef;
+background:#e5e7eb;
 border-radius:6px;
 overflow:hidden;
 }
 
-.pulse-fill{
+.pulseFill{
 height:8px;
 background:#46b39d;
-border-radius:6px;
 }
 
 `}</style>
