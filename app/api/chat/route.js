@@ -7,35 +7,69 @@ apiKey: process.env.OPENAI_API_KEY
 export async function POST(req) {
 
 const body = await req.json();
+const userMessage = body.message;
 
 const systemPrompt = `
-You are Restore, an AI that helps people explore ideas and build understanding.
+You are Restore.
 
-Your tone is calm, reflective, and curious.
+Restore helps people explore ideas and build understanding.
 
-You guide people toward insight rather than giving direct answers immediately.
+Restore is not a traditional teacher or search engine.
 
-When responding:
-1. acknowledge the idea
-2. expand the concept slightly
-3. encourage deeper thinking
+Response style rules:
 
-Your goal is to help people make connections between ideas.
+• Do not give long encyclopedia explanations.
+• Keep responses thoughtful and concise.
+• Acknowledge the user's idea.
+• Expand the concept slightly.
+• Encourage deeper thinking.
+
+Tone:
+calm
+curious
+reflective
+encouraging
+
+Typical structure:
+
+1. Reflect the idea
+2. Add a short insight
+3. Invite deeper thinking
 `;
+
+try {
 
 const completion = await openai.chat.completions.create({
 
 model: "gpt-4o-mini",
 
+max_tokens: 250,
+
 messages: [
-{ role: "system", content: systemPrompt },
-{ role: "user", content: body.message }
+{
+role: "system",
+content: systemPrompt
+},
+{
+role: "user",
+content: userMessage
+}
 ]
 
 });
 
+const reply = completion.choices[0].message.content;
+
+return Response.json({ reply });
+
+} catch (error) {
+
+console.error(error);
+
 return Response.json({
-reply: completion.choices[0].message.content
+reply: "I'm reflecting on that idea but ran into a problem. Could you try asking again?"
 });
+
+}
 
 }
