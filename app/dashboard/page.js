@@ -250,6 +250,117 @@ export default function Dashboard() {
           width: 5px; height: 5px; border-radius: 50%;
           background: #22C55E; animation: breathe 2s infinite; display: inline-block;
         }
+
+        /* DAILY CHALLENGE */
+        .challenge-card {
+          background: linear-gradient(135deg, rgba(59,191,178,0.08), rgba(42,158,147,0.12));
+          border: 1px solid rgba(59,191,178,0.25);
+          border-radius: 16px; padding: 18px;
+          margin-bottom: 14px; position: relative; overflow: hidden;
+          animation: fadeUp 0.4s ease 0.35s both;
+        }
+        .challenge-card::before {
+          content: ''; position: absolute;
+          top: -30px; right: -30px; width: 120px; height: 120px;
+          border-radius: 50%;
+          background: radial-gradient(circle, rgba(59,191,178,0.1), transparent 70%);
+        }
+        .challenge-label {
+          font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
+          text-transform: uppercase; color: var(--teal);
+          font-family: 'DM Mono', monospace; margin-bottom: 6px;
+        }
+        .challenge-q {
+          font-family: 'Lora', serif;
+          font-size: 15px; font-weight: 600; color: var(--dark);
+          line-height: 1.5; margin-bottom: 14px; letter-spacing: -0.01em;
+        }
+        .challenge-row { display: flex; align-items: center; gap: 10px; }
+        .challenge-btn {
+          padding: 9px 18px;
+          background: linear-gradient(135deg, #3BBFB2, #2A9E93);
+          border: none; border-radius: 10px;
+          color: #fff; font-weight: 700; font-size: 12px;
+          cursor: pointer; font-family: 'DM Sans', sans-serif;
+          box-shadow: 0 4px 12px rgba(59,191,178,0.3);
+        }
+        .challenge-meta { font-size: 11px; color: var(--muted); }
+
+        /* HEATMAP */
+        .heatmap-card {
+          background: var(--card);
+          border-radius: 16px; padding: 18px;
+          margin-bottom: 14px;
+          box-shadow: var(--shadow-sm);
+          border: 1px solid var(--border);
+          animation: fadeUp 0.4s ease 0.4s both;
+        }
+        .heatmap-header {
+          display: flex; justify-content: space-between;
+          align-items: flex-start; margin-bottom: 14px;
+        }
+        .streak-num {
+          font-size: 26px; font-weight: 800; letter-spacing: -0.03em;
+          color: var(--teal); line-height: 1;
+        }
+        .streak-lbl { font-size: 10px; color: var(--muted); font-family: 'DM Mono', monospace; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
+        .heatmap-grid { display: flex; gap: 3px; flex-wrap: wrap; margin-bottom: 8px; }
+        .hd { width: 13px; height: 13px; border-radius: 3px; background: #EEF0EF; }
+        .hd.l1 { background: rgba(59,191,178,0.2); }
+        .hd.l2 { background: rgba(59,191,178,0.45); }
+        .hd.l3 { background: rgba(59,191,178,0.7); }
+        .hd.l4 { background: #3BBFB2; }
+        .heatmap-legend { display: flex; align-items: center; gap: 4px; }
+        .heatmap-legend-label { font-size: 9px; color: var(--muted); font-family: 'DM Mono', monospace; }
+
+        /* SESSION HISTORY */
+        .hist-card {
+          background: var(--card);
+          border-radius: 16px; padding: 18px;
+          margin-bottom: 14px;
+          box-shadow: var(--shadow-sm);
+          border: 1px solid var(--border);
+          animation: fadeUp 0.4s ease 0.45s both;
+        }
+        .hist-item {
+          display: flex; align-items: center; gap: 10px;
+          padding: 9px 0; border-bottom: 1px solid var(--border);
+          cursor: pointer;
+        }
+        .hist-item:last-child { border-bottom: none; padding-bottom: 0; }
+        .hist-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .hist-topic { font-size: 13px; font-weight: 600; color: var(--dark); }
+        .hist-meta { font-size: 11px; color: var(--muted); margin-top: 1px; }
+        .hist-time { font-size: 10px; color: var(--muted); font-family: 'DM Mono', monospace; margin-left: auto; flex-shrink: 0; }
+        .hist-badge {
+          font-size: 9px; font-weight: 700; padding: 2px 7px;
+          border-radius: 20px; font-family: 'DM Mono', monospace;
+          text-transform: uppercase; flex-shrink: 0;
+        }
+
+        /* PROGRESS BARS */
+        .prog-section {
+          background: var(--card);
+          border-radius: 16px; padding: 18px;
+          margin-bottom: 14px;
+          box-shadow: var(--shadow-sm);
+          border: 1px solid var(--border);
+          animation: fadeUp 0.4s ease 0.5s both;
+        }
+        .prog-item { margin-bottom: 12px; }
+        .prog-item:last-child { margin-bottom: 0; }
+        .prog-top { display: flex; justify-content: space-between; margin-bottom: 5px; }
+        .prog-lbl { font-size: 12px; font-weight: 500; color: var(--mid); }
+        .prog-val { font-size: 11px; font-weight: 700; font-family: 'DM Mono', monospace; }
+        .prog-track { height: 6px; background: #EEF0EF; border-radius: 3px; overflow: hidden; }
+        .prog-bar { height: 100%; border-radius: 3px; animation: barGrow 1.2s ease forwards; }
+
+        /* SECTION HEADING */
+        .section-label {
+          font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
+          text-transform: uppercase; color: var(--muted);
+          font-family: 'DM Mono', monospace; margin-bottom: 10px;
+        }
       `}</style>
 
       <div className="dash-root">
@@ -445,6 +556,92 @@ export default function Dashboard() {
                 <div className="session-val">3 made</div>
               </div>
             </div>
+          </div>
+
+          {/* DAILY CHALLENGE */}
+          <div className="challenge-card">
+            <div className="challenge-label">⚡ Daily Challenge</div>
+            <div className="challenge-q">
+              If gravity weakens with distance, why doesn&apos;t the Moon drift away from Earth over time?
+            </div>
+            <div className="challenge-row">
+              <button className="challenge-btn">Take the Challenge →</button>
+              <span className="challenge-meta">~3 min · Connects: Gravity · Orbits</span>
+            </div>
+          </div>
+
+          {/* STREAK HEATMAP */}
+          <div className="heatmap-card">
+            <div className="heatmap-header">
+              <div>
+                <div className="section-label">Activity</div>
+                <div className="card-heading" style={{marginBottom: 0}}>Learning Streak</div>
+              </div>
+              <div style={{textAlign: "right"}}>
+                <div className="streak-num">🔥 12</div>
+                <div className="streak-lbl">Day Streak</div>
+              </div>
+            </div>
+            <div className="heatmap-grid">
+              {[0,0,1,1,2,2,3,4,0,1,2,3,4,4,3,2,1,0,0,1,2,3,4,3,2,1,0,1,2,3,
+                4,4,3,2,1,0,0,0,1,1,2,3,4,4,3,2,1,0,1,2,3,4,3,2,1,0,0,1,2,3,
+                4,4,3,2,1,0,1,2,3,4,4,3,2,1,0,0,1,2,3,4,4,4,3,3,2,1,0,1,2,3,
+                4,4,4,3,2,1,1,2,3,4,4,4,3,3,2,1,0,0,1,2,3,4,4,4,3,3,2,1,1,2,
+                3,4,4,4,3,3,2,1,0,0,1,2,3,4,4,4].map((l, i) => (
+                <div key={i} className={`hd${l > 0 ? ` l${l}` : ""}`} />
+              ))}
+            </div>
+            <div className="heatmap-legend">
+              <span className="heatmap-legend-label">Less</span>
+              {[0,1,2,3,4].map(l => (
+                <div key={l} className={`hd${l > 0 ? ` l${l}` : ""}`} style={{width:11,height:11}} />
+              ))}
+              <span className="heatmap-legend-label">More</span>
+            </div>
+          </div>
+
+          {/* TOPIC MASTERY */}
+          <div className="prog-section">
+            <div className="section-label">Topic Mastery</div>
+            {[
+              { label: "Gravity & Orbits",    pct: 68, color: "#3BBFB2", grad: "linear-gradient(90deg,#7BE8DF,#3BBFB2)" },
+              { label: "Moon Phases",          pct: 82, color: "#16A15E", grad: "linear-gradient(90deg,#6EE7B7,#16A15E)" },
+              { label: "Limits in Calculus",   pct: 34, color: "#E5960A", grad: "linear-gradient(90deg,#FDE68A,#E5960A)" },
+              { label: "Electric Circuits",    pct: 21, color: "#E5484D", grad: "linear-gradient(90deg,#FCA5A5,#E5484D)" },
+              { label: "Plate Tectonics",      pct: 47, color: "#7C3AED", grad: "linear-gradient(90deg,#A78BFA,#7C3AED)" },
+            ].map(({ label, pct, color, grad }) => (
+              <div className="prog-item" key={label}>
+                <div className="prog-top">
+                  <span className="prog-lbl">{label}</span>
+                  <span className="prog-val" style={{ color }}>{pct}%</span>
+                </div>
+                <div className="prog-track">
+                  <div className="prog-bar" style={{ width: `${pct}%`, background: grad }} />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* SESSION HISTORY */}
+          <div className="hist-card">
+            <div className="section-label">Past Sessions</div>
+            {[
+              { topic: "Gravity & Orbits",   meta: "7 questions · 3 connections", time: "Now",       dot: "#3BBFB2", badge: "Active",    badgeBg: "rgba(59,191,178,.12)",   badgeColor: "#2A9E93" },
+              { topic: "Moon Phases",         meta: "5 questions · 4 connections", time: "Yesterday", dot: "#16A15E", badge: "Complete",  badgeBg: "rgba(22,161,94,.12)",    badgeColor: "#16A15E" },
+              { topic: "Limits in Calculus",  meta: "9 questions · 2 connections", time: "2d ago",    dot: "#E5960A", badge: "Revisit",   badgeBg: "rgba(229,150,10,.12)",   badgeColor: "#E5960A" },
+              { topic: "Ionic Bonds",         meta: "6 questions · 5 connections", time: "3d ago",    dot: "#7C3AED", badge: "Complete",  badgeBg: "rgba(124,58,237,.12)",   badgeColor: "#7C3AED" },
+              { topic: "Electric Circuits",   meta: "4 questions · 1 connection",  time: "4d ago",    dot: "#E5484D", badge: "Revisit",   badgeBg: "rgba(229,72,77,.12)",    badgeColor: "#E5484D" },
+            ].map(({ topic, meta, time, dot, badge, badgeBg, badgeColor }) => (
+              <div className="hist-item" key={topic}>
+                <div className="hist-dot" style={{ background: dot }} />
+                <div style={{ flex: 1 }}>
+                  <div className="hist-topic">{topic}</div>
+                  <div className="hist-meta">{meta}</div>
+                </div>
+                <span className="hist-badge" style={{ background: badgeBg, color: badgeColor }}>{badge}</span>
+                <span className="hist-time">{time}</span>
+              </div>
+            ))}
           </div>
 
         </main>
