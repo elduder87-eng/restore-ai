@@ -1,10 +1,532 @@
-<!DOCTYPE html><html><head><meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Restore Universe</title><style>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Restore — Your Learning Journey</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#05080f;--panel:rgba(12,16,28,0.85);--border:rgba(255,255,255,0.08);
+  --text:#e2e8f0;--muted:#64748b;
+  --blue:#38bdf8;--green:#4ade80;--purple:#c084fc;
+  --gold:#fbbf24;--red:#f87171;--teal:#2dd4bf;--orange:#fb923c;
+}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:'Inter',sans-serif;color:var(--text);}
+#bg{position:fixed;inset:0;z-index:0;}
+#uni{position:fixed;inset:0;z-index:1;pointer-events:all;}
+.ui{position:fixed;inset:0;z-index:10;display:grid;grid-template-rows:64px 1fr;pointer-events:none;}
+.ui>*{pointer-events:all;}
 
-body{
-margin:0;
-background:black;
-overflow:hidden;
+/* TOPBAR */
+.topbar{display:flex;align-items:center;padding:0 24px;gap:16px;background:rgba(5,8,15,0.8);border-bottom:1px solid var(--border);backdrop-filter:blur(20px);}
+.brand{display:flex;align-items:center;gap:10px;min-width:220px;}
+.brand-icon{width:38px;height:38px;border-radius:50%;background:conic-gradient(from 180deg,#38bdf8,#818cf8,#c084fc,#38bdf8);display:flex;align-items:center;justify-content:center;animation:spin 10s linear infinite;font-size:15px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.brand-name{font-size:18px;font-weight:800;color:#fff;letter-spacing:-.02em;}
+.brand-sub{font-size:11px;color:var(--muted);}
+.nav{display:flex;gap:4px;flex:1;justify-content:center;}
+.nb{padding:7px 22px;border-radius:24px;font-size:13px;font-weight:500;color:var(--muted);background:none;border:1px solid transparent;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s;}
+.nb.active{background:rgba(255,255,255,0.1);color:#fff;border-color:rgba(255,255,255,0.15);}
+.tr{display:flex;align-items:center;gap:10px;margin-left:auto;}
+.av{display:flex;align-items:center;gap:8px;}
+.av-img{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#818cf8,#c084fc);border:2px solid rgba(255,255,255,0.2);}
+.av-name{font-size:13px;font-weight:500;color:#fff;}
+.ib{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.07);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;}
+
+/* MAIN */
+.main{display:grid;grid-template-columns:270px 1fr 280px;overflow:hidden;}
+.left,.right{padding:14px 12px;display:flex;flex-direction:column;gap:10px;background:rgba(5,8,15,0.65);backdrop-filter:blur(20px);overflow-y:auto;}
+.left{border-right:1px solid var(--border);}
+.right{border-left:1px solid var(--border);}
+.center{display:flex;flex-direction:column;pointer-events:none;}
+.center>*{pointer-events:all;}
+
+/* PANEL CARD */
+.pc{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:16px;padding:14px;}
+.pt{font-size:13px;font-weight:600;color:#fff;margin-bottom:11px;display:flex;justify-content:space-between;}
+.pt-dots{color:var(--muted);letter-spacing:.1em;cursor:pointer;}
+
+/* DONUT */
+.dr{display:flex;gap:10px;align-items:center;}
+.dw{position:relative;width:108px;height:108px;flex-shrink:0;}
+.dw svg{transform:rotate(-90deg);}
+.dc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.dp{font-size:20px;font-weight:800;color:#fff;}
+.dl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
+.leg{display:flex;flex-direction:column;gap:6px;flex:1;}
+.lr{display:flex;align-items:center;gap:6px;}
+.ld{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.ln{font-size:12px;color:var(--text);flex:1;}
+.lp{font-size:12px;font-weight:600;}
+
+/* FOCUS */
+.fh{display:flex;align-items:center;gap:8px;margin-bottom:3px;}
+.fi{width:28px;height:28px;border-radius:8px;background:rgba(192,132,252,0.18);display:flex;align-items:center;justify-content:center;font-size:13px;}
+.fn{font-size:16px;font-weight:700;color:#fff;}
+.fs{font-size:11px;color:var(--muted);margin-bottom:10px;margin-left:36px;}
+.pt2{height:4px;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden;margin-bottom:14px;}
+.pb2{height:100%;border-radius:2px;background:linear-gradient(90deg,#818cf8,#38bdf8);}
+.cb{width:100%;padding:10px;border-radius:12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s;}
+.cb:hover{background:rgba(255,255,255,0.13);}
+
+/* FEED */
+.fi2{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);}
+.fi2:last-child{border-bottom:none;padding-bottom:0;}
+.fic{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;}
+.fq{font-size:13px;font-weight:500;color:#fff;}
+.ft{font-size:11px;color:var(--muted);margin-top:2px;}
+.fd{width:6px;height:6px;border-radius:50%;margin-left:auto;margin-top:5px;flex-shrink:0;}
+
+/* GROWTH */
+.gi{margin-bottom:11px;}
+.gi:last-child{margin-bottom:0;}
+.gh{display:flex;align-items:center;margin-bottom:5px;}
+.gdot{width:7px;height:7px;border-radius:50%;}
+.gl{font-size:13px;color:var(--text);flex:1;margin-left:8px;}
+.ga{font-size:12px;margin-right:2px;}
+.gp{font-size:14px;font-weight:700;}
+.gt{height:4px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;}
+.gb{height:100%;border-radius:2px;}
+
+/* MOMENTS */
+.mi{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);}
+.mi:last-child{border-bottom:none;}
+.mic{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.mt{font-size:13px;font-weight:600;color:#fff;line-height:1.3;}
+.ms{font-size:11px;margin-top:1px;}
+.md{font-size:11px;color:var(--muted);margin-left:auto;flex-shrink:0;}
+.vb{width:100%;padding:10px;border-radius:12px;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:#fff;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;margin-top:6px;transition:all .2s;}
+.vb:hover{border-color:rgba(56,189,248,0.4);color:var(--blue);}
+
+/* SEM */
+.semr{display:flex;justify-content:flex-end;gap:8px;margin-bottom:2px;align-items:center;}
+.sems{background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:8px;padding:5px 12px;color:#fff;font-size:12px;font-family:'Inter',sans-serif;}
+
+/* BOTTOM */
+.bot{background:rgba(5,8,15,0.88);border-top:1px solid var(--border);backdrop-filter:blur(20px);padding:12px 24px;display:flex;align-items:center;gap:0;flex-shrink:0;}
+.sc{flex:1;text-align:center;border-right:1px solid var(--border);padding:0 8px;}
+.sc:last-child{border-right:none;}
+.sn{font-size:26px;font-weight:800;letter-spacing:-.03em;line-height:1.1;}
+.sl{font-size:11px;color:var(--muted);margin-top:1px;}
+
+/* THINKING */
+.thk{background:rgba(5,8,15,0.88);border-top:1px solid var(--border);backdrop-filter:blur(20px);padding:12px 24px;flex-shrink:0;}
+.thkt{font-size:13px;font-weight:600;color:#fff;margin-bottom:10px;}
+.thkr{display:flex;align-items:center;}
+.tn{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;}
+.tl{font-size:11px;font-weight:600;}
+.ti{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;border:2px solid rgba(255,255,255,0.15);}
+.tarr{font-size:14px;color:var(--muted);padding-bottom:2px;}
+
+/* FRONTIER */
+.frc{flex:2.2;background:rgba(18,22,38,0.95);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:12px 16px;margin-left:18px;display:flex;align-items:center;gap:14px;}
+.frci{width:42px;height:42px;border-radius:50%;background:conic-gradient(from 0deg,#f59e0b,#fb923c,#f59e0b);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.frl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px;}
+.frn{font-size:15px;font-weight:700;color:#fff;margin-bottom:5px;}
+.frp{display:flex;align-items:center;gap:8px;}
+.frt{height:3px;flex:1;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden;}
+.frb{height:100%;width:71%;background:linear-gradient(90deg,#f59e0b,#fb923c);border-radius:2px;}
+.frpc{font-size:12px;color:#f59e0b;font-weight:600;white-space:nowrap;}
+.frarr{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,0.07);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;margin-left:auto;flex-shrink:0;}
+
+/* TOOLTIP */
+.tip{position:fixed;background:rgba(5,8,15,0.96);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:12px 16px;pointer-events:none;z-index:200;opacity:0;transition:opacity .15s;min-width:150px;backdrop-filter:blur(20px);}
+.tip.on{opacity:1;}
+.tn2{font-size:14px;font-weight:700;color:#fff;margin-bottom:2px;}
+.ts{font-size:11px;color:var(--muted);margin-bottom:8px;}
+.tt2{height:3px;background:rgba(255,255,255,0.1);border-radius:2px;overflow:hidden;}
+.tf{height:100%;border-radius:2px;}
+.tp{font-size:11px;font-weight:600;margin-top:4px;}
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+<canvas id="uni"></canvas>
+
+<div class="ui">
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-icon">✦</div>
+      <div><div class="brand-name">Restore</div><div class="brand-sub">Your Learning Journey</div></div>
+    </div>
+    <nav class="nav">
+      <button class="nb active">Journey</button>
+      <button class="nb">Dashboard</button>
+      <button class="nb">Curiosity</button>
+      <button class="nb">Connections</button>
+    </nav>
+    <div class="tr">
+      <div class="av"><div class="av-img"></div><span class="av-name">Alex's Profile</span></div>
+      <div class="ib">⚙</div><div class="ib">🔔</div>
+      <div class="ib" style="background:rgba(56,189,248,0.15);border-color:rgba(56,189,248,0.3);color:var(--blue);font-weight:700;font-size:12px;">A</div>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- LEFT -->
+    <div class="left">
+      <div class="pc">
+        <div class="pt">Understanding Pulse <span class="pt-dots">···</span></div>
+        <div class="dr">
+          <div class="dw">
+            <svg width="108" height="108" viewBox="0 0 108 108">
+              <circle cx="54" cy="54" r="40" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="11"/>
+              <circle cx="54" cy="54" r="40" fill="none" stroke="#4ade80" stroke-width="11" stroke-dasharray="80 171" stroke-dashoffset="0"/>
+              <circle cx="54" cy="54" r="40" fill="none" stroke="#38bdf8" stroke-width="11" stroke-dasharray="71 180" stroke-dashoffset="-80"/>
+              <circle cx="54" cy="54" r="40" fill="none" stroke="#fbbf24" stroke-width="11" stroke-dasharray="56 195" stroke-dashoffset="-151"/>
+              <circle cx="54" cy="54" r="40" fill="none" stroke="#f87171" stroke-width="11" stroke-dasharray="30 221" stroke-dashoffset="-207"/>
+              <circle cx="54" cy="54" r="40" fill="none" stroke="#a78bfa" stroke-width="11" stroke-dasharray="15 236" stroke-dashoffset="-237"/>
+            </svg>
+            <div class="dc"><div class="dp">78%</div><div class="dl">active</div></div>
+          </div>
+          <div class="leg">
+            <div class="lr"><span class="ld" style="background:#4ade80"></span><span class="ln">Connecting</span><span class="lp" style="color:#4ade80">32%</span></div>
+            <div class="lr"><span class="ld" style="background:#38bdf8"></span><span class="ln">Reflecting</span><span class="lp" style="color:#38bdf8">28%</span></div>
+            <div class="lr"><span class="ld" style="background:#fbbf24"></span><span class="ln">Curious</span><span class="lp" style="color:#fbbf24">22%</span></div>
+            <div class="lr"><span class="ld" style="background:#f87171"></span><span class="ln">Confused</span><span class="lp" style="color:#f87171">12%</span></div>
+            <div class="lr"><span class="ld" style="background:#a78bfa"></span><span class="ln">Exploring</span><span class="lp" style="color:#a78bfa">6%</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pc">
+        <div class="pt">Current Focus</div>
+        <div class="fh"><div class="fi">🔮</div><div class="fn">Quantum Physics</div><span style="color:var(--muted);margin-left:auto;">▾</span></div>
+        <div class="fs">Deep Exploration</div>
+        <div class="pt2"><div class="pb2" style="width:68%"></div></div>
+        <button class="cb">Continue Journey →</button>
+      </div>
+
+      <div class="pc">
+        <div class="pt">Curiosity Feed <span class="pt-dots">···</span></div>
+        <div class="fi2">
+          <div class="fic" style="background:rgba(56,189,248,0.15)">💭</div>
+          <div style="flex:1"><div class="fq">What is consciousness?</div><div class="ft">23 min ago</div></div>
+          <div class="fd" style="background:#fbbf24"></div>
+        </div>
+        <div class="fi2">
+          <div class="fic" style="background:rgba(251,191,36,0.15)">🌱</div>
+          <div style="flex:1"><div class="fq">How did life begin?</div><div class="ft">1 hour ago</div></div>
+          <div class="fd" style="background:#fbbf24"></div>
+        </div>
+        <div class="fi2">
+          <div class="fic" style="background:rgba(167,139,250,0.15)">⏱</div>
+          <div style="flex:1"><div class="fq">Time travel possible?</div><div class="ft">3 hours ago</div></div>
+          <div class="fd" style="background:#a78bfa"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CENTER -->
+    <div class="center">
+      <div style="flex:1"></div>
+      <div class="thk">
+        <div class="thkt">Your Thinking Evolution</div>
+        <div class="thkr">
+          <div class="tn"><div class="tl" style="color:#38bdf8">Curious</div><div class="ti" style="background:rgba(56,189,248,0.2);border-color:#38bdf8">💙</div></div>
+          <div class="tarr">→</div>
+          <div class="tn"><div class="tl" style="color:#f87171">Confused</div><div class="ti" style="background:rgba(248,113,113,0.2);border-color:#f87171">❤️</div></div>
+          <div class="tarr">→</div>
+          <div class="tn"><div class="tl" style="color:#4ade80">Reflecting</div><div class="ti" style="background:rgba(74,222,128,0.2);border-color:#4ade80">💚</div></div>
+          <div class="tarr">→</div>
+          <div class="tn"><div class="tl" style="color:#fbbf24">Connecting</div><div class="ti" style="background:rgba(251,191,36,0.2);border-color:#fbbf24">💛</div></div>
+          <div class="tarr">→</div>
+          <div class="tn"><div class="tl" style="color:#e2e8f0">Mastering</div><div class="ti" style="background:rgba(226,232,240,0.1);border-color:#e2e8f0">🤍</div></div>
+        </div>
+      </div>
+      <div class="bot">
+        <div class="sc"><div class="sn" style="color:#4ade80">🧩 142</div><div class="sl">Learning Moments</div></div>
+        <div class="sc"><div class="sn" style="color:#38bdf8">🔭 36</div><div class="sl">Topics Explored</div></div>
+        <div class="sc"><div class="sn" style="color:#fbbf24">⚡ 12</div><div class="sl">Breakthroughs</div></div>
+        <div class="frc">
+          <div class="frci">🌌</div>
+          <div style="flex:1;min-width:0">
+            <div class="frl">Next Frontier</div>
+            <div class="frn">The Theory of Everything</div>
+            <div class="frp"><div class="frt"><div class="frb"></div></div><div class="frpc">71% Ready to Explore</div></div>
+          </div>
+          <div class="frarr">→</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="right">
+      <div class="semr">
+        <select class="sems"><option>This Semester</option></select>
+        <div class="ib">⚙</div>
+      </div>
+      <div class="pc">
+        <div class="pt">Growth</div>
+        <div class="gi"><div class="gh"><span class="gdot" style="background:#4ade80"></span><span class="gl">Understanding</span><span class="ga" style="color:#4ade80">↑</span><span class="gp" style="color:#4ade80">78%</span></div><div class="gt"><div class="gb" style="width:78%;background:#4ade80"></div></div></div>
+        <div class="gi"><div class="gh"><span class="gdot" style="background:#fbbf24"></span><span class="gl">Curiosity</span><span class="ga" style="color:#fbbf24">↑</span><span class="gp" style="color:#fbbf24">64%</span></div><div class="gt"><div class="gb" style="width:64%;background:#fbbf24"></div></div></div>
+        <div class="gi"><div class="gh"><span class="gdot" style="background:#c084fc"></span><span class="gl">Connections</span><span class="ga" style="color:#c084fc">↑</span><span class="gp" style="color:#c084fc">52%</span></div><div class="gt"><div class="gb" style="width:52%;background:#c084fc"></div></div></div>
+        <div class="gi"><div class="gh"><span class="gdot" style="background:#f87171"></span><span class="gl">Confusion</span><span class="ga" style="color:#f87171">↓</span><span class="gp" style="color:#f87171">18%</span></div><div class="gt"><div class="gb" style="width:18%;background:#f87171"></div></div></div>
+      </div>
+      <div class="pc">
+        <div class="pt">Learning Moments</div>
+        <div class="mi">
+          <div class="mic" style="background:rgba(251,191,36,0.15)">💡</div>
+          <div style="flex:1"><div class="mt">Breakthrough! Relativity Click</div><div class="ms" style="color:#fbbf24">Physics → Space-Time</div></div>
+          <div class="md">Apr 22</div>
+        </div>
+        <div class="mi">
+          <div class="mic" style="background:rgba(56,189,248,0.15)">🔗</div>
+          <div style="flex:1"><div class="mt">Connected: Physics ↔ Philosophy</div><div class="ms" style="color:#38bdf8">Cross-domain insight</div></div>
+          <div class="md">Apr 18</div>
+        </div>
+        <div class="mi">
+          <div class="mic" style="background:rgba(192,132,252,0.15)">⚡</div>
+          <div style="flex:1"><div class="mt">Curiosity Spike <span style="color:#c084fc">Black Holes</span></div><div class="ms" style="color:var(--muted)">Astronomy cluster</div></div>
+          <div class="md">Apr 15</div>
+        </div>
+        <div class="mi">
+          <div class="mic" style="background:rgba(74,222,128,0.15)">✓</div>
+          <div style="flex:1"><div class="mt">Mastered: Calculus <span style="color:#4ade80">Limits</span></div><div class="ms" style="color:var(--muted)">Mathematics node</div></div>
+          <div class="md">Apr 10</div>
+        </div>
+        <button class="vb">View Full Timeline →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="tip" id="tip">
+  <div class="tn2" id="ttn"></div>
+  <div class="ts" id="tts"></div>
+  <div class="tt2"><div class="tf" id="ttf"></div></div>
+  <div class="tp" id="ttp"></div>
+</div>
+
+<script>
+const bg=document.getElementById('bg'),bx=bg.getContext('2d');
+const uc=document.getElementById('uni'),ux=uc.getContext('2d');
+
+function resize(){
+  bg.width=uc.width=window.innerWidth;
+  bg.height=uc.height=window.innerHeight;
+}
+resize(); window.addEventListener('resize',resize);
+
+// Starfield
+const STARS=Array.from({length:280},()=>({
+  x:Math.random()*window.innerWidth,y:Math.random()*window.innerHeight,
+  r:Math.random()*1.3+.2,a:Math.random()*.75+.1,tw:Math.random()*Math.PI*2
+}));
+
+function drawBg(t){
+  bx.clearRect(0,0,bg.width,bg.height);
+  const g=bx.createRadialGradient(bg.width*.5,bg.height*.45,0,bg.width*.5,bg.height*.5,bg.width*.75);
+  g.addColorStop(0,'#0d1525');g.addColorStop(.55,'#080d18');g.addColorStop(1,'#05080f');
+  bx.fillStyle=g;bx.fillRect(0,0,bg.width,bg.height);
+  STARS.forEach(s=>{
+    const f=Math.sin(t*.0009+s.tw)*.3+.7;
+    bx.beginPath();bx.arc(s.x,s.y,s.r,0,Math.PI*2);
+    bx.fillStyle=`rgba(210,225,255,${s.a*f})`;bx.fill();
+  });
 }
 
-</style></head><body><script type="module" src="./tree.js"></script></body></html>
+// Center of galaxy
+function CX(){return window.innerWidth*.5;}
+function CY(){return (window.innerHeight+64)*.47;}
+
+// NODES
+const N=[
+  {id:'you',   label:'YOU',          sub:'Your Understanding', ang:0,    orb:0,   tilt:1,   r:34, col:'#fde68a', glow:'rgba(253,230,138,0.55)',mas:100},
+  {id:'phys',  label:'Physics',      sub:'Gravity · Motion',   ang:.3,   orb:155, tilt:.52, r:27, col:'#fb923c', glow:'rgba(251,146,60,0.5)',  mas:78},
+  {id:'math',  label:'Mathematics',  sub:'Calculus · Limits',  ang:2.5,  orb:155, tilt:.52, r:26, col:'#38bdf8', glow:'rgba(56,189,248,0.5)',  mas:65},
+  {id:'bio',   label:'Biology',      sub:'Evolution · Cells',  ang:3.9,  orb:155, tilt:.52, r:25, col:'#4ade80', glow:'rgba(74,222,128,0.5)',  mas:55},
+  {id:'hist',  label:'History',      sub:'Civilizations',      ang:5.4,  orb:155, tilt:.52, r:24, col:'#fb923c', glow:'rgba(251,146,60,0.45)', mas:48},
+  {id:'astro', label:'Astronomy',    sub:'Black Holes · Stars', ang:1.1, orb:265, tilt:.47, r:26, col:'#c084fc', glow:'rgba(192,132,252,0.5)', mas:42},
+  {id:'grav',  label:'Gravity',      sub:'Newton · Einstein',  ang:-.4,  orb:102, tilt:.52, r:11, col:'#fb923c', glow:'rgba(251,146,60,0.4)',  mas:72},
+  {id:'newt',  label:"Newton's Laws",sub:'Motion Laws',        ang:-.7,  orb:228, tilt:.52, r:10, col:'#fb923c', glow:'rgba(251,146,60,0.35)', mas:68},
+  {id:'rel',   label:'Relativity',   sub:'Einstein',           ang:.05,  orb:288, tilt:.50, r:11, col:'#fb923c', glow:'rgba(251,146,60,0.4)',  mas:35},
+  {id:'calc',  label:'Calculus',     sub:'Limits · Integrals', ang:2.1,  orb:108, tilt:.52, r:11, col:'#38bdf8', glow:'rgba(56,189,248,0.4)',  mas:65},
+  {id:'func',  label:'Functions',    sub:'Algebra',            ang:3.05, orb:210, tilt:.52, r:10, col:'#38bdf8', glow:'rgba(56,189,248,0.35)', mas:50},
+  {id:'lim',   label:'Limits',       sub:'Convergence',        ang:2.75, orb:188, tilt:.52, r:10, col:'#38bdf8', glow:'rgba(56,189,248,0.35)', mas:55},
+  {id:'evol',  label:'Evolution',    sub:'Darwin',             ang:4.3,  orb:108, tilt:.52, r:10, col:'#4ade80', glow:'rgba(74,222,128,0.35)', mas:50},
+  {id:'eco',   label:'Ecosystems',   sub:'Food Webs',          ang:4.75, orb:205, tilt:.52, r:10, col:'#4ade80', glow:'rgba(74,222,128,0.35)', mas:38},
+  {id:'gen',   label:'Genetics',     sub:'DNA',                ang:5.1,  orb:215, tilt:.52, r:10, col:'#4ade80', glow:'rgba(74,222,128,0.35)', mas:30},
+  {id:'ren',   label:'Renaissance',  sub:'Art & Science',      ang:5.55, orb:198, tilt:.52, r:10, col:'#fb923c', glow:'rgba(251,146,60,0.35)', mas:35},
+  {id:'rev',   label:'Revolutions',  sub:'Political Change',   ang:6.05, orb:212, tilt:.52, r:10, col:'#fb923c', glow:'rgba(251,146,60,0.35)', mas:28},
+  {id:'ind',   label:'Industrial Rev.',sub:'1800s',            ang:5.8,  orb:258, tilt:.52, r:9,  col:'#fbbf24', glow:'rgba(251,191,36,0.3)',  mas:25},
+  {id:'bh',    label:'Black Holes',  sub:'Singularity',        ang:.7,   orb:330, tilt:.45, r:13, col:'#c084fc', glow:'rgba(192,132,252,0.45)',mas:38},
+  {id:'st',    label:'Space-Time',   sub:'Relativity',         ang:1.5,  orb:308, tilt:.45, r:12, col:'#c084fc', glow:'rgba(192,132,252,0.4)', mas:35},
+  {id:'cosmo', label:'Cosmology',    sub:'Big Bang',           ang:1.9,  orb:332, tilt:.45, r:11, col:'#c084fc', glow:'rgba(192,132,252,0.4)', mas:28},
+  {id:'eth',   label:'Ethics',       sub:'Philosophy',         ang:2.2,  orb:298, tilt:.47, r:12, col:'#2dd4bf', glow:'rgba(45,212,191,0.4)',  mas:28},
+  {id:'know',  label:'Knowledge',    sub:'Epistemology',       ang:2.65, orb:338, tilt:.47, r:11, col:'#2dd4bf', glow:'rgba(45,212,191,0.35)', mas:22},
+];
+
+const CONNS=[
+  ['you','phys'],['you','math'],['you','bio'],['you','hist'],['you','astro'],
+  ['phys','grav'],['phys','newt'],['phys','rel'],['phys','astro'],['phys','eth'],
+  ['math','calc'],['math','func'],['math','lim'],['calc','lim'],
+  ['bio','evol'],['bio','eco'],['bio','gen'],
+  ['hist','ren'],['hist','rev'],['rev','ind'],
+  ['astro','bh'],['astro','st'],['astro','cosmo'],['bh','st'],
+  ['eth','know'],['grav','rel'],
+];
+
+// Floating sparks
+const SPARKS=Array.from({length:55},()=>({
+  ang:Math.random()*Math.PI*2,
+  orb:55+Math.random()*305,
+  tilt:.44+Math.random()*.12,
+  spd:(Math.random()-.5)*.0009,
+  r:.5+Math.random()*1.4,
+  a:.15+Math.random()*.55,
+  col:['#fbbf24','#fb923c','#4ade80','#38bdf8','#c084fc','#f472b6'][Math.floor(Math.random()*6)]
+}));
+
+let ROT=0, T=0, HOV=null;
+
+function pos(n,r){
+  const cx=CX(),cy=CY();
+  if(n.orb===0)return{x:cx,y:cy};
+  const a=n.ang+r;
+  return{x:cx+Math.cos(a)*n.orb, y:cy+Math.sin(a)*n.orb*n.tilt};
+}
+
+function ha(hex,a){
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return`rgba(${r},${g},${b},${a})`;
+}
+
+function drawNebula(){
+  const cx=CX(),cy=CY();
+  // Large diffuse haze
+  [[300,.06,'rgba(120,80,20,'],[220,.1,'rgba(200,130,30,'],[140,.18,'rgba(255,170,50,'],[85,.32,'rgba(255,200,80,'],[45,.55,'rgba(255,230,130,'],[22,.9,'rgba(255,245,180,']].forEach(([r,a,c])=>{
+    const g=ux.createRadialGradient(cx,cy,0,cx,cy,r);
+    g.addColorStop(0,c+a+')');g.addColorStop(.5,c+(a*.3)+')');g.addColorStop(1,'transparent');
+    ux.beginPath();ux.arc(cx,cy,r,0,Math.PI*2);ux.fillStyle=g;ux.fill();
+  });
+  // Coloured haze blobs
+  [{ox:-50,oy:-30,r:180,c:'rgba(56,130,255,0.05)'},{ox:60,oy:20,r:160,c:'rgba(120,60,220,0.05)'},{ox:-20,oy:40,r:140,c:'rgba(40,200,130,0.04)'}].forEach(b=>{
+    const g=ux.createRadialGradient(cx+b.ox,cy+b.oy,0,cx+b.ox,cy+b.oy,b.r);
+    g.addColorStop(0,b.c);g.addColorStop(1,'transparent');
+    ux.beginPath();ux.arc(cx+b.ox,cy+b.oy,b.r,0,Math.PI*2);ux.fillStyle=g;ux.fill();
+  });
+}
+
+function drawOrbits(){
+  const cx=CX(),cy=CY();
+  [[105,.52],[155,.52],[210,.52],[265,.47],[335,.45]].forEach(([orb,tilt])=>{
+    ux.beginPath();ux.ellipse(cx,cy,orb,orb*tilt,0,0,Math.PI*2);
+    ux.strokeStyle='rgba(255,255,255,0.045)';ux.lineWidth=.5;
+    ux.setLineDash([3,10]);ux.stroke();ux.setLineDash([]);
+  });
+}
+
+function drawSparks(){
+  const cx=CX(),cy=CY();
+  SPARKS.forEach(s=>{
+    s.ang+=s.spd;
+    const x=cx+Math.cos(s.ang+ROT)*s.orb;
+    const y=cy+Math.sin(s.ang+ROT)*s.orb*s.tilt;
+    const r=parseInt(s.col.slice(1,3),16),g=parseInt(s.col.slice(3,5),16),b=parseInt(s.col.slice(5,7),16);
+    ux.beginPath();ux.arc(x,y,s.r,0,Math.PI*2);
+    ux.fillStyle=`rgba(${r},${g},${b},${s.a})`;ux.fill();
+  });
+}
+
+function drawConns(){
+  const P={};N.forEach(n=>{P[n.id]=pos(n,ROT);});
+  CONNS.forEach(([a,b])=>{
+    const pa=P[a],pb=P[b];if(!pa||!pb)return;
+    const na=N.find(n=>n.id===a),nb=N.find(n=>n.id===b);
+    const hot=HOV===a||HOV===b;
+    const al=hot?.3:.07;
+    const gr=ux.createLinearGradient(pa.x,pa.y,pb.x,pb.y);
+    gr.addColorStop(0,ha(na.col,al));gr.addColorStop(1,ha(nb.col,al));
+    ux.beginPath();ux.moveTo(pa.x,pa.y);
+    const mx=(pa.x+pb.x)/2,my=(pa.y+pb.y)/2-18;
+    ux.quadraticCurveTo(mx,my,pb.x,pb.y);
+    ux.strokeStyle=gr;ux.lineWidth=hot?1.2:.55;ux.stroke();
+    if(hot){
+      const tt=(T*.004)%1,mt=1-tt;
+      const sx=mt*mt*pa.x+2*mt*tt*mx+tt*tt*pb.x;
+      const sy=mt*mt*pa.y+2*mt*tt*my+tt*tt*pb.y;
+      ux.beginPath();ux.arc(sx,sy,2.5,0,Math.PI*2);ux.fillStyle=na.col;ux.fill();
+    }
+  });
+}
+
+function drawNode(n){
+  const p=pos(n,ROT);
+  const{r,col,glow,label,mas,id}=n;
+  const isYou=id==='you', hot=HOV===id;
+  const pulse=1+Math.sin(T*.0022+n.ang)*.05;
+  const pr=r*pulse;
+
+  // halo
+  const gr=ux.createRadialGradient(p.x,p.y,0,p.x,p.y,pr*(isYou?5.5:3.8));
+  gr.addColorStop(0,glow);
+  gr.addColorStop(.35,glow.replace(/[\d.]+\)$/,'0.07)'));
+  gr.addColorStop(1,'transparent');
+  ux.beginPath();ux.arc(p.x,p.y,pr*(isYou?5.5:3.8),0,Math.PI*2);ux.fillStyle=gr;ux.fill();
+
+  // mastery arc
+  if(!isYou){
+    ux.beginPath();ux.arc(p.x,p.y,pr+4,-Math.PI*.5,-Math.PI*.5+(mas/100)*Math.PI*2);
+    ux.strokeStyle=ha(col,.65);ux.lineWidth=2;ux.stroke();
+  }
+
+  // sphere
+  const sg=ux.createRadialGradient(p.x-pr*.3,p.y-pr*.3,0,p.x,p.y,pr);
+  sg.addColorStop(0,'rgba(255,255,255,0.95)');
+  sg.addColorStop(.3,col);sg.addColorStop(1,ha(col,.2));
+  ux.beginPath();ux.arc(p.x,p.y,pr,0,Math.PI*2);ux.fillStyle=sg;ux.fill();
+
+  if(hot){
+    ux.beginPath();ux.arc(p.x,p.y,pr+8,0,Math.PI*2);
+    ux.strokeStyle=ha(col,.75);ux.lineWidth=1.5;ux.stroke();
+  }
+
+  // label
+  ux.textAlign='center';
+  if(isYou){
+    ux.font='bold 15px Inter';ux.fillStyle='#1a0a00';ux.fillText('YOU',p.x,p.y+3);
+    ux.font='500 9px Inter';ux.fillStyle='rgba(26,10,0,0.65)';ux.fillText('Your Understanding',p.x,p.y+14);
+  } else if(r>=24){
+    ux.font=`bold 13px Inter`;ux.fillStyle='rgba(255,255,255,0.95)';ux.fillText(label,p.x,p.y+r+16);
+  } else if(r>=11){
+    ux.font='500 11px Inter';ux.fillStyle='rgba(255,255,255,0.82)';ux.fillText(label,p.x,p.y+r+14);
+  } else {
+    ux.font='400 9.5px Inter';ux.fillStyle='rgba(255,255,255,0.62)';ux.fillText(label,p.x,p.y+r+12);
+  }
+}
+
+function loop(){
+  T++;ROT+=.00015;
+  drawBg(T);
+  ux.clearRect(0,0,uc.width,uc.height);
+  drawNebula();drawOrbits();drawSparks();drawConns();
+  [...N].sort((a,b)=>b.orb-a.orb).forEach(drawNode);
+  requestAnimationFrame(loop);
+}
+loop();
+
+// HOVER
+const tip=document.getElementById('tip');
+document.addEventListener('mousemove',e=>{
+  let f=null;
+  N.forEach(n=>{
+    const p=pos(n,ROT),dx=e.clientX-p.x,dy=e.clientY-p.y;
+    if(Math.sqrt(dx*dx+dy*dy)<n.r+10)f=n.id;
+  });
+  HOV=f;uc.style.cursor=f?'pointer':'default';
+  if(f){
+    const n=N.find(x=>x.id===f);
+    document.getElementById('ttn').textContent=n.label;
+    document.getElementById('tts').textContent=n.sub;
+    const bar=document.getElementById('ttf');bar.style.width=n.mas+'%';bar.style.background=n.col;
+    const pct=document.getElementById('ttp');pct.textContent=n.mas+'% mastery';pct.style.color=n.col;
+    tip.style.left=(e.clientX+16)+'px';tip.style.top=(e.clientY-20)+'px';
+    tip.classList.add('on');
+  } else tip.classList.remove('on');
+});
+</script>
+</body>
+</html>
