@@ -6,10 +6,7 @@ function Pulse({ label, value }) {
       <div className="pulseLabel">{label}</div>
 
       <div className="pulseTrack">
-        <div
-          className="pulseFill"
-          style={{ width: value }}
-        />
+        <div className="pulseFill" style={{ width: value }} />
       </div>
     </div>
   );
@@ -29,6 +26,7 @@ export default function Dashboard() {
     <div className="page">
 
       <div className="nav">
+
         <div className="logo">
           🌱
           <div>
@@ -42,20 +40,30 @@ export default function Dashboard() {
           <a href="/chat">Chat</a>
           <a href="/profile">Profile</a>
         </div>
+
       </div>
+
 
 
       <div className="container">
 
         <h1>Dashboard</h1>
 
+
         <div className="mode">
-          <div className="modeTitle">Current Thinking Mode</div>
+
+          <div className="modeTitle">
+            Current Thinking Mode
+          </div>
+
           <h2>Connecting Ideas</h2>
+
           <p>
             Restore detects how you're learning based on your exploration and reflection patterns.
           </p>
+
         </div>
+
 
 
         <div className="grid">
@@ -78,13 +86,21 @@ export default function Dashboard() {
         </div>
 
 
+
         <div className="card wide">
+
           <h3>Today's Curiosity</h3>
-          <p>What might happen if gravity suddenly weakened near Earth?</p>
+
+          <p>
+            What might happen if gravity suddenly weakened near Earth?
+          </p>
+
         </div>
 
 
+
         <div className="card wide">
+
           <h3>Restore Guide</h3>
 
           <p>Guide: Ask about today's learning patterns.</p>
@@ -93,7 +109,9 @@ export default function Dashboard() {
             <input placeholder="Ask about today's learning..." />
             <button>Ask</button>
           </div>
+
         </div>
+
 
 
         <div className="grid">
@@ -118,6 +136,7 @@ export default function Dashboard() {
 🟡 Plate Tectonics`}
           />
 
+
           <Card
             title="Curiosity Activity"
             text={`• Black holes
@@ -126,6 +145,7 @@ export default function Dashboard() {
           />
 
         </div>
+
 
 
         <div className="grid">
@@ -166,6 +186,7 @@ min-height:100vh;
 font-family:system-ui;
 }
 
+
 .nav{
 display:flex;
 justify-content:space-between;
@@ -175,6 +196,7 @@ background:#f9fafc;
 border-bottom:1px solid #e5e7eb;
 }
 
+
 .logo{
 display:flex;
 gap:10px;
@@ -182,14 +204,17 @@ align-items:center;
 font-weight:600;
 }
 
+
 .brand{
 font-size:15px;
 }
+
 
 .tag{
 font-size:12px;
 color:#777;
 }
+
 
 .links a{
 margin-left:24px;
@@ -198,11 +223,13 @@ color:#5a3ea6;
 text-decoration:none;
 }
 
+
 .container{
 max-width:1100px;
 margin:auto;
 padding:50px 30px 80px;
 }
+
 
 .mode{
 background:#dbe6f3;
@@ -212,12 +239,14 @@ border-left:5px solid #46b39d;
 margin-bottom:40px;
 }
 
+
 .grid{
 display:grid;
 grid-template-columns:repeat(3,1fr);
 gap:26px;
 margin-bottom:30px;
 }
+
 
 .card{
 background:white;
@@ -226,9 +255,11 @@ border-radius:18px;
 box-shadow:0 10px 25px rgba(0,0,0,0.08);
 }
 
+
 .wide{
 margin-bottom:26px;
 }
+
 
 .askRow{
 display:flex;
@@ -236,12 +267,14 @@ gap:10px;
 margin-top:12px;
 }
 
+
 .askRow input{
 flex:1;
 padding:12px;
 border-radius:10px;
 border:1px solid #ddd;
 }
+
 
 .askRow button{
 background:#46b39d;
@@ -252,14 +285,17 @@ border-radius:10px;
 cursor:pointer;
 }
 
+
 .pulse{
 margin-top:12px;
 }
+
 
 .pulseLabel{
 font-size:14px;
 margin-bottom:4px;
 }
+
 
 .pulseTrack{
 height:8px;
@@ -268,9 +304,12 @@ border-radius:6px;
 overflow:hidden;
 }
 
+
 .pulseFill{
 height:8px;
 background:#46b39d;
+min-width:6px;
+transition:width .6s ease;
 }
 
 `}</style>
