@@ -1,57 +1,98 @@
-import OpenAI from "openai";
-import { getMemory,saveInterest } from "@/lib/memory";
+import OpenAI from "openai"
+
+import {
+addMessage,
+getRecentMessages,
+getUserProfile,
+saveInterest
+} from "@/lib/memory"
 
 const openai = new OpenAI({
-apiKey:process.env.OPENAI_API_KEY
-});
+apiKey: process.env.OPENAI_API_KEY
+})
 
-export async function POST(req){
+export async function POST(req) {
 
-const body = await req.json();
+try {
 
-const history = body.messages || [];
+const body = await req.json()
 
-const memory = history.slice(-12);
+const userMessage = body.message
+const userId = body.userId || "default-user"
 
-const userMemory = getMemory();
+/*
+SAVE USER MESSAGE
+*/
+
+await addMessage(userId,"user",userMessage)
+
+/*
+LOAD MEMORY
+*/
+
+const history = await getRecentMessages(userId)
+
+/*
+LOAD USER PROFILE
+*/
+
+const profile = await getUserProfile(userId)
+
+/*
+SYSTEM PROMPT
+*/
 
 const systemPrompt = `
+
 You are Restore.
 
-Restore is an AI thinking companion.
+Restore is an AI thinking companion designed to grow curiosity and understanding.
 
-Your purpose is to help users explore ideas and build understanding.
+Your communication style:
 
-Known user information:
-${JSON.stringify(userMemory)}
+• conversational
+• reflective
+• thoughtful
+• curious
 
 Rules:
 
-• Keep responses short
-• Avoid long explanations
-• Speak conversationally
-• Connect ideas from earlier in the conversation
+• Keep responses concise
+• Avoid long lectures
+• Guide exploration
+• Ask meaningful follow-up questions
+• Connect ideas when possible
+
+User interests:
+${profile.interests.join(", ") || "unknown"}
 
 Reflection pattern:
 
-1 Reflect the user's idea
-2 Add one insight
-3 Connect to a previous idea when possible
-4 Ask a thoughtful question
-`;
+1 acknowledge idea
+2 add insight
+3 connect to prior ideas if possible
+4 ask a curiosity question
+
+`
+
+/*
+FORMAT MESSAGES FOR OPENAI
+*/
 
 const messages = [
 
 {role:"system",content:systemPrompt},
 
-...memory.map(m=>({
+...history.map(m=>({
 role:m.role==="restore"?"assistant":"user",
-content:m.text
+content:m.content
 }))
 
-];
+]
 
-try{
+/*
+AI RESPONSE
+*/
 
 const completion = await openai.chat.completions.create({
 
@@ -59,23 +100,45 @@ model:"gpt-4o-mini",
 
 messages,
 
-temperature:0.85,
+temperature:0.8,
 
-max_tokens:140
+max_tokens:180
 
-});
+})
 
-const reply = completion.choices[0].message.content;
+const reply = completion.choices[0].message.content
 
-return Response.json({reply});
+/*
+SAVE AI RESPONSE
+*/
 
-}catch(err){
+await addMessage(userId,"restore",reply)
 
-console.error(err);
+/*
+SIMPLE INTEREST DETECTION
+*/
+
+const lower = userMessage.toLowerCase()
+
+if(lower.includes("biology")) await saveInterest(userId,"biology")
+if(lower.includes("astronomy")) await saveInterest(userId,"astronomy")
+if(lower.includes("physics")) await saveInterest(userId,"physics")
+if(lower.includes("math")) await saveInterest(userId,"math")
+if(lower.includes("history")) await saveInterest(userId,"history")
 
 return Response.json({
-reply:"Something interrupted my thinking. Could you try asking again?"
-});
+reply
+})
+
+}
+
+catch(err){
+
+console.error(err)
+
+return Response.json({
+reply:"Hmm… something interrupted my thinking. Could you try asking that again?"
+})
 
 }
 
