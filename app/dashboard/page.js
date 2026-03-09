@@ -9,12 +9,12 @@ function Card({ title, text }) {
   );
 }
 
-function PulseBar({ label, value }) {
+function PulseBar({ label, percent }) {
   return (
     <div className="pulse">
       <div className="pulse-label">{label}</div>
       <div className="pulse-track">
-        <div className="pulse-fill" style={{ width: value }} />
+        <div className="pulse-fill" style={{ width: percent }} />
       </div>
     </div>
   );
@@ -100,11 +100,11 @@ export default function Dashboard() {
 
             <h3>Understanding Pulse</h3>
 
-            <PulseBar label="Connecting" value="65%" />
-            <PulseBar label="Reflecting" value="45%" />
-            <PulseBar label="Curious" value="30%" />
-            <PulseBar label="Confused" value="15%" />
-            <PulseBar label="Exploring" value="55%" />
+            <PulseBar label="Connecting" percent="65%" />
+            <PulseBar label="Reflecting" percent="45%" />
+            <PulseBar label="Curious" percent="30%" />
+            <PulseBar label="Confused" percent="15%" />
+            <PulseBar label="Exploring" percent="55%" />
 
           </div>
 
@@ -253,10 +253,6 @@ line-height:1.4;
 white-space:pre-line;
 }
 
-.curiosity{
-margin-bottom:32px;
-}
-
 .ask{
 display:flex;
 gap:10px;
@@ -305,4 +301,4 @@ border-radius:6px;
 
     </div>
   );
-              }
+}
