@@ -5,10 +5,7 @@ import { useState } from "react";
 export default function ChatPage() {
 
 const [messages, setMessages] = useState([
-{
-role: "restore",
-text: "Welcome back. What idea are you exploring today?"
-}
+{ role: "restore", text: "Welcome back. What idea are you exploring today?" }
 ]);
 
 const [input, setInput] = useState("");
@@ -18,46 +15,23 @@ async function sendMessage() {
 
 if (!input.trim()) return;
 
-const userMessage = {
-role: "user",
-text: input
-};
+const userMessage = { role: "user", text: input };
 
-setMessages(m => [...m, userMessage]);
+const newMessages = [...messages, userMessage];
+
+setMessages(newMessages);
 setInput("");
 setLoading(true);
 
-try {
-
-const response = await fetch("/api/chat", {
+const res = await fetch("/api/chat", {
 method: "POST",
-headers: {
-"Content-Type": "application/json"
-},
-body: JSON.stringify({ message: input })
+headers: { "Content-Type": "application/json" },
+body: JSON.stringify({ messages: newMessages })
 });
 
-const data = await response.json();
+const data = await res.json();
 
-setMessages(m => [
-...m,
-{
-role: "restore",
-text: data.reply
-}
-]);
-
-} catch (err) {
-
-setMessages(m => [
-...m,
-{
-role: "restore",
-text: "I'm reflecting on that idea but ran into a problem. Could you try again?"
-}
-]);
-
-}
+setMessages([...newMessages, { role: "restore", text: data.reply }]);
 
 setLoading(false);
 
@@ -86,11 +60,7 @@ className={msg.role === "user" ? "userMsg" : "restoreMsg"}
 
 ))}
 
-{loading && (
-<div className="restoreMsg">
-Restore is reflecting...
-</div>
-)}
+{loading && <div className="restoreMsg">Restore is reflecting...</div>}
 
 </div>
 
@@ -98,16 +68,12 @@ Restore is reflecting...
 
 <input
 value={input}
-onChange={(e) => setInput(e.target.value)}
+onChange={(e)=>setInput(e.target.value)}
 placeholder="Ask Restore something..."
-onKeyDown={(e) => {
-if (e.key === "Enter") sendMessage();
-}}
+onKeyDown={(e)=>{ if(e.key==="Enter") sendMessage() }}
 />
 
-<button onClick={sendMessage}>
-Send
-</button>
+<button onClick={sendMessage}>Send</button>
 
 </div>
 
