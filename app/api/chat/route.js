@@ -7,6 +7,11 @@ getUserProfile,
 saveInterest
 } from "@/lib/memory"
 
+import {
+extractTopics,
+connectTopics
+} from "@/lib/curiosity"
+
 const openai = new OpenAI({
 apiKey:process.env.OPENAI_API_KEY
 })
@@ -20,91 +25,77 @@ const body = await req.json()
 const userMessage = body.message
 const userId = body.userId || "demo-user"
 
-/* SAVE USER MESSAGE */
-
 await addMessage(userId,"user",userMessage)
 
-/* LOAD MEMORY */
-
 const history = await getRecentMessages(userId)
-
-/* LOAD PROFILE */
 
 const profile = await getUserProfile(userId)
 
 const interests = profile.interests || []
 
-/* MEMORY SUMMARY DETECTION */
-
 const lower = userMessage.toLowerCase()
+
+/*
+MEMORY SUMMARY
+*/
 
 if(
 lower.includes("what do you remember") ||
-lower.includes("what do you know about me") ||
-lower.includes("remember about me")
+lower.includes("what do you know about me")
 ){
 
 if(interests.length === 0){
 
 return Response.json({
-reply:"So far I don't know much about you yet. As we explore ideas together I'll begin remembering the topics and interests you share."
+reply:"We haven't explored many ideas together yet, so I don't know much about your interests. As we talk I'll begin remembering what topics excite your curiosity."
 })
 
 }
+
+const formatted = interests.map(i=>`• You enjoy ${i}`).join("\n")
 
 return Response.json({
-reply:`From our conversations I remember a few things about you:\n\n• ${interests.join("\n• ")}\n\nI'd love to explore connections between those interests. What direction would you like to go next?`
+reply:`From our conversations I remember:\n\n${formatted}\n\nThose interests might connect in interesting ways. What direction would you like to explore next?`
 })
 
 }
 
-/* CONNECTION ENGINE */
+/*
+CURIOSITY ENGINE
+*/
 
-let connectionHint = ""
+const topics = extractTopics(userMessage)
 
-if(interests.includes("biology") && interests.includes("astronomy")){
-connectionHint = "The intersection of biology and astronomy is astrobiology — the study of life in the universe."
-}
+await connectTopics(userId,topics)
 
-if(interests.includes("physics") && interests.includes("astronomy")){
-connectionHint = "Physics and astronomy often connect through gravity, relativity, and the structure of the cosmos."
-}
-
-if(interests.includes("math") && interests.includes("physics")){
-connectionHint = "Mathematics is the language physics uses to describe reality."
-}
-
-/* SYSTEM PROMPT */
+/*
+SYSTEM PROMPT
+*/
 
 const systemPrompt = `
+
 You are Restore.
 
-Restore is an AI thinking companion designed to help users explore ideas and build understanding.
+Restore is a curiosity companion designed to help users explore ideas.
 
 Communication style:
 
-• curious
-• reflective
 • thoughtful
+• curious
 • conversational
+• reflective
 
 Rules:
 
-• Keep responses concise
-• Avoid long lectures
-• Ask follow-up questions
-• Encourage curiosity
+• keep responses concise
+• avoid long lectures
+• guide curiosity
+• ask follow-up questions
 
 User interests:
 ${interests.join(", ") || "unknown"}
 
-Connection insight:
-${connectionHint || "none detected yet"}
-
-If multiple interests exist, try connecting them in interesting ways.
 `
-
-/* FORMAT MESSAGES */
 
 const messages = [
 
@@ -117,35 +108,46 @@ content:m.content
 
 ]
 
-/* OPENAI RESPONSE */
+/*
+STREAMING AI RESPONSE
+*/
 
-const completion = await openai.chat.completions.create({
-
+const stream = await openai.chat.completions.create({
 model:"gpt-4o-mini",
-
 messages,
-
 temperature:0.8,
+stream:true
+})
 
-max_tokens:180
+const encoder = new TextEncoder()
+
+return new Response(
+
+new ReadableStream({
+
+async start(controller){
+
+let fullText = ""
+
+for await(const chunk of stream){
+
+const text = chunk.choices[0]?.delta?.content || ""
+
+fullText += text
+
+controller.enqueue(encoder.encode(text))
+
+}
+
+await addMessage(userId,"restore",fullText)
+
+controller.close()
+
+}
 
 })
 
-const reply = completion.choices[0].message.content
-
-/* SAVE AI MESSAGE */
-
-await addMessage(userId,"restore",reply)
-
-/* INTEREST DETECTION */
-
-if(lower.includes("biology")) await saveInterest(userId,"biology")
-if(lower.includes("astronomy")) await saveInterest(userId,"astronomy")
-if(lower.includes("physics")) await saveInterest(userId,"physics")
-if(lower.includes("math")) await saveInterest(userId,"math")
-if(lower.includes("history")) await saveInterest(userId,"history")
-
-return Response.json({reply})
+)
 
 }catch(err){
 
