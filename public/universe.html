@@ -22,7 +22,8 @@ html,body{
 body{position:fixed;inset:0;}
 
 #bg{position:fixed;inset:0;z-index:0;}
-#uni{position:fixed;inset:0;z-index:1;pointer-events:all;touch-action:none;}
+#uni{position:fixed;inset:0;z-index:1;pointer-events:none;}
+#hit{position:fixed;inset:0;z-index:20;pointer-events:all;touch-action:none;background:transparent;}
 .ui{position:fixed;inset:0;z-index:10;display:grid;grid-template-rows:56px 1fr;pointer-events:none;}
 .ui>*{pointer-events:all;}
 
@@ -54,11 +55,12 @@ body{position:fixed;inset:0;}
 .main{display:grid;grid-template-columns:240px 1fr 255px;overflow:hidden;height:100%;}
 .left,.right{padding:12px 10px;display:flex;flex-direction:column;gap:9px;
   background:rgba(5,8,15,0.65);backdrop-filter:blur(20px);overflow-y:auto;
-  /* hide scrollbar visually */scrollbar-width:none;}
+  scrollbar-width:none;}
 .left::-webkit-scrollbar,.right::-webkit-scrollbar{display:none;}
 .left{border-right:1px solid var(--border);}
 .right{border-left:1px solid var(--border);}
-.center{display:flex;flex-direction:column;pointer-events:none;overflow:hidden;}
+/* center column is fully transparent — canvas shows through */
+.center{display:flex;flex-direction:column;pointer-events:none;overflow:hidden;background:transparent;}
 .center>*{pointer-events:all;}
 
 /* PANEL CARD */
@@ -129,7 +131,7 @@ body{position:fixed;inset:0;}
   padding:4px 10px;color:#fff;font-size:11px;font-family:'Inter',sans-serif;}
 
 /* BOTTOM */
-.bot{background:rgba(5,8,15,0.9);border-top:1px solid var(--border);
+.bot{background:rgba(5,8,15,0.72);border-top:1px solid var(--border);
   backdrop-filter:blur(20px);padding:10px 20px;display:flex;align-items:center;flex-shrink:0;}
 .sc{flex:1;text-align:center;border-right:1px solid var(--border);padding:0 6px;}
 .sc:last-child{border-right:none;}
@@ -137,7 +139,7 @@ body{position:fixed;inset:0;}
 .sl{font-size:10px;color:var(--muted);margin-top:1px;}
 
 /* THINKING */
-.thk{background:rgba(5,8,15,0.9);border-top:1px solid var(--border);
+.thk{background:rgba(5,8,15,0.72);border-top:1px solid var(--border);
   backdrop-filter:blur(20px);padding:10px 20px;flex-shrink:0;}
 .thkt{font-size:12px;font-weight:600;color:#fff;margin-bottom:8px;}
 .thkr{display:flex;align-items:center;}
@@ -184,6 +186,7 @@ body{position:fixed;inset:0;}
 <body>
 <canvas id="bg"></canvas>
 <canvas id="uni"></canvas>
+<canvas id="hit"></canvas>
 
 <div class="ui">
   <div class="topbar">
@@ -344,13 +347,14 @@ body{position:fixed;inset:0;}
 // ── CANVAS SETUP ─────────────────────────────────────────────
 const bg=document.getElementById('bg'),bx=bg.getContext('2d');
 const uc=document.getElementById('uni'),ux=uc.getContext('2d');
+const hit=document.getElementById('hit'); // transparent overlay for pointer events
 
 // ② Stable resize — use clientWidth/Height, no repeated star regeneration
 function resize(){
   const w=document.documentElement.clientWidth;
   const h=document.documentElement.clientHeight;
-  bg.width=uc.width=w;
-  bg.height=uc.height=h;
+  bg.width=uc.width=hit.width=w;
+  bg.height=uc.height=hit.height=h;
 }
 resize();
 // Debounce resize to avoid thrashing
@@ -385,16 +389,9 @@ function drawBg(t){
   });
 }
 
-// ① Galaxy vertical position — sits in the true visual centre of the canvas area
-// left/right panels are ~240+255px wide, center canvas starts at 240px
-// We want galaxy centred in the remaining middle area, vertically at ~45% of viewport
-function CX(){
-  // centre between the two side panels
-  const panelL=240, panelR=255;
-  return panelL + (uc.width - panelL - panelR) * .5;
-}
+// Galaxy centre — true full-screen centre, slightly above mid
+function CX(){ return uc.width * .5; }
 function CY(){
-  // 56px topbar, bottom bars ~110px, galaxy centre in remaining space
   const topH=56, botH=108;
   return topH + (uc.height - topH - botH) * .52;
 }
@@ -586,7 +583,7 @@ function drawNode(n){
 
 // ── MAIN LOOP ─────────────────────────────────────────────────
 function loop(){
-  T++;ROT+=.00015;
+  T++;ROT+=.00045;
 
   // ⑦ Smooth hover transition
   if(HOV!==HOV_TARGET){
@@ -636,19 +633,20 @@ function findHit(cx,cy){
   return found;
 }
 
-// Mouse
-document.addEventListener('mousemove',e=>{
+// Mouse — only fire when NOT over a panel (hit canvas is behind panels via pointer-events on .left/.right)
+hit.addEventListener('mousemove',e=>{
   const f=findHit(e.clientX,e.clientY);
   HOV_TARGET=f;
-  uc.style.cursor=f?'pointer':'default';
+  hit.style.cursor=f?'pointer':'default';
   if(f){
     showTip(N.find(x=>x.id===f),e.clientX,e.clientY);
   } else tip.classList.remove('on');
 });
+hit.addEventListener('mouseleave',()=>{HOV_TARGET=null;tip.classList.remove('on');});
 
 // ④ Touch — prevent scroll, handle tap-to-show-tooltip
-uc.addEventListener('touchstart',e=>{e.preventDefault();},{ passive:false });
-uc.addEventListener('touchmove',e=>{
+hit.addEventListener('touchstart',e=>{e.preventDefault();},{ passive:false });
+hit.addEventListener('touchmove',e=>{
   e.preventDefault();
   const t=e.touches[0];
   const f=findHit(t.clientX,t.clientY);
@@ -657,7 +655,7 @@ uc.addEventListener('touchmove',e=>{
     showTip(N.find(x=>x.id===f),t.clientX,t.clientY);
   } else tip.classList.remove('on');
 },{passive:false});
-uc.addEventListener('touchend',e=>{
+hit.addEventListener('touchend',e=>{
   e.preventDefault();
   setTimeout(()=>{HOV_TARGET=null;tip.classList.remove('on');},1800);
 },{passive:false});
