@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-export default function ChatPage(){
+export default function ChatPage() {
 
 const [messages,setMessages] = useState([
 {role:"restore",text:"Welcome back. What idea are you exploring today?"}
@@ -10,10 +10,19 @@ const [messages,setMessages] = useState([
 
 const [input,setInput] = useState("");
 const [loading,setLoading] = useState(false);
+const [voiceOn,setVoiceOn] = useState(true);
+
+
+/* SPEAK MESSAGE */
 
 function speak(text){
 
+if(!voiceOn) return;
+
+speechSynthesis.cancel();
+
 const utter = new SpeechSynthesisUtterance(text);
+
 utter.rate = 0.95;
 utter.pitch = 1;
 utter.lang = "en-US";
@@ -22,35 +31,91 @@ speechSynthesis.speak(utter);
 
 }
 
+
+/* PLAY MESSAGE */
+
+function playMessage(text){
+
+speechSynthesis.cancel();
+
+const utter = new SpeechSynthesisUtterance(text);
+
+utter.rate = 0.95;
+utter.pitch = 1;
+utter.lang = "en-US";
+
+speechSynthesis.speak(utter);
+
+}
+
+
+/* STOP VOICE */
+
+function stopVoice(){
+
+speechSynthesis.cancel();
+
+}
+
+
+/* SEND MESSAGE */
+
 async function sendMessage(){
 
 if(!input.trim()) return;
 
-const userMessage = {role:"user",text:input};
+const userMessage = {
+role:"user",
+text:input
+};
 
-const updated = [...messages,userMessage];
+const updatedMessages = [...messages,userMessage];
 
-setMessages(updated);
+setMessages(updatedMessages);
 setInput("");
 setLoading(true);
 
+try{
+
 const res = await fetch("/api/chat",{
 method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({messages:updated})
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+message:input,
+userId:"demo-user"
+})
 });
 
 const data = await res.json();
 
-const restoreMessage = {role:"restore",text:data.reply};
+const restoreMessage = {
+role:"restore",
+text:data.reply
+};
 
-setMessages([...updated,restoreMessage]);
+setMessages([...updatedMessages,restoreMessage]);
 
 speak(data.reply);
+
+}catch{
+
+const errorMessage = {
+role:"restore",
+text:"Hmm… something interrupted my thinking. Could you try asking that again?"
+};
+
+setMessages([...updatedMessages,errorMessage]);
+
+}
 
 setLoading(false);
 
 }
+
+
+/* UI */
 
 return(
 
@@ -58,19 +123,54 @@ return(
 
 <h1>Restore Chat</h1>
 
+<div className="controls">
+
+<button
+onClick={()=>setVoiceOn(!voiceOn)}
+className={voiceOn ? "voiceOn":"voiceOff"}
+>
+{voiceOn ? "Voice: ON 🔊":"Voice: OFF 🔇"}
+</button>
+
+<button onClick={stopVoice}>
+Stop Voice
+</button>
+
+</div>
+
 <div className="chatWindow">
 
 {messages.map((m,i)=>(
-<div key={i} className={m.role==="user"?"userMsg":"restoreMsg"}>
+
+<div
+key={i}
+className={m.role==="user"?"userMsg":"restoreMsg"}
+>
 
 <strong>{m.role==="user"?"You":"Restore"}</strong>
 
 <div>{m.text}</div>
 
+{m.role==="restore" && (
+
+<button
+className="playBtn"
+onClick={()=>playMessage(m.text)}
+>
+▶ Play
+</button>
+
+)}
+
 </div>
+
 ))}
 
-{loading && <div className="restoreMsg">Restore is reflecting...</div>}
+{loading && (
+<div className="restoreMsg">
+Restore is reflecting...
+</div>
+)}
 
 </div>
 
@@ -80,10 +180,14 @@ return(
 value={input}
 onChange={(e)=>setInput(e.target.value)}
 placeholder="Ask Restore something..."
-onKeyDown={(e)=>{if(e.key==="Enter") sendMessage()}}
+onKeyDown={(e)=>{
+if(e.key==="Enter") sendMessage()
+}}
 />
 
-<button onClick={sendMessage}>Send</button>
+<button onClick={sendMessage}>
+Send
+</button>
 
 </div>
 
@@ -96,11 +200,32 @@ padding:40px;
 font-family:system-ui;
 }
 
+.controls{
+display:flex;
+gap:10px;
+margin-bottom:20px;
+}
+
+.voiceOn{
+background:#46b39d;
+color:white;
+border:none;
+padding:8px 12px;
+border-radius:8px;
+}
+
+.voiceOff{
+background:#ccc;
+border:none;
+padding:8px 12px;
+border-radius:8px;
+}
+
 .chatWindow{
 display:flex;
 flex-direction:column;
-gap:18px;
-margin-top:30px;
+gap:16px;
+margin-top:20px;
 }
 
 .restoreMsg{
@@ -117,6 +242,14 @@ border-radius:12px;
 max-width:70%;
 align-self:flex-end;
 box-shadow:0 4px 12px rgba(0,0,0,0.08);
+}
+
+.playBtn{
+margin-top:6px;
+background:none;
+border:none;
+color:#46b39d;
+cursor:pointer;
 }
 
 .chatInput{
@@ -141,7 +274,8 @@ color:white;
 cursor:pointer;
 }
 
-`}</style>
+`}
+</style>
 
 </div>
 
