@@ -5,10 +5,10 @@ import { useState } from "react";
 export default function ChatPage() {
 
 const [messages, setMessages] = useState([
-  {
-    role: "restore",
-    text: "Welcome back. What idea are you exploring today?"
-  }
+{
+role: "restore",
+text: "Welcome back. What idea are you exploring today?"
+}
 ]);
 
 const [input, setInput] = useState("");
@@ -19,8 +19,8 @@ async function sendMessage() {
 if (!input.trim()) return;
 
 const userMessage = {
-  role: "user",
-  text: input
+role: "user",
+text: input
 };
 
 setMessages(m => [...m, userMessage]);
@@ -53,7 +53,7 @@ setMessages(m => [
 ...m,
 {
 role: "restore",
-text: "Something went wrong while thinking about that idea."
+text: "I'm reflecting on that idea but ran into a problem. Could you try again?"
 }
 ]);
 
@@ -87,11 +87,9 @@ className={msg.role === "user" ? "userMsg" : "restoreMsg"}
 ))}
 
 {loading && (
-
 <div className="restoreMsg">
 Restore is reflecting...
 </div>
-
 )}
 
 </div>
