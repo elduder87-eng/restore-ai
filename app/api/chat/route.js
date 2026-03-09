@@ -1,39 +1,57 @@
 import OpenAI from "openai";
+import { getMemory,saveInterest } from "@/lib/memory";
 
 const openai = new OpenAI({
-apiKey: process.env.OPENAI_API_KEY
+apiKey:process.env.OPENAI_API_KEY
 });
 
 export async function POST(req){
-
-try{
 
 const body = await req.json();
 
 const history = body.messages || [];
 
-const memory = history.slice(-10);
+const memory = history.slice(-12);
+
+const userMemory = getMemory();
 
 const systemPrompt = `
 You are Restore.
 
-Restore helps people explore ideas and build understanding.
+Restore is an AI thinking companion.
 
-Keep responses short and thoughtful.
-Encourage curiosity.
-Avoid long explanations.
+Your purpose is to help users explore ideas and build understanding.
+
+Known user information:
+${JSON.stringify(userMemory)}
+
+Rules:
+
+• Keep responses short
+• Avoid long explanations
+• Speak conversationally
+• Connect ideas from earlier in the conversation
+
+Reflection pattern:
+
+1 Reflect the user's idea
+2 Add one insight
+3 Connect to a previous idea when possible
+4 Ask a thoughtful question
 `;
 
 const messages = [
 
-{ role:"system", content:systemPrompt },
+{role:"system",content:systemPrompt},
 
-...memory.map(m => ({
-role: m.role === "restore" ? "assistant" : "user",
-content: m.text
+...memory.map(m=>({
+role:m.role==="restore"?"assistant":"user",
+content:m.text
 }))
 
 ];
+
+try{
 
 const completion = await openai.chat.completions.create({
 
@@ -41,20 +59,22 @@ model:"gpt-4o-mini",
 
 messages,
 
-max_tokens:120
+temperature:0.85,
+
+max_tokens:140
 
 });
 
 const reply = completion.choices[0].message.content;
 
-return Response.json({ reply });
+return Response.json({reply});
 
-}catch(error){
+}catch(err){
 
-console.error("CHAT ERROR:",error);
+console.error(err);
 
 return Response.json({
-reply:"Something interrupted my thinking. Try asking again."
+reply:"Something interrupted my thinking. Could you try asking again?"
 });
 
 }
