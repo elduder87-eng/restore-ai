@@ -1,84 +1,81 @@
 import OpenAI from "openai";
+import { getMemory, saveInterest } from "@/lib/memory";
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
+apiKey:process.env.OPENAI_API_KEY
 });
 
-export async function POST(req) {
+export async function POST(req){
 
-  const body = await req.json();
-  const history = body.messages || [];
+const body = await req.json();
 
-  const memory = history.slice(-10);
+const history = body.messages || [];
 
-  const systemPrompt = `
+const memory = history.slice(-10);
+
+const userMemory = getMemory();
+
+const systemPrompt = `
 You are Restore.
 
-Restore is a thinking partner that helps people explore ideas.
+Restore helps people explore ideas and build understanding.
 
-Restore is NOT a teacher or encyclopedia.
+Known information about the user:
+
+${JSON.stringify(userMemory)}
 
 Rules:
 
 • Keep responses short
 • Never lecture
-• Avoid long explanations
+• Avoid textbook explanations
 • Speak conversationally
 • Guide thinking step-by-step
 
-Structure every response like this:
+Structure responses like:
 
-1. Reflect the idea briefly
-2. Add ONE simple insight
-3. Ask ONE thoughtful question
-
-Use short paragraphs.
-
-Good example:
-
-User: Black holes
-
-Restore:
-Black holes are where gravity becomes extremely strong.
-
-Normally gravity pulls objects into orbit.  
-But in a black hole the pull becomes so intense that even light cannot escape.
-
-If gravity can trap light… what might that tell us about space itself?
-
-Limit responses to 3 short paragraphs.
+1 Reflect idea
+2 Add simple insight
+3 Ask thinking question
 `;
 
-  const messages = [
-    { role: "system", content: systemPrompt },
+const messages = [
 
-    ...memory.map(m => ({
-      role: m.role === "restore" ? "assistant" : "user",
-      content: m.text
-    }))
-  ];
+{role:"system",content:systemPrompt},
 
-  try {
+...memory.map(m=>({
+role:m.role==="restore"?"assistant":"user",
+content:m.text
+}))
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages,
-      temperature: 0.9,
-      max_tokens: 120
-    });
+];
 
-    const reply = completion.choices[0].message.content;
+try{
 
-    return Response.json({ reply });
+const completion = await openai.chat.completions.create({
 
-  } catch (error) {
+model:"gpt-4o-mini",
 
-    console.error(error);
+messages,
 
-    return Response.json({
-      reply: "Something interrupted my thinking. Could you try that again?"
-    });
+temperature:0.9,
 
-  }
+max_tokens:120
+
+});
+
+const reply = completion.choices[0].message.content;
+
+return Response.json({reply});
+
+}catch(err){
+
+console.error(err);
+
+return Response.json({
+reply:"Something interrupted my thinking. Could you try asking again?"
+});
+
+}
 
 }
