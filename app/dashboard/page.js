@@ -14,7 +14,7 @@ function Bar({ label, value }) {
     <div className="bar">
       <div className="bar-label">{label}</div>
       <div className="bar-track">
-        <div className="bar-fill" style={{ width: value }} />
+        <div className="bar-fill" style={{ width: value }}></div>
       </div>
     </div>
   );
@@ -23,8 +23,6 @@ function Bar({ label, value }) {
 export default function Dashboard() {
   return (
     <div className="page">
-
-      {/* NAVBAR */}
 
       <div className="nav">
 
@@ -50,8 +48,6 @@ export default function Dashboard() {
         <h1>Dashboard</h1>
 
 
-        {/* THINKING MODE */}
-
         <div className="mode">
 
           <div className="mode-title">Current Thinking Mode</div>
@@ -65,7 +61,6 @@ export default function Dashboard() {
         </div>
 
 
-        {/* INSIGHTS */}
 
         <div className="grid">
 
@@ -87,7 +82,6 @@ export default function Dashboard() {
         </div>
 
 
-        {/* CURIOSITY */}
 
         <div className="grid">
 
@@ -99,7 +93,6 @@ export default function Dashboard() {
         </div>
 
 
-        {/* RESTORE GUIDE */}
 
         <div className="card guide">
 
@@ -118,7 +111,6 @@ export default function Dashboard() {
         </div>
 
 
-        {/* ANALYTICS */}
 
         <div className="grid">
 
@@ -153,7 +145,6 @@ export default function Dashboard() {
         </div>
 
 
-        {/* FINAL ROW */}
 
         <div className="grid">
 
@@ -182,6 +173,7 @@ Connections Made: 3`}
         </div>
 
       </div>
+
 
 
 <style jsx>{`
@@ -276,4 +268,59 @@ margin-bottom:10px;
 .card p{
 color:#555;
 line-height:1.4;
-white-space:pre
+white-space:pre-line;
+}
+
+.curiosity{
+grid-column:span 3;
+}
+
+.ask{
+display:flex;
+gap:10px;
+margin-top:12px;
+}
+
+.ask input{
+flex:1;
+padding:12px;
+border-radius:10px;
+border:1px solid #ddd;
+}
+
+.ask button{
+background:#46b39d;
+border:none;
+color:white;
+padding:12px 20px;
+border-radius:10px;
+cursor:pointer;
+}
+
+.bar{
+margin-top:14px;
+font-size:14px;
+}
+
+.bar-label{
+margin-bottom:4px;
+}
+
+.bar-track{
+height:8px;
+background:#e3e8ef;
+border-radius:6px;
+overflow:hidden;
+}
+
+.bar-fill{
+height:8px;
+background:#46b39d;
+border-radius:6px;
+}
+
+`}</style>
+
+    </div>
+  );
+}
