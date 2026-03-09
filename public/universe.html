@@ -23,8 +23,8 @@ body{position:fixed;inset:0;}
 
 #bg{position:fixed;inset:0;z-index:0;}
 #uni{position:fixed;inset:0;z-index:1;pointer-events:none;}
-#hit{position:fixed;inset:0;z-index:20;pointer-events:all;touch-action:none;background:transparent;}
-.ui{position:fixed;inset:0;z-index:10;display:grid;grid-template-rows:56px 1fr;pointer-events:none;}
+#hit{position:fixed;inset:0;z-index:5;pointer-events:all;touch-action:none;background:transparent;}
+.ui{position:fixed;inset:0;z-index:25;display:grid;grid-template-rows:56px 1fr;pointer-events:none;}
 .ui>*{pointer-events:all;}
 
 /* TOPBAR */
@@ -57,14 +57,14 @@ body{position:fixed;inset:0;}
   position:absolute;top:8px;left:8px;bottom:8px;width:232px;
   padding:0;display:flex;flex-direction:column;gap:8px;
   background:transparent;border:none;
-  overflow-y:auto;scrollbar-width:none;z-index:5;
+  overflow-y:auto;scrollbar-width:none;z-index:15;
 }
 .left::-webkit-scrollbar{display:none;}
 .right{
   position:absolute;top:8px;right:8px;bottom:8px;width:248px;
   padding:0;display:flex;flex-direction:column;gap:8px;
   background:transparent;border:none;
-  overflow-y:auto;scrollbar-width:none;z-index:5;
+  overflow-y:auto;scrollbar-width:none;z-index:15;
 }
 .right::-webkit-scrollbar{display:none;}
 /* center transparent — galaxy shows through */
@@ -715,15 +715,15 @@ function findHit(cx,cy){
   return found;
 }
 
-// Mouse — only fire when NOT over a panel (hit canvas is behind panels via pointer-events on .left/.right)
-hit.addEventListener('mousemove',e=>{
+// Mouse — full screen hover
+document.addEventListener('mousemove',e=>{
   const f=findHit(e.clientX,e.clientY);
   HOV_TARGET=f;
   if(f){
     showTip(N.find(x=>x.id===f),e.clientX,e.clientY);
   } else hideTip();
 });
-hit.addEventListener('mouseleave',()=>{HOV_TARGET=null;hideTip();});
+// mouseleave not needed on document
 
 // ── TOUCH: PINCH ZOOM + PAN + TAP ────────────────────────────
 function touchDist(a,b){
@@ -734,7 +734,9 @@ function touchMid(a,b){
   return{x:(a.clientX+b.clientX)/2, y:(a.clientY+b.clientY)/2};
 }
 
-hit.addEventListener('touchstart',e=>{
+document.addEventListener('touchstart',e=>{
+  // Don't block panel scrolling
+  if(e.target.closest('.left,.right,.topbar')) return;
   e.preventDefault();
   if(e.touches.length===1){
     // Single finger: start pan OR prepare for tap
@@ -761,7 +763,8 @@ hit.addEventListener('touchstart',e=>{
   }
 },{passive:false});
 
-hit.addEventListener('touchmove',e=>{
+document.addEventListener('touchmove',e=>{
+  if(e.target.closest('.left,.right,.topbar')) return;
   e.preventDefault();
   if(e.touches.length===2){
     // PINCH ZOOM + simultaneous pan
@@ -799,7 +802,8 @@ hit.addEventListener('touchmove',e=>{
   }
 },{passive:false});
 
-hit.addEventListener('touchend',e=>{
+document.addEventListener('touchend',e=>{
+  if(e.target.closest('.left,.right,.topbar')) return;
   e.preventDefault();
   if(e.touches.length<2){ touch2=null; pinchDist0=null; }
   if(e.touches.length===0){
@@ -808,8 +812,8 @@ hit.addEventListener('touchend',e=>{
   }
 },{passive:false});
 
-// Mouse wheel zoom (desktop bonus)
-hit.addEventListener('wheel',e=>{
+// Mouse wheel zoom — full screen
+document.addEventListener('wheel',e=>{
   e.preventDefault();
   const delta=-e.deltaY*0.001;
   const newZoom=Math.max(ZOOM_MIN,Math.min(ZOOM_MAX,ZOOM*(1+delta)));
