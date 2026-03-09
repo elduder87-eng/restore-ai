@@ -396,7 +396,7 @@ function drawBg(t){
   g.addColorStop(0,'#0d1525');g.addColorStop(.55,'#080d18');g.addColorStop(1,'#05080f');
   bx.fillStyle=g;bx.fillRect(0,0,w,h);
   STARS.forEach(s=>{
-    const f=Math.sin(t*.0009+s.tw)*.3+.7;
+    const f=Math.sin(t*.00035+s.tw)*.28+.72;
     bx.beginPath();bx.arc(s.nx*w,s.ny*h,s.r,0,Math.PI*2);
     bx.fillStyle=`rgba(210,225,255,${s.a*f})`;bx.fill();
   });
@@ -460,8 +460,10 @@ const SPARKS=Array.from({length:isMobile?22:55},()=>({
 }));
 
 let ROT=0, T=0;
-// ⑦ Smooth hover — use target + interpolated value
+// Smooth hover with target tracking
 let HOV_TARGET=null, HOV=null, hovAlpha=0;
+// Tooltip delay
+let tipTimer=null, tipVisible=false;
 
 function pos(n,r){
   const cx=CX(),cy=CY();
@@ -566,34 +568,62 @@ function drawNode(n){
   sg.addColorStop(.3,col);sg.addColorStop(1,ha(col,.2));
   ux.beginPath();ux.arc(p.x,p.y,pr,0,Math.PI*2);ux.fillStyle=sg;ux.fill();
 
-  if(hot){
-    ux.beginPath();ux.arc(p.x,p.y,pr+8,0,Math.PI*2);
-    ux.strokeStyle=ha(col,.75);ux.lineWidth=1.5;ux.stroke();
+  // Smooth hover ring — fades in/out
+  if(hot || n._ha > 0.01){
+    if(!n._ha) n._ha=0;
+    n._ha = hot ? Math.min(1, (n._ha||0)+0.08) : Math.max(0, n._ha-0.06);
+    if(n._ha > 0.01){
+      ux.beginPath();ux.arc(p.x,p.y,pr+8+n._ha*3,0,Math.PI*2);
+      ux.strokeStyle=ha(col, n._ha*0.75);ux.lineWidth=1.5;ux.stroke();
+      // Scale-up effect when hovered
+      if(hot && n._ha > 0.5){
+        const extra = (n._ha-0.5)*0.08;
+        ux.beginPath();ux.arc(p.x,p.y,pr*(1+extra),0,Math.PI*2);
+        const sg2=ux.createRadialGradient(p.x-pr*.3,p.y-pr*.3,0,p.x,p.y,pr*(1+extra));
+        sg2.addColorStop(0,'rgba(255,255,255,0.95)');
+        sg2.addColorStop(.3,col);sg2.addColorStop(1,ha(col,.2));
+        ux.fillStyle=sg2;ux.fill();
+      }
+    }
   }
 
-  // ⑤ Label: push outward from galaxy centre to avoid overlap
+  // Label: scaled to node size, pushed radially outward
   ux.textAlign='center';
   if(isYou){
-    ux.font='bold 14px Inter,Arial';ux.fillStyle='#1a0a00';ux.fillText('YOU',p.x,p.y+4);
-    ux.font='500 8px Inter,Arial';ux.fillStyle='rgba(26,10,0,0.65)';ux.fillText('Your Understanding',p.x,p.y+14);
+    ux.font='bold 14px Inter,Arial';ux.fillStyle='#1a0a00';
+    ux.fillText('YOU',p.x,p.y+5);
+    ux.font='500 8px Inter,Arial';ux.fillStyle='rgba(26,10,0,0.6)';
+    ux.fillText('Your Understanding',p.x,p.y+15);
   } else {
+    // Tiny nodes (r<10): only show label when hovered
+    if(r<10 && !hot) return;
+
     const cx=CX(),cy=CY();
     const dx=p.x-cx, dy=p.y-cy;
     const dist=Math.sqrt(dx*dx+dy*dy)||1;
-    // Push label away from centre
-    const lpad=pr+(r>=20?18:r>=11?14:12);
-    const lx=p.x+(dx/dist)*lpad;
-    const ly=p.y+(dy/dist)*lpad;
 
-    // Short label for tiny nodes to reduce clutter
-    const displayLabel = r<10 ? label.split(' ')[0] : label;
-    const fs=r>=24?13:r>=11?11:9.5;
-    ux.font=`${r>=24?'bold':'500'} ${fs}px Inter,Arial`;
-    ux.fillStyle=r>=11?'rgba(255,255,255,0.92)':'rgba(255,255,255,0.65)';
-    // Add subtle text shadow for readability
-    ux.shadowColor='rgba(0,0,0,0.8)';ux.shadowBlur=4;
+    // Font size strictly proportional to radius
+    const fs = r>=24 ? 12.5
+              : r>=18 ? 11
+              : r>=12 ? 10
+              : 9;
+    const fw = r>=20 ? 'bold' : '500';
+
+    // Push-out scales with node size
+    const lpad = pr + (r>=20 ? 16 : r>=12 ? 13 : 11);
+    const lx = p.x+(dx/dist)*lpad;
+    const ly = p.y+(dy/dist)*lpad;
+
+    // Opacity: larger = more opaque
+    const opacity = r>=20 ? 0.92 : r>=12 ? 0.78 : 0.62;
+    const displayLabel = r<13 ? label.split(' ')[0] : label;
+
+    ux.save();
+    ux.shadowColor='rgba(0,0,0,0.9)'; ux.shadowBlur=5;
+    ux.font=`${fw} ${fs}px Inter,Arial`;
+    ux.fillStyle=`rgba(255,255,255,${opacity})`;
     ux.fillText(displayLabel,lx,ly);
-    ux.shadowBlur=0;
+    ux.restore();
   }
 }
 
@@ -629,7 +659,7 @@ function positionTip(ex,ey){
   tip.style.left=tx+'px'; tip.style.top=ty+'px';
 }
 
-function showTip(n,ex,ey){
+function populateTip(n,ex,ey){
   document.getElementById('ttn').textContent=n.label;
   document.getElementById('tts').textContent=n.sub;
   const bar=document.getElementById('ttf');
@@ -637,15 +667,38 @@ function showTip(n,ex,ey){
   const pct=document.getElementById('ttp');
   pct.textContent=n.mas+'% mastery';pct.style.color=n.col;
   positionTip(ex,ey);
-  tip.classList.add('on');
+}
+function showTip(n,ex,ey){
+  // If already showing a tip, update position immediately (no flicker)
+  if(tipVisible){
+    populateTip(n,ex,ey);
+    return;
+  }
+  // Otherwise delay 180ms before appearing
+  clearTimeout(tipTimer);
+  tipTimer=setTimeout(()=>{
+    populateTip(n,ex,ey);
+    tip.classList.add('on');
+    tipVisible=true;
+  },180);
+}
+function hideTip(){
+  clearTimeout(tipTimer);
+  tip.classList.remove('on');
+  tipVisible=false;
 }
 
 function findHit(cx,cy){
-  let found=null;
+  let found=null, near=false;
   N.forEach(n=>{
     const p=pos(n,ROT),dx=cx-p.x,dy=cy-p.y;
-    if(Math.sqrt(dx*dx+dy*dy)<n.r+12)found=n.id;
+    const d=Math.sqrt(dx*dx+dy*dy);
+    // Smooth detection: hit = r+8 (tighter), near = r+28 (cursor hint)
+    if(d<n.r+8) found=n.id;
+    else if(d<n.r+28) near=true;
   });
+  // Cursor feedback: pointer = on node, crosshair = near node
+  hit.style.cursor = found ? 'pointer' : near ? 'crosshair' : 'default';
   return found;
 }
 
@@ -653,12 +706,11 @@ function findHit(cx,cy){
 hit.addEventListener('mousemove',e=>{
   const f=findHit(e.clientX,e.clientY);
   HOV_TARGET=f;
-  hit.style.cursor=f?'pointer':'default';
   if(f){
     showTip(N.find(x=>x.id===f),e.clientX,e.clientY);
-  } else tip.classList.remove('on');
+  } else hideTip();
 });
-hit.addEventListener('mouseleave',()=>{HOV_TARGET=null;tip.classList.remove('on');});
+hit.addEventListener('mouseleave',()=>{HOV_TARGET=null;hideTip();});
 
 // ④ Touch — prevent scroll, handle tap-to-show-tooltip
 hit.addEventListener('touchstart',e=>{e.preventDefault();},{ passive:false });
@@ -669,11 +721,11 @@ hit.addEventListener('touchmove',e=>{
   HOV_TARGET=f;
   if(f){
     showTip(N.find(x=>x.id===f),t.clientX,t.clientY);
-  } else tip.classList.remove('on');
+  } else hideTip();
 },{passive:false});
 hit.addEventListener('touchend',e=>{
   e.preventDefault();
-  setTimeout(()=>{HOV_TARGET=null;tip.classList.remove('on');},1800);
+  setTimeout(()=>{HOV_TARGET=null;hideTip();},1800);
 },{passive:false});
 </script>
 </body>
