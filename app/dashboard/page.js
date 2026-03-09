@@ -65,7 +65,7 @@ export default function Dashboard() {
         </div>
 
 
-        {/* TOP INSIGHTS */}
+        {/* INSIGHT CARDS */}
 
         <div className="grid">
 
@@ -182,7 +182,6 @@ Connections Made: 3`}
         </div>
 
       </div>
-
 
 
 <style jsx>{`
