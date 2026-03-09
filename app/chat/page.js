@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState,useEffect } from "react"
 
 export default function ChatPage(){
 
@@ -10,7 +10,36 @@ const [messages,setMessages] = useState([
 
 const [input,setInput] = useState("")
 const [voiceOn,setVoiceOn] = useState(true)
+const [thinking,setThinking] = useState(false)
+const [dots,setDots] = useState(".")
 
+
+/*
+ANIMATED THINKING DOTS
+*/
+
+useEffect(()=>{
+
+if(!thinking) return
+
+const interval = setInterval(()=>{
+
+setDots(d=>{
+if(d==="...") return "."
+return d+"."
+})
+
+},400)
+
+return ()=>clearInterval(interval)
+
+},[thinking])
+
+
+
+/*
+VOICE FUNCTION
+*/
 
 function speak(text){
 
@@ -21,12 +50,18 @@ speechSynthesis.cancel()
 const utter = new SpeechSynthesisUtterance(text)
 
 utter.rate = 0.95
+utter.pitch = 1
 utter.lang = "en-US"
 
 speechSynthesis.speak(utter)
 
 }
 
+
+
+/*
+SEND MESSAGE
+*/
 
 async function sendMessage(){
 
@@ -43,6 +78,12 @@ setMessages(updatedMessages)
 
 setInput("")
 
+setThinking(true)
+
+/*
+SEND REQUEST
+*/
+
 const res = await fetch("/api/chat",{
 method:"POST",
 headers:{
@@ -53,6 +94,39 @@ message:userMessage.text,
 userId:"demo-user"
 })
 })
+
+/*
+CHECK RESPONSE TYPE
+*/
+
+const contentType = res.headers.get("content-type")
+
+/*
+JSON RESPONSE (memory responses)
+*/
+
+if(contentType && contentType.includes("application/json")){
+
+const data = await res.json()
+
+setThinking(false)
+
+const restoreMessage = {
+role:"restore",
+text:data.reply
+}
+
+setMessages(m=>[...m,restoreMessage])
+
+speak(data.reply)
+
+return
+
+}
+
+/*
+STREAMING RESPONSE
+*/
 
 const reader = res.body.getReader()
 const decoder = new TextDecoder()
@@ -76,6 +150,8 @@ const chunk = decoder.decode(value)
 
 aiText += chunk
 
+setThinking(false)
+
 setMessages(m=>{
 const copy=[...m]
 copy[copy.length-1].text = aiText
@@ -89,11 +165,17 @@ speak(aiText)
 }
 
 
+
+/*
+UI
+*/
+
 return(
 
 <div style={{padding:"20px",fontFamily:"system-ui"}}>
 
 <h1>Restore Chat</h1>
+
 
 <button
 onClick={()=>setVoiceOn(!voiceOn)}
@@ -106,7 +188,7 @@ borderRadius:"8px",
 color:"white"
 }}
 >
-{voiceOn ? "Voice ON 🔊" : "Voice OFF 🔇"}
+{voiceOn ? "Voice ON 🔊":"Voice OFF 🔇"}
 </button>
 
 
@@ -131,26 +213,32 @@ alignSelf:m.role==="user" ? "flex-end" : "flex-start"
 }}
 >
 
-<strong>
-{m.role==="user" ? "You" : "Restore"}
-</strong>
+<strong>{m.role==="user" ? "You":"Restore"}</strong>
 
-<div>
-{m.text}
-</div>
+<div>{m.text}</div>
 
 </div>
 ))}
 
+
+/*
+THINKING INDICATOR
+*/
+
+{thinking && (
+
+<div style={{color:"#888"}}>
+
+Restore is reflecting{dots}
+
+</div>
+
+)}
+
 </div>
 
 
-<div
-style={{
-display:"flex",
-gap:"10px"
-}}
->
+<div style={{display:"flex",gap:"10px"}}>
 
 <input
 value={input}
