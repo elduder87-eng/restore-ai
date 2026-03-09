@@ -402,15 +402,18 @@ function drawBg(t){
   });
 }
 
-// Galaxy centre — between the two floating panels
-function CX(){
-  const panelL=240, panelR=255;
+// Galaxy base centre (unzoomed)
+function CX0(){
+  const panelL=isMobile?0:240, panelR=isMobile?0:255;
   return panelL + (uc.width - panelL - panelR) * .5;
 }
-function CY(){
+function CY0(){
   const topH=56, botH=108;
   return topH + (uc.height - topH - botH) * .48;
 }
+// With zoom+pan applied
+function CX(){ return CX0()*ZOOM + PAN.x + uc.width*(1-ZOOM)*.5; }
+function CY(){ return CY0()*ZOOM + PAN.y + uc.height*(1-ZOOM)*.5; }
 
 // ── NODE DATA ─────────────────────────────────────────────────
 const N=[
@@ -465,12 +468,22 @@ let HOV_TARGET=null, HOV=null, hovAlpha=0;
 // Tooltip delay
 let tipTimer=null, tipVisible=false;
 
+// ── PINCH ZOOM & PAN ──────────────────────────────────────────
+let ZOOM=1, PAN={x:0,y:0};
+const ZOOM_MIN=0.4, ZOOM_MAX=3.5;
+// Touch state
+let touch1=null, touch2=null, pinchDist0=null, pinchZoom0=null;
+let panStart=null, panOrigin=null;
+let lastTap=0;
+
 function pos(n,r){
   const cx=CX(),cy=CY();
   if(n.orb===0)return{x:cx,y:cy};
   const a=n.ang+r;
-  return{x:cx+Math.cos(a)*n.orb, y:cy+Math.sin(a)*n.orb*n.tilt};
+  return{x:cx+Math.cos(a)*n.orb*ZOOM, y:cy+Math.sin(a)*n.orb*n.tilt*ZOOM};
 }
+// Effective node radius (for hit detection and drawing)
+function nr(n){ return n.r*ZOOM; }
 
 function ha(hex,a){
   const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
@@ -479,22 +492,23 @@ function ha(hex,a){
 
 function drawNebula(){
   const cx=CX(),cy=CY();
+  const z=ZOOM;
   [[300,.06,'rgba(120,80,20,'],[220,.1,'rgba(200,130,30,'],[140,.18,'rgba(255,170,50,'],[85,.32,'rgba(255,200,80,'],[45,.55,'rgba(255,230,130,'],[22,.9,'rgba(255,245,180,']].forEach(([r,a,c])=>{
-    const g=ux.createRadialGradient(cx,cy,0,cx,cy,r);
+    const g=ux.createRadialGradient(cx,cy,0,cx,cy,r*z);
     g.addColorStop(0,c+a+')');g.addColorStop(.5,c+(a*.3)+')');g.addColorStop(1,'transparent');
-    ux.beginPath();ux.arc(cx,cy,r,0,Math.PI*2);ux.fillStyle=g;ux.fill();
+    ux.beginPath();ux.arc(cx,cy,r*z,0,Math.PI*2);ux.fillStyle=g;ux.fill();
   });
   [{ox:-50,oy:-30,r:180,c:'rgba(56,130,255,0.05)'},{ox:60,oy:20,r:160,c:'rgba(120,60,220,0.05)'},{ox:-20,oy:40,r:140,c:'rgba(40,200,130,0.04)'}].forEach(b=>{
-    const g=ux.createRadialGradient(cx+b.ox,cy+b.oy,0,cx+b.ox,cy+b.oy,b.r);
+    const g=ux.createRadialGradient(cx+b.ox*z,cy+b.oy*z,0,cx+b.ox*z,cy+b.oy*z,b.r*z);
     g.addColorStop(0,b.c);g.addColorStop(1,'transparent');
-    ux.beginPath();ux.arc(cx+b.ox,cy+b.oy,b.r,0,Math.PI*2);ux.fillStyle=g;ux.fill();
+    ux.beginPath();ux.arc(cx+b.ox*z,cy+b.oy*z,b.r*z,0,Math.PI*2);ux.fillStyle=g;ux.fill();
   });
 }
 
 function drawOrbits(){
   const cx=CX(),cy=CY();
   [[105,.52],[155,.52],[210,.52],[265,.47],[335,.45]].forEach(([orb,tilt])=>{
-    ux.beginPath();ux.ellipse(cx,cy,orb,orb*tilt,0,0,Math.PI*2);
+    ux.beginPath();ux.ellipse(cx,cy,orb*ZOOM,orb*tilt*ZOOM,0,0,Math.PI*2);
     ux.strokeStyle='rgba(255,255,255,0.045)';ux.lineWidth=.5;
     ux.setLineDash([3,10]);ux.stroke();ux.setLineDash([]);
   });
@@ -504,10 +518,10 @@ function drawSparks(){
   const cx=CX(),cy=CY();
   SPARKS.forEach(s=>{
     s.ang+=s.spd;
-    const x=cx+Math.cos(s.ang+ROT)*s.orb;
-    const y=cy+Math.sin(s.ang+ROT)*s.orb*s.tilt;
+    const x=cx+Math.cos(s.ang+ROT)*s.orb*ZOOM;
+    const y=cy+Math.sin(s.ang+ROT)*s.orb*s.tilt*ZOOM;
     const r=parseInt(s.col.slice(1,3),16),g=parseInt(s.col.slice(3,5),16),b=parseInt(s.col.slice(5,7),16);
-    ux.beginPath();ux.arc(x,y,s.r,0,Math.PI*2);
+    ux.beginPath();ux.arc(x,y,s.r*Math.max(0.5,ZOOM),0,Math.PI*2);
     ux.fillStyle=`rgba(${r},${g},${b},${s.a})`;ux.fill();
   });
 }
@@ -523,7 +537,7 @@ function drawConns(){
     const baseAlpha=isMain?.12:.05;
     const hotAlpha=isMain?.38:.22;
     const al=hot?hotAlpha:baseAlpha;
-    const lw=hot?(isMain?2:1.4):(isMain?1.1:.55);
+    const lw=(hot?(isMain?2:1.4):(isMain?1.1:.55))*Math.max(0.5,ZOOM);
 
     const gr=ux.createLinearGradient(pa.x,pa.y,pb.x,pb.y);
     gr.addColorStop(0,ha(na.col,al));gr.addColorStop(1,ha(nb.col,al));
@@ -547,7 +561,7 @@ function drawNode(n){
   const{r,col,glow,label,mas,id}=n;
   const isYou=id==='you', hot=HOV===id;
   const pulse=1+Math.sin(T*.0022+n.ang)*.05;
-  const pr=r*pulse;
+  const pr=r*ZOOM*pulse;  // scaled by zoom
 
   // halo
   const gr=ux.createRadialGradient(p.x,p.y,0,p.x,p.y,pr*(isYou?5.5:3.8));
@@ -603,10 +617,9 @@ function drawNode(n){
     const dist=Math.sqrt(dx*dx+dy*dy)||1;
 
     // Font size strictly proportional to radius
-    const fs = r>=24 ? 12.5
-              : r>=18 ? 11
-              : r>=12 ? 10
-              : 9;
+    // Font scales with zoom, clamped so it doesn't get too huge or tiny
+    const base = r>=24 ? 12.5 : r>=18 ? 11 : r>=12 ? 10 : 9;
+    const fs = Math.max(7, Math.min(18, base*ZOOM));
     const fw = r>=20 ? 'bold' : '500';
 
     // Push-out scales with node size
@@ -693,9 +706,9 @@ function findHit(cx,cy){
   N.forEach(n=>{
     const p=pos(n,ROT),dx=cx-p.x,dy=cy-p.y;
     const d=Math.sqrt(dx*dx+dy*dy);
-    // Smooth detection: hit = r+8 (tighter), near = r+28 (cursor hint)
-    if(d<n.r+8) found=n.id;
-    else if(d<n.r+28) near=true;
+    const zr=n.r*ZOOM;
+    if(d<zr+8) found=n.id;
+    else if(d<zr+28) near=true;
   });
   // Cursor feedback: pointer = on node, crosshair = near node
   hit.style.cursor = found ? 'pointer' : near ? 'crosshair' : 'default';
@@ -712,20 +725,99 @@ hit.addEventListener('mousemove',e=>{
 });
 hit.addEventListener('mouseleave',()=>{HOV_TARGET=null;hideTip();});
 
-// ④ Touch — prevent scroll, handle tap-to-show-tooltip
-hit.addEventListener('touchstart',e=>{e.preventDefault();},{ passive:false });
+// ── TOUCH: PINCH ZOOM + PAN + TAP ────────────────────────────
+function touchDist(a,b){
+  const dx=a.clientX-b.clientX, dy=a.clientY-b.clientY;
+  return Math.sqrt(dx*dx+dy*dy);
+}
+function touchMid(a,b){
+  return{x:(a.clientX+b.clientX)/2, y:(a.clientY+b.clientY)/2};
+}
+
+hit.addEventListener('touchstart',e=>{
+  e.preventDefault();
+  if(e.touches.length===1){
+    // Single finger: start pan OR prepare for tap
+    touch1=e.touches[0];
+    touch2=null;
+    panStart={x:e.touches[0].clientX, y:e.touches[0].clientY};
+    panOrigin={x:PAN.x, y:PAN.y};
+
+    // Double-tap to reset zoom/pan
+    const now=Date.now();
+    if(now-lastTap<280){
+      ZOOM=1; PAN={x:0,y:0};
+      lastTap=0;
+    } else { lastTap=now; }
+
+  } else if(e.touches.length===2){
+    // Two fingers: start pinch
+    touch1=e.touches[0]; touch2=e.touches[1];
+    pinchDist0=touchDist(touch1,touch2);
+    pinchZoom0=ZOOM;
+    panOrigin={x:PAN.x, y:PAN.y};
+    panStart=touchMid(touch1,touch2);
+    hideTip(); HOV_TARGET=null;
+  }
+},{passive:false});
+
 hit.addEventListener('touchmove',e=>{
   e.preventDefault();
-  const t=e.touches[0];
-  const f=findHit(t.clientX,t.clientY);
-  HOV_TARGET=f;
-  if(f){
-    showTip(N.find(x=>x.id===f),t.clientX,t.clientY);
-  } else hideTip();
+  if(e.touches.length===2){
+    // PINCH ZOOM + simultaneous pan
+    const t1=e.touches[0], t2=e.touches[1];
+    const dist=touchDist(t1,t2);
+    const mid=touchMid(t1,t2);
+    const scale=dist/pinchDist0;
+    const newZoom=Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, pinchZoom0*scale));
+
+    // Zoom toward pinch midpoint
+    const zoomDelta=newZoom/ZOOM;
+    PAN.x = mid.x - (mid.x - PAN.x)*zoomDelta + (mid.x-panStart.x);
+    PAN.y = mid.y - (mid.y - PAN.y)*zoomDelta + (mid.y-panStart.y);
+    ZOOM=newZoom;
+    panStart=mid;
+
+  } else if(e.touches.length===1){
+    const t=e.touches[0];
+    // Check if it's a node hover first
+    const f=findHit(t.clientX,t.clientY);
+    HOV_TARGET=f;
+    if(f){
+      showTip(N.find(x=>x.id===f),t.clientX,t.clientY);
+    } else {
+      hideTip();
+      // Pan if moved more than 8px
+      if(panStart && panOrigin){
+        const dx=t.clientX-panStart.x, dy=t.clientY-panStart.y;
+        if(Math.abs(dx)>8||Math.abs(dy)>8){
+          PAN.x=panOrigin.x+t.clientX-panStart.x;
+          PAN.y=panOrigin.y+t.clientY-panStart.y;
+        }
+      }
+    }
+  }
 },{passive:false});
+
 hit.addEventListener('touchend',e=>{
   e.preventDefault();
-  setTimeout(()=>{HOV_TARGET=null;hideTip();},1800);
+  if(e.touches.length<2){ touch2=null; pinchDist0=null; }
+  if(e.touches.length===0){
+    touch1=null;
+    setTimeout(()=>{HOV_TARGET=null;hideTip();},1800);
+  }
+},{passive:false});
+
+// Mouse wheel zoom (desktop bonus)
+hit.addEventListener('wheel',e=>{
+  e.preventDefault();
+  const delta=-e.deltaY*0.001;
+  const newZoom=Math.max(ZOOM_MIN,Math.min(ZOOM_MAX,ZOOM*(1+delta)));
+  // Zoom toward cursor
+  const zd=newZoom/ZOOM;
+  PAN.x=e.clientX-(e.clientX-PAN.x)*zd;
+  PAN.y=e.clientY-(e.clientY-PAN.y)*zd;
+  ZOOM=newZoom;
 },{passive:false});
 </script>
 </body>
