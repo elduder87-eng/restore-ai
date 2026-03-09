@@ -2,20 +2,31 @@
 
 import { useState } from "react";
 
-export default function ChatPage() {
+export default function ChatPage(){
 
-const [messages, setMessages] = useState([
-{ role:"restore", text:"Welcome back. What idea are you exploring today?" }
+const [messages,setMessages] = useState([
+{role:"restore",text:"Welcome back. What idea are you exploring today?"}
 ]);
 
 const [input,setInput] = useState("");
 const [loading,setLoading] = useState(false);
 
+function speak(text){
+
+const utter = new SpeechSynthesisUtterance(text);
+utter.rate = 0.95;
+utter.pitch = 1;
+utter.lang = "en-US";
+
+speechSynthesis.speak(utter);
+
+}
+
 async function sendMessage(){
 
 if(!input.trim()) return;
 
-const userMessage = { role:"user", text:input };
+const userMessage = {role:"user",text:input};
 
 const updated = [...messages,userMessage];
 
@@ -25,19 +36,23 @@ setLoading(true);
 
 const res = await fetch("/api/chat",{
 method:"POST",
-headers:{ "Content-Type":"application/json"},
+headers:{"Content-Type":"application/json"},
 body:JSON.stringify({messages:updated})
 });
 
 const data = await res.json();
 
-setMessages([...updated,{role:"restore",text:data.reply}]);
+const restoreMessage = {role:"restore",text:data.reply};
+
+setMessages([...updated,restoreMessage]);
+
+speak(data.reply);
 
 setLoading(false);
 
 }
 
-return (
+return(
 
 <div className="chatPage">
 
