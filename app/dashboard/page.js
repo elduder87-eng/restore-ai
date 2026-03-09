@@ -12,7 +12,7 @@ function Card({ title, text }) {
 function Bar({ label, value }) {
   return (
     <div className="bar">
-      <div>{label}</div>
+      <div className="bar-label">{label}</div>
       <div className="bar-track">
         <div className="bar-fill" style={{ width: value }} />
       </div>
@@ -24,7 +24,7 @@ export default function Dashboard() {
   return (
     <div className="page">
 
-      {/* NAV */}
+      {/* NAVBAR */}
 
       <div className="nav">
 
@@ -49,35 +49,40 @@ export default function Dashboard() {
 
         <h1>Dashboard</h1>
 
-        {/* MODE */}
+
+        {/* THINKING MODE */}
 
         <div className="mode">
+
           <div className="mode-title">Current Thinking Mode</div>
+
           <h2>Connecting Ideas</h2>
+
           <p>
             Restore detects how you're learning based on your exploration and reflection patterns.
           </p>
+
         </div>
 
 
-        {/* INSIGHT CARDS */}
+        {/* INSIGHTS */}
 
         <div className="grid">
 
-          <div className="card">
-            <h3>Today's Insight</h3>
-            <p>You tend to form strong connections when reflecting on examples.</p>
-          </div>
+          <Card
+            title="Today's Insight"
+            text="You tend to form strong connections when reflecting on examples."
+          />
 
-          <div className="card">
-            <h3>Today's Thought</h3>
-            <p>Why don't planets fall into the sun if gravity constantly pulls them inward?</p>
-          </div>
+          <Card
+            title="Today's Thought"
+            text="Why don't planets fall into the sun if gravity constantly pulls them inward?"
+          />
 
-          <div className="card">
-            <h3>Today's Connection</h3>
-            <p>How might gravity, planetary motion, and orbital speed be connected?</p>
-          </div>
+          <Card
+            title="Today's Connection"
+            text="How might gravity, planetary motion, and orbital speed be connected?"
+          />
 
         </div>
 
@@ -86,7 +91,7 @@ export default function Dashboard() {
 
         <div className="grid">
 
-          <div className="card">
+          <div className="card curiosity">
             <h3>Today's Curiosity</h3>
             <p>What might happen if gravity suddenly weakened near Earth?</p>
           </div>
@@ -94,16 +99,20 @@ export default function Dashboard() {
         </div>
 
 
-        {/* GUIDE */}
+        {/* RESTORE GUIDE */}
 
         <div className="card guide">
 
           <h3>Restore Guide</h3>
+
           <p>Guide: Ask about today's learning patterns.</p>
 
           <div className="ask">
+
             <input placeholder="Ask about today's learning..." />
+
             <button>Ask</button>
+
           </div>
 
         </div>
@@ -117,31 +126,29 @@ export default function Dashboard() {
 
             <h3>Understanding Pulse</h3>
 
-            <Bar label="Connecting" value="60%" />
+            <Bar label="Connecting" value="65%" />
             <Bar label="Reflecting" value="45%" />
-            <Bar label="Curious" value="25%" />
-            <Bar label="Confused" value="12%" />
-            <Bar label="Exploring" value="50%" />
+            <Bar label="Curious" value="30%" />
+            <Bar label="Confused" value="15%" />
+            <Bar label="Exploring" value="55%" />
 
           </div>
 
-          <div className="card">
-            <h3>Confusion Signals</h3>
-            <p>
-              🔴 Electric Circuits<br/>
-              🟡 Limits in Calculus<br/>
-              🟡 Plate Tectonics
-            </p>
-          </div>
 
-          <div className="card">
-            <h3>Curiosity Activity</h3>
-            <p>
-              • Black holes<br/>
-              • Evolution<br/>
-              • Ancient civilizations
-            </p>
-          </div>
+          <Card
+            title="Confusion Signals"
+            text={`🔴 Electric Circuits
+🟡 Limits in Calculus
+🟡 Plate Tectonics`}
+          />
+
+
+          <Card
+            title="Curiosity Activity"
+            text={`• Black holes
+• Evolution
+• Ancient civilizations`}
+          />
 
         </div>
 
@@ -201,6 +208,10 @@ align-items:center;
 font-weight:600;
 }
 
+.brand{
+font-size:15px;
+}
+
 .tag{
 font-size:12px;
 color:#777;
@@ -234,9 +245,15 @@ box-shadow:0 6px 18px rgba(0,0,0,0.06);
 
 .grid{
 display:grid;
-grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+grid-template-columns:repeat(3,1fr);
 gap:26px;
 margin-bottom:32px;
+}
+
+@media (max-width:900px){
+.grid{
+grid-template-columns:1fr;
+}
 }
 
 .card{
@@ -244,6 +261,12 @@ background:white;
 padding:24px;
 border-radius:18px;
 box-shadow:0 12px 28px rgba(0,0,0,0.08);
+transition:all .2s ease;
+}
+
+.card:hover{
+transform:translateY(-2px);
+box-shadow:0 18px 36px rgba(0,0,0,0.12);
 }
 
 .card h3{
@@ -253,49 +276,4 @@ margin-bottom:10px;
 .card p{
 color:#555;
 line-height:1.4;
-}
-
-.ask{
-display:flex;
-gap:10px;
-margin-top:12px;
-}
-
-.ask input{
-flex:1;
-padding:12px;
-border-radius:10px;
-border:1px solid #ddd;
-}
-
-.ask button{
-background:#46b39d;
-border:none;
-color:white;
-padding:12px 20px;
-border-radius:10px;
-cursor:pointer;
-}
-
-.bar{
-margin-top:12px;
-}
-
-.bar-track{
-height:8px;
-background:#e3e8ef;
-border-radius:6px;
-margin-top:4px;
-}
-
-.bar-fill{
-height:8px;
-background:#46b39d;
-border-radius:6px;
-}
-
-`}</style>
-
-    </div>
-  );
-          }
+white-space:pre
