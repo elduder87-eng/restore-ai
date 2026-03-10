@@ -379,27 +379,6 @@ body{position:fixed;inset:0;}
 
     <!-- CENTER -->
     <div class="center">
-      <!-- TEACHER CHAT -->
-      <div class="tc" id="teacherChat">
-        <div class="tc-head">
-          <div class="tc-avatar">🎓</div>
-          <div>
-            <div class="tc-title">Restore Guide</div>
-            <div class="tc-sub">● Online · Teacher Mode</div>
-          </div>
-          <div class="tc-dot"></div>
-        </div>
-        <div class="tc-msgs" id="tcMsgs">
-          <div class="tc-msg ai">
-            <div class="tc-bubble">Hey Alex! You're deep into Quantum Physics — want me to connect it to something you already know well, like Calculus or Relativity? 🌌</div>
-          </div>
-        </div>
-        <div class="tc-footer">
-          <input class="tc-input" id="tcInput" placeholder="Ask your Restore Guide…" autocomplete="off"/>
-          <button class="tc-send" id="tcSend">➤</button>
-        </div>
-      </div>
-
       <div style="flex:1"></div>
       <div class="thk">
         <div class="thkt">Your Thinking Evolution</div>
@@ -1032,6 +1011,58 @@ input.addEventListener("keydown", e=>{ if(e.key==="Enter") send() })
 
 })()
 
+
+// ── CHAT ZOOM LOCK ─────────────────────────────────────────────
+// Counteract browser zoom so chat stays fixed size and position
+(function(){
+  const chat = document.getElementById('teacherChat');
+  if(!window.visualViewport) return;
+
+  function lockChat(){
+    const vv = window.visualViewport;
+    const scale = 1 / vv.scale;
+    const offsetX = -vv.offsetLeft * scale;
+    const offsetY = -vv.offsetTop * scale;
+
+    chat.style.transform = `scale(${scale})`;
+    chat.style.transformOrigin = 'bottom left';
+    chat.style.left = (8 * vv.scale + vv.offsetLeft) + 'px';
+    chat.style.bottom = (180 * vv.scale) + 'px';
+    chat.style.width = `calc((100vw - 16px) * ${vv.scale})`;
+
+    // Also lift above keyboard if open
+    const keyboardH = window.innerHeight - vv.height - vv.offsetTop;
+    if(keyboardH > 100){
+      chat.style.bottom = ((keyboardH + 8) * vv.scale) + 'px';
+    }
+  }
+
+  window.visualViewport.addEventListener('resize', lockChat);
+  window.visualViewport.addEventListener('scroll', lockChat);
+  lockChat();
+})();
+
 </script>
+
+<!-- TEACHER CHAT — fixed to viewport, outside zoom layer -->
+<div class="tc" id="teacherChat">
+  <div class="tc-head">
+    <div class="tc-avatar">🎓</div>
+    <div>
+      <div class="tc-title">Restore Guide</div>
+      <div class="tc-sub">● Online · Teacher Mode</div>
+    </div>
+    <div class="tc-dot"></div>
+  </div>
+  <div class="tc-msgs" id="tcMsgs">
+    <div class="tc-msg ai">
+      <div class="tc-bubble">Hey Alex! You're deep into Quantum Physics — want me to connect it to something you already know well, like Calculus or Relativity? 🌌</div>
+    </div>
+  </div>
+  <div class="tc-footer">
+    <input class="tc-input" id="tcInput" placeholder="Ask your Restore Guide…" autocomplete="off"/>
+    <button class="tc-send" id="tcSend">➤</button>
+  </div>
+</div>
 </body>
 </html>
