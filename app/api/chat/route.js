@@ -13,177 +13,169 @@ connectTopics
 } from "@/lib/curiosity"
 
 const openai = new OpenAI({
-apiKey: process.env.OPENAI_API_KEY
+  apiKey: process.env.OPENAI_API_KEY
 })
 
-export async function POST(req){
+export async function POST(req) {
 
-try{
+  try {
 
-const body = await req.json()
+    const body = await req.json()
 
-const userMessage = body.message
-const userId = body.userId || "demo-user"
-const teacherMode = body.teacherMode ?? true
+    const userMessage = body.message
+    const userId = body.userId || "demo-user"
 
-await addMessage(userId,"user",userMessage)
+    // store user message
+    await addMessage(userId,"user",userMessage)
 
-const history = await getRecentMessages(userId)
+    const history = await getRecentMessages(userId)
 
-const profile = await getUserProfile(userId)
+    const profile = await getUserProfile(userId)
 
-const interests = profile.interests || []
+    const interests = profile.interests || []
 
-const lower = userMessage.toLowerCase()
+    const lower = userMessage.toLowerCase()
 
-/*
-MEMORY SUMMARY
-*/
+    /*
+    MEMORY RECALL
+    */
 
-if(
-lower.includes("what do you remember") ||
-lower.includes("what do you know about me")
-){
+    if(
+      lower.includes("what do you remember") ||
+      lower.includes("what do you know about me")
+    ){
 
-if(interests.length === 0){
+      if(interests.length === 0){
 
-return Response.json({
-reply:"We haven't explored many ideas together yet, so I don't know much about your interests. As we talk I'll begin remembering what topics excite your curiosity."
-})
+        return Response.json({
+          reply:"We haven't explored many ideas together yet, so I don't know much about your interests. As we talk I'll begin remembering what topics excite your curiosity."
+        })
 
-}
+      }
 
-const formatted = interests.map(i=>`• You enjoy ${i}`).join("\n")
+      const formatted = interests
+        .map(i => `• You enjoy ${i}`)
+        .join("\n")
 
-return Response.json({
-reply:`From our conversations I remember:\n\n${formatted}\n\nThose interests might connect in interesting ways. What direction would you like to explore next?`
-})
+      return Response.json({
+        reply:`From our conversations I remember:\n\n${formatted}\n\nThose interests might connect in interesting ways. What direction would you like to explore next?`
+      })
 
-}
+    }
 
-/*
-CURIOSITY ENGINE
-*/
+    /*
+    CURIOSITY ENGINE
+    */
 
-const topics = extractTopics(userMessage)
+    const topics = extractTopics(userMessage)
 
-await connectTopics(userId,topics)
+    await connectTopics(userId,topics)
 
-/*
-SYSTEM PROMPTS
-*/
+    /*
+    SAVE NEW INTERESTS
+    */
 
-const teacherPrompt = `
+    for(const topic of topics){
+      await saveInterest(userId,topic)
+    }
 
-You are Restore in Teacher Mode.
+    /*
+    SYSTEM PROMPT
+    */
 
-Your goal is to guide the user toward understanding.
-
-Behavior rules:
-
-• ask thoughtful questions
-• guide curiosity instead of lecturing
-• encourage reflection
-• help the user connect ideas
-• keep responses concise
-• never overwhelm with long explanations
-
-Always prioritize curiosity and discovery.
-
-User interests:
-${interests.join(", ") || "unknown"}
-
-`
-
-const assistantPrompt = `
+    const systemPrompt = `
 
 You are Restore.
 
-You are a helpful curiosity companion.
+Restore is a curiosity companion designed to help users explore ideas and learn through connections.
 
-Communication style:
+Your personality:
 
 • thoughtful
-• conversational
 • curious
+• conversational
+• encouraging
+• insightful
 
-Rules:
+Teaching style:
 
-• keep responses concise
+• short explanations
 • guide curiosity
+• connect ideas
 • ask follow-up questions
+• avoid long lectures
+
+When possible:
+connect ideas across domains
+(physics ↔ philosophy, math ↔ nature, etc.)
 
 User interests:
 ${interests.join(", ") || "unknown"}
 
 `
 
-const systemPrompt = teacherMode ? teacherPrompt : assistantPrompt
+    const messages = [
 
-/*
-BUILD MESSAGE STACK
-*/
+      { role:"system", content:systemPrompt },
 
-const messages = [
+      ...history.map(m => ({
+        role: m.role === "restore" ? "assistant" : "user",
+        content: m.content
+      }))
 
-{ role:"system", content: systemPrompt },
+    ]
 
-...history.map(m=>({
-role: m.role==="restore" ? "assistant" : "user",
-content: m.content
-}))
+    /*
+    STREAMING RESPONSE
+    */
 
-]
+    const stream = await openai.chat.completions.create({
+      model:"gpt-4o-mini",
+      messages,
+      temperature:0.8,
+      stream:true
+    })
 
-/*
-STREAMING RESPONSE
-*/
+    const encoder = new TextEncoder()
 
-const stream = await openai.chat.completions.create({
-model:"gpt-4o-mini",
-messages,
-temperature:0.8,
-stream:true
-})
+    return new Response(
 
-const encoder = new TextEncoder()
+      new ReadableStream({
 
-return new Response(
+        async start(controller){
 
-new ReadableStream({
+          let fullText = ""
 
-async start(controller){
+          for await(const chunk of stream){
 
-let fullText = ""
+            const text = chunk.choices[0]?.delta?.content || ""
 
-for await(const chunk of stream){
+            fullText += text
 
-const text = chunk.choices[0]?.delta?.content || ""
+            controller.enqueue(
+              encoder.encode(text)
+            )
 
-fullText += text
+          }
 
-controller.enqueue(encoder.encode(text))
+          await addMessage(userId,"restore",fullText)
 
-}
+          controller.close()
 
-await addMessage(userId,"restore",fullText)
+        }
 
-controller.close()
+      })
 
-}
+    )
 
-})
+  } catch(err){
 
-)
+    console.error(err)
 
-}catch(err){
+    return Response.json({
+      reply:"Hmm… something interrupted my thinking. Could you try asking that again?"
+    })
 
-console.error(err)
-
-return Response.json({
-reply:"Hmm… something interrupted my thinking. Could you try asking that again?"
-})
-
-}
+  }
 
 }
