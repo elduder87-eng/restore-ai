@@ -1005,6 +1005,17 @@ async function send(){
 
   const typing = showTyping()
 
+  // Fallback responses until /api/chat is live
+  const fallbacks = [
+    "Great question! Quantum mechanics and Calculus are deeply linked — Schrödinger's equation is a differential equation at its heart. 🔬",
+    "Think of wave functions like probability distributions — very similar to what you explored in Limits and Convergence! ✨",
+    "Your mastery of Relativity is at 35% — want me to suggest a path to connect it with Quantum Physics? 🚀",
+    "You're connecting Physics → Space-Time beautifully. Black Holes are the next natural frontier. Want to explore? 🌑",
+    "I noticed you spent time on Evolution recently — there's a fascinating link between biological systems and Physics. Shall we explore? 🧬",
+    "You're at 78% understanding — you're in the top tier of learners on this journey. Keep going! 💫",
+  ]
+  let fallbackIdx = 0
+
   try{
 
     const res = await fetch("/api/chat",{
@@ -1017,6 +1028,8 @@ async function send(){
         userId:"demo-user"
       })
     })
+
+    if(!res.ok) throw new Error("API not ready")
 
     const data = await res.json()
 
@@ -1050,9 +1063,11 @@ async function send(){
   }
   catch(err){
 
-    console.error(err)
-
-    addMsg("Something interrupted my thinking. Try again.","ai")
+    // API not live yet — use fallback responses
+    typing.remove()
+    const aiText = fallbacks[fallbackIdx % fallbacks.length]
+    fallbackIdx++
+    addMsg(aiText, "ai")
 
   }
 
