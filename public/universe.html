@@ -881,44 +881,46 @@ chat.addEventListener("touchend",    e=>e.stopPropagation(), {passive:true})
 chat.addEventListener("pointerdown", e=>e.stopPropagation())
 chat.addEventListener("wheel",       e=>e.stopPropagation(), {passive:true})
 
-// When keyboard opens, float chat just above it using visualViewport
-if(window.visualViewport){
-  window.visualViewport.addEventListener('resize', ()=>{
-    const vv = window.visualViewport;
-    const keyboardH = window.innerHeight - vv.height - vv.offsetTop;
-    if(keyboardH > 100){
-      // Keyboard is open — lift chat above it
-      chat.style.bottom = (keyboardH + 8) + 'px';
-    } else {
-      // Keyboard closed — restore original position
-      chat.style.bottom = '190px';
-    }
-  });
-}
+/*
+VOICE SYSTEM
+*/
 
 let restoreVoice = null
 
 function loadVoices(){
+
   const voices = speechSynthesis.getVoices()
+
   restoreVoice =
-    voices.find(v=>v.name.includes("Google")) ||
-    voices.find(v=>v.name.includes("Samantha")) ||
+    voices.find(v => v.name.includes("Google")) ||
+    voices.find(v => v.name.includes("Samantha")) ||
     voices[0]
+
 }
 
 speechSynthesis.onvoiceschanged = loadVoices
 loadVoices()
 
 function speak(text){
+
   speechSynthesis.cancel()
+
   const msg = new SpeechSynthesisUtterance(text)
+
   msg.voice = restoreVoice
   msg.rate = 1
   msg.pitch = 1
+
   speechSynthesis.speak(msg)
+
 }
 
+/*
+ADD MESSAGE
+*/
+
 function addMsg(text, role){
+
   const div = document.createElement("div")
   div.className = "tc-msg " + role
 
@@ -929,85 +931,129 @@ function addMsg(text, role){
   div.appendChild(bubble)
 
   if(role === "ai"){
+
     const replay = document.createElement("div")
     replay.className = "tc-replay"
     replay.innerText = "🔊"
-    replay.onclick = ()=>speak(text)
+
+    replay.onclick = () => speak(text)
+
     div.appendChild(replay)
+
   }
 
   msgs.appendChild(div)
+
   msgs.scrollTop = msgs.scrollHeight
+
 }
 
+/*
+TYPING INDICATOR
+*/
+
 function showTyping(){
+
   const div = document.createElement("div")
   div.className = "tc-msg ai"
   div.id = "tcTyping"
-  div.innerHTML = `<div class="tc-typing"><span></span><span></span><span></span></div>`
+
+  div.innerHTML = `
+  <div class="tc-typing">
+    <span></span><span></span><span></span>
+  </div>
+  `
+
   msgs.appendChild(div)
+
   msgs.scrollTop = msgs.scrollHeight
+
   return div
+
 }
 
+/*
+SEND MESSAGE
+*/
+
 async function send(){
+
   const text = input.value.trim()
+
   if(!text) return
 
-  addMsg(text, "user")
+  addMsg(text,"user")
+
   input.value = ""
+
   btn.disabled = true
 
   const typing = showTyping()
 
   try{
-    const res = await fetch("/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: text, userId: "demo-user" })
+
+    const res = await fetch("/api/chat",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify({
+        message:text,
+        userId:"demo-user"
+      })
     })
+
+    const data = await res.json()
 
     typing.remove()
 
-    const reader = res.body.getReader()
-    const decoder = new TextDecoder()
-    let aiText = ""
+    const aiText = data.reply
 
     const div = document.createElement("div")
     div.className = "tc-msg ai"
+
     const bubble = document.createElement("div")
     bubble.className = "tc-bubble"
-    div.appendChild(bubble)
-    msgs.appendChild(div)
+    bubble.textContent = aiText
 
-    while(true){
-      const {done, value} = await reader.read()
-      if(done) break
-      const chunk = decoder.decode(value)
-      aiText += chunk
-      bubble.textContent = aiText
-      msgs.scrollTop = msgs.scrollHeight
-    }
+    div.appendChild(bubble)
+
+    msgs.appendChild(div)
 
     const replay = document.createElement("div")
     replay.className = "tc-replay"
     replay.innerText = "🔊"
-    replay.onclick = ()=>speak(aiText)
+
+    replay.onclick = () => speak(aiText)
+
     div.appendChild(replay)
+
+    msgs.scrollTop = msgs.scrollHeight
 
     speak(aiText)
 
-  } catch(err){
+  }
+  catch(err){
+
     console.error(err)
-    typing.remove()
-    addMsg("Something interrupted my thinking. Try again.", "ai")
+
+    addMsg("Something interrupted my thinking. Try again.","ai")
+
   }
 
   btn.disabled = false
+
 }
 
-btn.addEventListener("click", send)
-input.addEventListener("keydown", e=>{ if(e.key==="Enter") send() })
+/*
+EVENT LISTENERS
+*/
+
+btn.addEventListener("click",send)
+
+input.addEventListener("keydown",e=>{
+  if(e.key==="Enter") send()
+})
 
 })()
 
