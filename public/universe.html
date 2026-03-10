@@ -197,6 +197,7 @@ body{position:fixed;inset:0;}
 
 /* ── TEACHER CHAT ─────────────────────────────────────────── */
 .tc{
+  touch-action:auto;
   position:absolute;
   bottom:172px;
   left:8px;right:8px;
@@ -229,6 +230,7 @@ body{position:fixed;inset:0;}
   box-shadow:0 0 8px #4ade80;margin-left:auto;flex-shrink:0;}
 .tc-msgs{
   flex:1;overflow-y:auto;
+  touch-action:pan-y;
   padding:16px 20px;display:flex;flex-direction:column;gap:10px;
   scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.1) transparent;
 }
@@ -260,15 +262,17 @@ body{position:fixed;inset:0;}
 @keyframes tcbounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-5px);opacity:1;}}
 .tc-footer{
   display:flex;align-items:center;gap:10px;
+  touch-action:auto;
   padding:14px 18px;
   border-top:1px solid rgba(255,255,255,0.08);
   flex-shrink:0;
 }
 .tc-input{
-  flex:1;background:rgba(255,255,255,0.07);
+  flex:1;touch-action:manipulation;background:rgba(255,255,255,0.07);
   border:1px solid rgba(255,255,255,0.12);border-radius:28px;
   padding:12px 18px;font-size:14px;color:#fff;
   font-family:'Inter',sans-serif;outline:none;
+  -webkit-user-select:text;user-select:text;
   transition:border-color .2s;
 }
 .tc-input::placeholder{color:#475569;}
@@ -849,7 +853,7 @@ function touchMid(a,b){
 
 document.addEventListener('touchstart',e=>{
   // Don't block panel scrolling
-  if(e.target.closest('.left,.right,.topbar')) return;
+  if(e.target.closest('.left,.right,.topbar,.tc')) return;
   e.preventDefault();
   if(e.touches.length===1){
     // Single finger: start pan OR prepare for tap
@@ -877,7 +881,7 @@ document.addEventListener('touchstart',e=>{
 },{passive:false});
 
 document.addEventListener('touchmove',e=>{
-  if(e.target.closest('.left,.right,.topbar')) return;
+  if(e.target.closest('.left,.right,.topbar,.tc')) return;
   e.preventDefault();
   if(e.touches.length===2){
     // PINCH ZOOM + simultaneous pan
@@ -916,7 +920,7 @@ document.addEventListener('touchmove',e=>{
 },{passive:false});
 
 document.addEventListener('touchend',e=>{
-  if(e.target.closest('.left,.right,.topbar')) return;
+  if(e.target.closest('.left,.right,.topbar,.tc')) return;
   e.preventDefault();
   if(e.touches.length<2){ touch2=null; pinchDist0=null; }
   if(e.touches.length===0){
@@ -945,9 +949,11 @@ document.addEventListener('wheel',e=>{
 
   // Prevent galaxy pan/zoom when interacting with chat
   const chat = document.getElementById('teacherChat');
-  chat.addEventListener('touchstart', e=>e.stopPropagation(), {passive:true});
-  chat.addEventListener('touchmove',  e=>e.stopPropagation(), {passive:true});
-  chat.addEventListener('wheel',      e=>e.stopPropagation(), {passive:true});
+  chat.addEventListener('touchstart',  e=>e.stopPropagation(), {passive:true});
+  chat.addEventListener('touchmove',   e=>e.stopPropagation(), {passive:true});
+  chat.addEventListener('touchend',    e=>e.stopPropagation(), {passive:true});
+  chat.addEventListener('pointerdown', e=>e.stopPropagation());
+  chat.addEventListener('wheel',       e=>e.stopPropagation(), {passive:true});
 
   const responses = [
     "Great question! Quantum mechanics and Calculus are deeply linked — Schrödinger's equation is a differential equation at its heart. 🔬",
