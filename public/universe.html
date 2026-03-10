@@ -545,8 +545,9 @@ function CY0(){
   return uc.height * (isMobile ? .34 : .40);
 }
 // With zoom+pan applied
-function CX(){ return CX0()*ZOOM + PAN.x + uc.width*(1-ZOOM)*.5; }
-function CY(){ return CY0()*ZOOM + PAN.y + uc.height*(1-ZOOM)*.5; }
+// Galaxy rotates in place — ZOOM scales outward from centre, PAN only when user drags
+function CX(){ return CX0() + PAN.x; }
+function CY(){ return CY0() + PAN.y; }
 
 // ── NODE DATA ─────────────────────────────────────────────────
 const N=[
@@ -886,7 +887,7 @@ document.addEventListener('touchstart',e=>{
     // Double-tap to reset zoom/pan
     const now=Date.now();
     if(now-lastTap<280){
-      ZOOM=1; PAN={x:0,y:0};
+      ZOOM=1; PAN={x:0,y:0}; panStart=null; panOrigin=null;
       lastTap=0;
     } else { lastTap=now; }
 
