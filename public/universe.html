@@ -546,8 +546,8 @@ function CY0(){
 }
 // With zoom+pan applied
 // Galaxy rotates in place — ZOOM scales outward from centre, PAN only when user drags
-function CX(){ return CX0() + PAN.x; }
-function CY(){ return CY0() + PAN.y; }
+function CX(){ return CX0(); }
+function CY(){ return CY0(); }
 
 // ── NODE DATA ─────────────────────────────────────────────────
 const N=[
@@ -881,13 +881,11 @@ document.addEventListener('touchstart',e=>{
     // Single finger: start pan OR prepare for tap
     touch1=e.touches[0];
     touch2=null;
-    panStart={x:e.touches[0].clientX, y:e.touches[0].clientY};
-    panOrigin={x:PAN.x, y:PAN.y};
 
-    // Double-tap to reset zoom/pan
+    // Double-tap to reset zoom
     const now=Date.now();
     if(now-lastTap<280){
-      ZOOM=1; PAN={x:0,y:0}; panStart=null; panOrigin=null;
+      ZOOM=1;
       lastTap=0;
     } else { lastTap=now; }
 
@@ -906,37 +904,21 @@ document.addEventListener('touchmove',e=>{
   if(e.target.closest('.left,.right,.topbar,.tc')) return;
   e.preventDefault();
   if(e.touches.length===2){
-    // PINCH ZOOM + simultaneous pan
+    // PINCH ZOOM only — no pan
     const t1=e.touches[0], t2=e.touches[1];
     const dist=touchDist(t1,t2);
-    const mid=touchMid(t1,t2);
     const scale=dist/pinchDist0;
-    const newZoom=Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, pinchZoom0*scale));
-
-    // Zoom toward pinch midpoint
-    const zoomDelta=newZoom/ZOOM;
-    PAN.x = mid.x - (mid.x - PAN.x)*zoomDelta + (mid.x-panStart.x);
-    PAN.y = mid.y - (mid.y - PAN.y)*zoomDelta + (mid.y-panStart.y);
-    ZOOM=newZoom;
-    panStart=mid;
+    ZOOM=Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, pinchZoom0*scale));
 
   } else if(e.touches.length===1){
     const t=e.touches[0];
-    // Check if it's a node hover first
+    // Hover/tap only — no panning
     const f=findHit(t.clientX,t.clientY);
     HOV_TARGET=f;
     if(f){
       showTip(N.find(x=>x.id===f),t.clientX,t.clientY);
     } else {
       hideTip();
-      // Pan if moved more than 8px
-      if(panStart && panOrigin){
-        const dx=t.clientX-panStart.x, dy=t.clientY-panStart.y;
-        if(Math.abs(dx)>8||Math.abs(dy)>8){
-          PAN.x=panOrigin.x+t.clientX-panStart.x;
-          PAN.y=panOrigin.y+t.clientY-panStart.y;
-        }
-      }
     }
   }
 },{passive:false});
@@ -955,12 +937,8 @@ document.addEventListener('touchend',e=>{
 document.addEventListener('wheel',e=>{
   e.preventDefault();
   const delta=-e.deltaY*0.001;
-  const newZoom=Math.max(ZOOM_MIN,Math.min(ZOOM_MAX,ZOOM*(1+delta)));
-  // Zoom toward cursor
-  const zd=newZoom/ZOOM;
-  PAN.x=e.clientX-(e.clientX-PAN.x)*zd;
-  PAN.y=e.clientY-(e.clientY-PAN.y)*zd;
-  ZOOM=newZoom;
+  // Zoom only — galaxy stays centred
+  ZOOM=Math.max(ZOOM_MIN,Math.min(ZOOM_MAX,ZOOM*(1+delta)));
 },{passive:false});
 
 // ── TEACHER CHAT ──────────────────────────────────────────────
