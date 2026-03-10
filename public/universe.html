@@ -873,14 +873,7 @@ const msgs = document.getElementById("tcMsgs")
 const input = document.getElementById("tcInput")
 const btn = document.getElementById("tcSend")
 
-// Prevent galaxy interaction when using chat, but allow input taps
-const chat = document.getElementById("teacherChat")
-const _block = e => { if(!e.target.closest('.tc-input,.tc-send,.tc-replay,.tc-msgs')) e.stopPropagation() }
-chat.addEventListener("touchstart",  _block, {passive:true})
-chat.addEventListener("touchmove",   e=>e.stopPropagation(), {passive:true})
-chat.addEventListener("touchend",    _block, {passive:true})
-chat.addEventListener("pointerdown", _block)
-chat.addEventListener("wheel",       e=>e.stopPropagation(), {passive:true})
+// No touch blocking — chat is position:fixed outside zoom layer
 
 /*
 VOICE SYSTEM
