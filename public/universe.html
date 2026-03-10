@@ -458,6 +458,27 @@ body{position:fixed;inset:0;}
   <div class="tp" id="ttp"></div>
 </div>
 
+<!-- TEACHER CHAT — fixed to viewport, outside zoom layer -->
+<div class="tc" id="teacherChat">
+  <div class="tc-head">
+    <div class="tc-avatar">🎓</div>
+    <div>
+      <div class="tc-title">Restore Guide</div>
+      <div class="tc-sub">● Online · Teacher Mode</div>
+    </div>
+    <div class="tc-dot"></div>
+  </div>
+  <div class="tc-msgs" id="tcMsgs">
+    <div class="tc-msg ai">
+      <div class="tc-bubble">Hey Alex! You're deep into Quantum Physics — want me to connect it to something you already know well, like Calculus or Relativity? 🌌</div>
+    </div>
+  </div>
+  <div class="tc-footer">
+    <input class="tc-input" id="tcInput" placeholder="Ask your Restore Guide…" autocomplete="off"/>
+    <button class="tc-send" id="tcSend">➤</button>
+  </div>
+</div>
+
 <script>
 // Lock viewport to initial size — keyboard cannot shift it
 (function(){
@@ -1084,25 +1105,5 @@ input.addEventListener("keydown",e=>{
 
 </script>
 
-<!-- TEACHER CHAT — fixed to viewport, outside zoom layer -->
-<div class="tc" id="teacherChat">
-  <div class="tc-head">
-    <div class="tc-avatar">🎓</div>
-    <div>
-      <div class="tc-title">Restore Guide</div>
-      <div class="tc-sub">● Online · Teacher Mode</div>
-    </div>
-    <div class="tc-dot"></div>
-  </div>
-  <div class="tc-msgs" id="tcMsgs">
-    <div class="tc-msg ai">
-      <div class="tc-bubble">Hey Alex! You're deep into Quantum Physics — want me to connect it to something you already know well, like Calculus or Relativity? 🌌</div>
-    </div>
-  </div>
-  <div class="tc-footer">
-    <input class="tc-input" id="tcInput" placeholder="Ask your Restore Guide…" autocomplete="off"/>
-    <button class="tc-send" id="tcSend">➤</button>
-  </div>
-</div>
 </body>
 </html>
