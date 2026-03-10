@@ -199,11 +199,11 @@ body{position:fixed;inset:0;}
 .tc{
   touch-action:auto;
   position:absolute;
-  bottom:180px;
+  bottom:190px;
   left:8px;right:8px;
   width:auto;
   min-width:0;
-  height:min(420px,48vh);
+  height:min(420px,42vh);
   background:rgba(5,8,20,0.88);
   border:1px solid rgba(255,255,255,0.15);
   border-radius:22px;
@@ -528,7 +528,8 @@ function CX0(){
   return panelL + (uc.width - panelL - panelR) * .5;
 }
 function CY0(){
-  return uc.height * .40;
+  // On mobile, galaxy sits in top 38% so chat has room below
+  return uc.height * (isMobile ? .34 : .40);
 }
 // With zoom+pan applied
 function CX(){ return CX0()*ZOOM + PAN.x + uc.width*(1-ZOOM)*.5; }
