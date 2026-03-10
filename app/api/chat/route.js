@@ -13,169 +13,129 @@ connectTopics
 } from "@/lib/curiosity"
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
+apiKey:process.env.OPENAI_API_KEY
 })
 
-export async function POST(req) {
+export async function POST(req){
 
-  try {
+try{
 
-    const body = await req.json()
+const body = await req.json()
 
-    const userMessage = body.message
-    const userId = body.userId || "demo-user"
+const userMessage = body.message
+const userId = body.userId || "demo-user"
 
-    // store user message
-    await addMessage(userId,"user",userMessage)
+await addMessage(userId,"user",userMessage)
 
-    const history = await getRecentMessages(userId)
+const history = await getRecentMessages(userId)
 
-    const profile = await getUserProfile(userId)
+const profile = await getUserProfile(userId)
 
-    const interests = profile.interests || []
+const interests = profile.interests || []
 
-    const lower = userMessage.toLowerCase()
+const lower = userMessage.toLowerCase()
 
-    /*
-    MEMORY RECALL
-    */
+/*
+MEMORY QUESTION
+*/
 
-    if(
-      lower.includes("what do you remember") ||
-      lower.includes("what do you know about me")
-    ){
+if(
+lower.includes("what do you remember") ||
+lower.includes("what do you know about me")
+){
 
-      if(interests.length === 0){
+if(interests.length === 0){
 
-        return Response.json({
-          reply:"We haven't explored many ideas together yet, so I don't know much about your interests. As we talk I'll begin remembering what topics excite your curiosity."
-        })
+return Response.json({
+reply:"We haven't explored many ideas together yet. As we talk I'll begin remembering what topics excite your curiosity."
+})
 
-      }
+}
 
-      const formatted = interests
-        .map(i => `• You enjoy ${i}`)
-        .join("\n")
+const formatted = interests.map(i=>`• You enjoy ${i}`).join("\n")
 
-      return Response.json({
-        reply:`From our conversations I remember:\n\n${formatted}\n\nThose interests might connect in interesting ways. What direction would you like to explore next?`
-      })
+return Response.json({
+reply:`From our conversations I remember:\n\n${formatted}\n\nThose interests might connect in interesting ways. What direction would you like to explore next?`
+})
 
-    }
+}
 
-    /*
-    CURIOSITY ENGINE
-    */
+/*
+CURIOSITY ENGINE
+*/
 
-    const topics = extractTopics(userMessage)
+const topics = extractTopics(userMessage)
 
-    await connectTopics(userId,topics)
+await connectTopics(userId,topics)
 
-    /*
-    SAVE NEW INTERESTS
-    */
+/*
+SYSTEM PROMPT
+*/
 
-    for(const topic of topics){
-      await saveInterest(userId,topic)
-    }
-
-    /*
-    SYSTEM PROMPT
-    */
-
-    const systemPrompt = `
+const systemPrompt = `
 
 You are Restore.
 
-Restore is a curiosity companion designed to help users explore ideas and learn through connections.
+Restore is a curiosity companion designed to help users explore ideas.
 
-Your personality:
+Communication style:
 
 • thoughtful
 • curious
 • conversational
-• encouraging
-• insightful
+• reflective
 
-Teaching style:
+Rules:
 
-• short explanations
-• guide curiosity
-• connect ideas
-• ask follow-up questions
+• keep responses concise
 • avoid long lectures
-
-When possible:
-connect ideas across domains
-(physics ↔ philosophy, math ↔ nature, etc.)
+• guide curiosity
+• ask follow-up questions
 
 User interests:
 ${interests.join(", ") || "unknown"}
 
 `
 
-    const messages = [
+const messages = [
 
-      { role:"system", content:systemPrompt },
+{role:"system",content:systemPrompt},
 
-      ...history.map(m => ({
-        role: m.role === "restore" ? "assistant" : "user",
-        content: m.content
-      }))
+...history.map(m=>({
+role:m.role==="restore"?"assistant":"user",
+content:m.content
+})),
 
-    ]
+{role:"user",content:userMessage}
 
-    /*
-    STREAMING RESPONSE
-    */
+]
 
-    const stream = await openai.chat.completions.create({
-      model:"gpt-4o-mini",
-      messages,
-      temperature:0.8,
-      stream:true
-    })
+/*
+AI RESPONSE
+*/
 
-    const encoder = new TextEncoder()
+const completion = await openai.chat.completions.create({
+model:"gpt-4o-mini",
+messages,
+temperature:0.8
+})
 
-    return new Response(
+const reply = completion.choices[0].message.content
 
-      new ReadableStream({
+await addMessage(userId,"restore",reply)
 
-        async start(controller){
+return Response.json({
+reply
+})
 
-          let fullText = ""
+}catch(err){
 
-          for await(const chunk of stream){
+console.error(err)
 
-            const text = chunk.choices[0]?.delta?.content || ""
+return Response.json({
+reply:"Hmm… something interrupted my thinking. Could you try asking that again?"
+})
 
-            fullText += text
-
-            controller.enqueue(
-              encoder.encode(text)
-            )
-
-          }
-
-          await addMessage(userId,"restore",fullText)
-
-          controller.close()
-
-        }
-
-      })
-
-    )
-
-  } catch(err){
-
-    console.error(err)
-
-    return Response.json({
-      reply:"Hmm… something interrupted my thinking. Could you try asking that again?"
-    })
-
-  }
+}
 
 }
