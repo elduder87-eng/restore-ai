@@ -13,7 +13,7 @@ connectTopics
 } from "@/lib/curiosity"
 
 const openai = new OpenAI({
-apiKey:process.env.OPENAI_API_KEY
+apiKey: process.env.OPENAI_API_KEY
 })
 
 export async function POST(req){
@@ -24,6 +24,7 @@ const body = await req.json()
 
 const userMessage = body.message
 const userId = body.userId || "demo-user"
+const teacherMode = body.teacherMode ?? true
 
 await addMessage(userId,"user",userMessage)
 
@@ -69,26 +70,46 @@ const topics = extractTopics(userMessage)
 await connectTopics(userId,topics)
 
 /*
-SYSTEM PROMPT
+SYSTEM PROMPTS
 */
 
-const systemPrompt = `
+const teacherPrompt = `
+
+You are Restore in Teacher Mode.
+
+Your goal is to guide the user toward understanding.
+
+Behavior rules:
+
+• ask thoughtful questions
+• guide curiosity instead of lecturing
+• encourage reflection
+• help the user connect ideas
+• keep responses concise
+• never overwhelm with long explanations
+
+Always prioritize curiosity and discovery.
+
+User interests:
+${interests.join(", ") || "unknown"}
+
+`
+
+const assistantPrompt = `
 
 You are Restore.
 
-Restore is a curiosity companion designed to help users explore ideas.
+You are a helpful curiosity companion.
 
 Communication style:
 
 • thoughtful
-• curious
 • conversational
-• reflective
+• curious
 
 Rules:
 
 • keep responses concise
-• avoid long lectures
 • guide curiosity
 • ask follow-up questions
 
@@ -97,19 +118,25 @@ ${interests.join(", ") || "unknown"}
 
 `
 
+const systemPrompt = teacherMode ? teacherPrompt : assistantPrompt
+
+/*
+BUILD MESSAGE STACK
+*/
+
 const messages = [
 
-{role:"system",content:systemPrompt},
+{ role:"system", content: systemPrompt },
 
 ...history.map(m=>({
-role:m.role==="restore"?"assistant":"user",
-content:m.content
+role: m.role==="restore" ? "assistant" : "user",
+content: m.content
 }))
 
 ]
 
 /*
-STREAMING AI RESPONSE
+STREAMING RESPONSE
 */
 
 const stream = await openai.chat.completions.create({
