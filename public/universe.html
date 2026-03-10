@@ -74,7 +74,7 @@ body{position:fixed;inset:0;}
 }
 .center>*{pointer-events:all;}
 /* Cards get their own background — no column */
-.pc{background:rgba(5,8,20,0.58);border:1px solid rgba(255,255,255,0.12);border-radius:18px;padding:16px;flex-shrink:0;}
+.pc{background:rgba(5,8,20,0.55);border:1px solid rgba(255,255,255,0.12);border-radius:18px;padding:16px;flex-shrink:0;}
 .semr{display:flex;justify-content:flex-end;gap:7px;margin-bottom:2px;align-items:center;padding:0 2px;}
 
 /* PANEL CARD — styled in panel block */
@@ -379,7 +379,7 @@ window.addEventListener('resize',()=>{
 
 // ③ Mobile-aware star count
 const isMobile=window.matchMedia('(max-width:768px)').matches||window.innerWidth<768;
-const STAR_COUNT=isMobile?80:260;
+const STAR_COUNT=isMobile?70:220;
 
 // Stars use normalised coords so they survive resize
 const STARS=Array.from({length:STAR_COUNT},()=>({
@@ -420,7 +420,7 @@ const N=[
   {id:'phys',  label:'Physics',      sub:'Gravity · Motion',   ang:.2,   orb:155, tilt:.52, r:27, col:'#fb923c', glow:'rgba(251,146,60,0.5)',  mas:78},
   {id:'math',  label:'Mathematics',  sub:'Calculus · Limits',  ang:2.45, orb:170, tilt:.52, r:26, col:'#38bdf8', glow:'rgba(56,189,248,0.5)',  mas:65},
   {id:'bio',   label:'Biology',      sub:'Evolution · Cells',  ang:3.85, orb:185, tilt:.52, r:25, col:'#4ade80', glow:'rgba(74,222,128,0.5)',  mas:55},
-  {id:'hist',  label:'History',      sub:'Civilizations',      ang:5.35, orb:200, tilt:.52, r:24, col:'#fb923c', glow:'rgba(251,146,60,0.45)', mas:48},
+  {id:'hist',  label:'History',      sub:'Civilizations',      ang:5.35, orb:205, tilt:.52, r:24, col:'#fb923c', glow:'rgba(251,146,60,0.45)', mas:48},
   {id:'astro', label:'Astronomy',    sub:'Black Holes · Stars', ang:1.1, orb:265, tilt:.47, r:26, col:'#c084fc', glow:'rgba(192,132,252,0.5)', mas:42},
   {id:'grav',  label:'Gravity',      sub:'Newton · Einstein',  ang:-.45, orb:112, tilt:.52, r:11, col:'#fb923c', glow:'rgba(251,146,60,0.4)',  mas:72},
   {id:'newt',  label:"Newton's Laws",sub:'Motion Laws',        ang:-.7,  orb:228, tilt:.52, r:10, col:'#fb923c', glow:'rgba(251,146,60,0.35)', mas:68},
@@ -534,7 +534,7 @@ function drawConns(){
     const na=N.find(n=>n.id===a),nb=N.find(n=>n.id===b);
     const isMain=a==='you'||b==='you';
     const hot=(HOV===a||HOV===b);
-    const baseAlpha=isMain?.22:.12;
+    const baseAlpha=isMain?.24:.12;
     const hotAlpha=isMain?.42:.35;
     const al=hot?hotAlpha:baseAlpha;
     const lw=(hot?(isMain?2:1.4):(isMain?1.1:.55))*Math.max(0.5,ZOOM);
@@ -644,7 +644,7 @@ function drawNode(n){
 
 // ── MAIN LOOP ─────────────────────────────────────────────────
 function loop(){
-  T++;ROT+=.00022;
+  T++;ROT+=.00018;
 
   // ⑦ Smooth hover transition
   if(HOV!==HOV_TARGET){
@@ -709,8 +709,8 @@ function findHit(cx,cy){
     const p=pos(n,ROT),dx=cx-p.x,dy=cy-p.y;
     const d=Math.sqrt(dx*dx+dy*dy);
     const zr=n.r*ZOOM;
-    if(d<zr+8) found=n.id;
-    else if(d<zr+28) near=true;
+    if(d<zr+16) found=n.id;
+    else if(d<zr+36) near=true;
   });
   // Cursor feedback: pointer = on node, crosshair = near node
   hit.style.cursor = found ? 'pointer' : near ? 'crosshair' : 'default';
