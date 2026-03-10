@@ -286,6 +286,13 @@ body{position:fixed;inset:0;}
 .tc-send:hover{transform:scale(1.08);}
 .tc-send:active{transform:scale(0.94);}
 .tc-send:disabled{opacity:0.4;cursor:default;transform:none;}
+.tc-speak{
+  background:none;border:none;cursor:pointer;
+  font-size:14px;opacity:0.65;margin-top:5px;
+  display:block;transition:opacity .15s;
+  color:#38bdf8;padding:0;line-height:1;
+}
+.tc-speak:hover{opacity:1;}
 </style>
 </head>
 <body>
@@ -955,6 +962,31 @@ document.addEventListener('wheel',e=>{
   chat.addEventListener('pointerdown', e=>e.stopPropagation());
   chat.addEventListener('wheel',       e=>e.stopPropagation(), {passive:true});
 
+  // ── VOICE ──────────────────────────────────────────────────
+  let restoreVoice = null;
+
+  function loadVoices(){
+    const voices = speechSynthesis.getVoices();
+    restoreVoice =
+      voices.find(v => v.name.includes('Google')) ||
+      voices.find(v => v.name.includes('Samantha')) ||
+      voices.find(v => v.name.includes('Microsoft')) ||
+      voices[0];
+  }
+  loadVoices();
+  speechSynthesis.onvoiceschanged = loadVoices;
+
+  function speak(text){
+    speechSynthesis.cancel(); // stop any current speech first
+    const msg = new SpeechSynthesisUtterance(text);
+    msg.voice = restoreVoice;
+    msg.rate = 1;
+    msg.pitch = 1;
+    msg.volume = 1;
+    speechSynthesis.speak(msg);
+  }
+
+  // ── MESSAGES ───────────────────────────────────────────────
   const responses = [
     "Great question! Quantum mechanics and Calculus are deeply linked — Schrödinger's equation is a differential equation at its heart. 🔬",
     "Think of wave functions like probability distributions — very similar to what you explored in Limits and Convergence! ✨",
@@ -968,10 +1000,44 @@ document.addEventListener('wheel',e=>{
   function addMsg(text, role){
     const div = document.createElement('div');
     div.className = 'tc-msg ' + role;
+
     const bub = document.createElement('div');
     bub.className = 'tc-bubble';
     bub.textContent = text;
     div.appendChild(bub);
+
+    // Speaker button + auto-speak for AI messages
+    if(role === 'ai'){
+      const speakBtn = document.createElement('button');
+      speakBtn.textContent = '🔊';
+      speakBtn.className = 'tc-speak';
+      let speaking = false;
+
+      speakBtn.onclick = () => {
+        if(speaking){
+          speechSynthesis.cancel();
+          speakBtn.textContent = '🔊';
+          speaking = false;
+        } else {
+          speak(text);
+          speakBtn.textContent = '⏹';
+          speaking = true;
+          // Reset icon when speech ends naturally
+          const check = setInterval(()=>{
+            if(!speechSynthesis.speaking){
+              speakBtn.textContent = '🔊';
+              speaking = false;
+              clearInterval(check);
+            }
+          }, 200);
+        }
+      };
+      div.appendChild(speakBtn);
+
+      // Auto-speak the AI reply
+      speak(text);
+    }
+
     msgs.appendChild(div);
     msgs.scrollTop = msgs.scrollHeight;
   }
