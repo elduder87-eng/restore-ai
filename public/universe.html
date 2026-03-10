@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, interactive-widget=resizes-visual"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-visual"/>
 <title>Restore — Your Learning Journey</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
 <style>
@@ -294,7 +294,7 @@ body{position:fixed;inset:0;}
 }
 .tc-replay:hover,.tc-speak:hover{opacity:1;}
 /* Lock layout to initial viewport — prevents keyboard reflow */
-.ui{height:var(--vh,100vh)!important;}
+.ui{height:var(--vh,100vh)!important;position:fixed!important;}
 #bg,#uni,#hit{height:var(--vh,100vh)!important;}
 </style>
 </head>
@@ -480,34 +480,43 @@ body{position:fixed;inset:0;}
 </div>
 
 <script>
-// Lock viewport height before keyboard can change it
+// Lock viewport to initial size — keyboard cannot shift it
 (function(){
   const vh = window.innerHeight;
+  const vw = window.innerWidth;
   document.documentElement.style.setProperty('--vh', vh + 'px');
+  document.documentElement.style.setProperty('--vw', vw + 'px');
+  // Keep body truly fixed
+  document.body.style.width  = vw + 'px';
+  document.body.style.height = vh + 'px';
+  document.body.style.position = 'fixed';
+  document.body.style.top = '0';
+  document.body.style.left = '0';
+  document.body.style.overflow = 'hidden';
 })();
 // ── CANVAS SETUP ─────────────────────────────────────────────
 const bg=document.getElementById('bg'),bx=bg.getContext('2d');
 const uc=document.getElementById('uni'),ux=uc.getContext('2d');
 const hit=document.getElementById('hit'); // transparent overlay for pointer events
 
-// ② Stable resize — ignore keyboard-triggered resize events
-const _initW = document.documentElement.clientWidth;
-const _initH = document.documentElement.clientHeight;
+// ② Lock canvas to initial viewport — never resize due to keyboard
+const _initW = window.innerWidth;
+const _initH = window.innerHeight;
 
 function resize(){
-  const w = document.documentElement.clientWidth;
-  const h = document.documentElement.clientHeight;
-  // If height shrank by more than 150px, it's the keyboard — ignore
-  if(h < _initH - 150) return;
-  bg.width  = uc.width  = hit.width  = w;
-  bg.height = uc.height = hit.height = h;
+  bg.width  = uc.width  = hit.width  = _initW;
+  bg.height = uc.height = hit.height = _initH;
 }
 resize();
-// Debounce resize to avoid thrashing
-let resizeTimer;
-window.addEventListener('resize',()=>{
-  clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(resize, 120);
+// Only resize on true orientation changes
+let _lastW = _initW;
+window.addEventListener('resize', ()=>{
+  const w = window.innerWidth;
+  // Only react if WIDTH changes (orientation flip), not height (keyboard)
+  if(Math.abs(w - _lastW) > 50){
+    _lastW = w;
+    location.reload(); // simplest fix for orientation change
+  }
 });
 
 // ③ Mobile-aware star count
@@ -955,6 +964,21 @@ chat.addEventListener("touchmove",   e=>e.stopPropagation(), {passive:true})
 chat.addEventListener("touchend",    e=>e.stopPropagation(), {passive:true})
 chat.addEventListener("pointerdown", e=>e.stopPropagation())
 chat.addEventListener("wheel",       e=>e.stopPropagation(), {passive:true})
+
+// When keyboard opens, float chat just above it using visualViewport
+if(window.visualViewport){
+  window.visualViewport.addEventListener('resize', ()=>{
+    const vv = window.visualViewport;
+    const keyboardH = window.innerHeight - vv.height - vv.offsetTop;
+    if(keyboardH > 100){
+      // Keyboard is open — lift chat above it
+      chat.style.bottom = (keyboardH + 8) + 'px';
+    } else {
+      // Keyboard closed — restore original position
+      chat.style.bottom = '190px';
+    }
+  });
+}
 
 let restoreVoice = null
 
