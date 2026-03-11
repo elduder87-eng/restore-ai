@@ -1,244 +1,285 @@
 import OpenAI from "openai"
 
 import {
-  addMessage,
-  getRecentMessages,
-  getUserProfile,
-  saveInterest
+addMessage,
+getRecentMessages,
+getUserProfile,
+saveInterest
 } from "@/lib/memory"
 
 import {
-  extractTopics,
-  connectTopics
+extractTopics,
+connectTopics
 } from "@/lib/curiosity"
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
+apiKey:process.env.OPENAI_API_KEY
 })
 
-export async function POST(req) {
+export async function POST(req){
 
-  try {
+try{
 
-    const body = await req.json()
+const body = await req.json()
 
-    const userMessage = body.message
-    const userId = body.userId || "demo-user"
+const userMessage = body.message
+const userId = body.userId || "demo-user"
 
-    if (!userMessage || !userMessage.trim()) {
+if(!userMessage || !userMessage.trim()){
 
-      return Response.json({
-        reply: "I didn’t catch a question there. Try asking me something.",
-        topics: [],
-        suggest: []
-      })
+return Response.json({
+reply:"I didn’t catch a question there. Try asking me something.",
+topics:[],
+suggest:[]
+})
 
-    }
+}
 
-    await addMessage(userId,"user",userMessage)
+await addMessage(userId,"user",userMessage)
 
-    const history = await getRecentMessages(userId)
+const history = await getRecentMessages(userId)
 
-    const profile = await getUserProfile(userId)
+const profile = await getUserProfile(userId)
 
-    const interests = profile?.interests || []
+const interests = profile?.interests || []
 
-    const lower = userMessage.toLowerCase()
+const lower = userMessage.toLowerCase()
 
-    /*
-    MEMORY QUESTION
-    */
+/*
+MEMORY QUESTIONS
+*/
 
-    if(
-      lower.includes("what do you remember") ||
-      lower.includes("what do you know about me")
-    ){
+if(
+lower.includes("what do you remember") ||
+lower.includes("what do you know about me")
+){
 
-      if(interests.length === 0){
+if(interests.length === 0){
 
-        return Response.json({
-          reply:"We haven't explored many ideas together yet, but as we talk I'll start remembering what topics spark your curiosity.",
-          topics:[],
-          suggest:[]
-        })
+return Response.json({
+reply:"We haven't explored many ideas together yet, but as we talk I'll start remembering what topics spark your curiosity.",
+topics:[],
+suggest:[]
+})
 
-      }
+}
 
-      const formatted = interests.map(i=>`• You enjoy ${i}`).join("\n")
+const formatted = interests.map(i=>`• You enjoy ${i}`).join("\n")
 
-      return Response.json({
-        reply:`From our conversations I remember:\n\n${formatted}\n\nThose interests might connect in interesting ways. What direction would you like to explore next?`,
-        topics: interests,
-        suggest: interests.slice(0,3)
-      })
+return Response.json({
+reply:`From our conversations I remember:\n\n${formatted}\n\nThose interests might connect in interesting ways. What direction would you like to explore next?`,
+topics:interests,
+suggest:interests.slice(0,3)
+})
 
-    }
+}
 
-    /*
-    TOPIC EXTRACTION
-    */
+/*
+TOPIC EXTRACTION
+*/
 
-    const rawTopics = extractTopics(userMessage) || []
+let rawTopics = extractTopics(userMessage) || []
 
-    const topics = [...new Set(
-      rawTopics.map(t => String(t).toLowerCase().trim())
-    )]
+const text = userMessage.toLowerCase()
 
-    await connectTopics(userId,topics)
+if(text.includes("gravity")) rawTopics.push("gravity","physics")
+if(text.includes("black hole") || text.includes("black holes")) rawTopics.push("blackholes","astronomy","physics")
+if(text.includes("astronomy")) rawTopics.push("astronomy")
+if(text.includes("physics")) rawTopics.push("physics")
+if(text.includes("history")) rawTopics.push("history")
+if(text.includes("biology")) rawTopics.push("biology")
+if(text.includes("genetics")) rawTopics.push("genetics","biology")
+if(text.includes("evolution")) rawTopics.push("evolution","biology")
+if(text.includes("philosophy")) rawTopics.push("philosophy","ethics","knowledge")
+if(text.includes("ethics")) rawTopics.push("ethics","philosophy")
+if(text.includes("knowledge")) rawTopics.push("knowledge","philosophy")
+if(text.includes("ai")) rawTopics.push("ai","technology","knowledge")
+if(text.includes("technology")) rawTopics.push("technology","ai","history")
+if(text.includes("math")) rawTopics.push("mathematics")
+if(text.includes("mathematics")) rawTopics.push("mathematics")
+if(text.includes("calculus")) rawTopics.push("calculus","mathematics")
+if(text.includes("function")) rawTopics.push("functions","mathematics")
+if(text.includes("limit")) rawTopics.push("limits","calculus")
+if(text.includes("time travel")) rawTopics.push("timetravel","physics","spacetime")
+if(text.includes("spacetime") || text.includes("space-time")) rawTopics.push("spacetime","relativity")
+if(text.includes("relativity")) rawTopics.push("relativity","physics")
+if(text.includes("cosmology")) rawTopics.push("cosmology","astronomy")
+if(text.includes("renaissance")) rawTopics.push("renaissance","history")
+if(text.includes("revolution")) rawTopics.push("revolutions","history")
 
-    for(const topic of topics){
-      await saveInterest(userId,topic)
-    }
+const topics = [...new Set(
+rawTopics.map(t=>String(t).toLowerCase().trim())
+)]
 
-    /*
-    SUGGESTION ENGINE
-    */
+await connectTopics(userId,topics)
 
-    const suggestionMap = {
+for(const topic of topics){
 
-      physics:["relativity","astronomy","gravity"],
+await saveInterest(userId,topic)
 
-      gravity:["relativity","astronomy","blackholes"],
+}
 
-      astronomy:["blackholes","cosmology","spacetime"],
+/*
+SUGGESTION ENGINE
+*/
 
-      blackholes:["astronomy","relativity","gravity"],
+const suggestionMap = {
 
-      mathematics:["calculus","limits","functions"],
+physics:["relativity","astronomy","gravity"],
 
-      calculus:["limits","functions","physics"],
+gravity:["relativity","astronomy","blackholes"],
 
-      biology:["genetics","evolution","ecosystems"],
+astronomy:["blackholes","cosmology","spacetime"],
 
-      genetics:["biology","evolution"],
+blackholes:["astronomy","relativity","gravity"],
 
-      evolution:["biology","genetics","history"],
+mathematics:["calculus","limits","functions"],
 
-      history:["revolutions","renaissance","technology"],
+calculus:["limits","functions","physics"],
 
-      revolutions:["history","politics"],
+biology:["genetics","evolution","ecosystems"],
 
-      philosophy:["ethics","knowledge","history"],
+genetics:["biology","evolution"],
 
-      ethics:["philosophy","knowledge"],
+evolution:["biology","genetics","history"],
 
-      knowledge:["philosophy","ethics"],
+history:["revolutions","renaissance","technology"],
 
-      ai:["technology","ethics","knowledge"],
+revolutions:["history","politics"],
 
-      technology:["ai","history","ethics"],
+philosophy:["ethics","knowledge","history"],
 
-      time:["relativity","spacetime","astronomy"],
+ethics:["philosophy","knowledge"],
 
-      timetravel:["relativity","spacetime","astronomy"]
+knowledge:["philosophy","ethics"],
 
-    }
+ai:["technology","ethics","knowledge"],
 
-    let suggest = []
+technology:["ai","history","ethics"],
 
-    topics.forEach(topic => {
+timetravel:["relativity","spacetime","astronomy"],
 
-      if(suggestionMap[topic]){
+spacetime:["relativity","astronomy"],
 
-        suggest.push(...suggestionMap[topic])
+relativity:["gravity","spacetime","astronomy"],
 
-      }
+cosmology:["astronomy","blackholes"],
 
-    })
+renaissance:["history","revolutions"],
 
-    suggest = [...new Set(suggest)]
-      .filter(s => !topics.includes(s))
-      .slice(0,3)
+functions:["calculus","mathematics"],
 
-    /*
-    SYSTEM PROMPT
-    */
+limits:["calculus","mathematics"],
 
-    const systemPrompt = `
+ecosystems:["biology","evolution"]
+
+}
+
+let suggest = []
+
+for(const topic of topics){
+
+if(suggestionMap[topic]){
+
+suggest.push(...suggestionMap[topic])
+
+}
+
+}
+
+suggest = [...new Set(suggest)]
+.filter(s=>!topics.includes(s))
+.slice(0,3)
+
+/*
+SYSTEM PROMPT
+*/
+
+const systemPrompt = `
 
 You are Restore.
 
-Restore is a curiosity companion designed to help users explore ideas.
+Restore is a curiosity guide that helps users explore ideas and connect knowledge.
 
-Communication style:
-
+Your style:
 • thoughtful
 • curious
 • conversational
 • reflective
+• encouraging
 
 Rules:
-
 • keep responses concise
 • avoid long lectures
-• guide curiosity
 • ask follow-up questions
+• connect ideas across subjects
 
 User interests:
 ${interests.join(", ") || "unknown"}
 
 `
 
-    const messages = [
+const messages = [
 
-      {role:"system",content:systemPrompt},
+{role:"system",content:systemPrompt},
 
-      ...history.map(m=>({
-        role:m.role==="restore"?"assistant":"user",
-        content:m.content
-      }))
+...history.map(m=>({
+role:m.role==="restore"?"assistant":"user",
+content:m.content
+}))
 
-    ]
+]
 
-    /*
-    AI RESPONSE
-    */
+/*
+AI RESPONSE
+*/
 
-    const completion = await openai.chat.completions.create({
+const completion = await openai.chat.completions.create({
 
-      model:"gpt-4o-mini",
+model:"gpt-4o-mini",
 
-      messages,
+messages,
 
-      temperature:0.8
+temperature:0.8
 
-    })
+})
 
-    const reply = completion.choices?.[0]?.message?.content?.trim() ||
-      "I had a thought but lost the thread. Could you ask that again?"
+const reply =
+completion.choices?.[0]?.message?.content?.trim() ||
+"I had a thought but lost the thread. Ask that again."
 
-    await addMessage(userId,"restore",reply)
+await addMessage(userId,"restore",reply)
 
-    /*
-    FINAL RESPONSE
-    */
+/*
+FINAL RESPONSE
+*/
 
-    return Response.json({
+return Response.json({
 
-      reply,
+reply,
 
-      topics,
+topics,
 
-      suggest
+suggest
 
-    })
+})
 
-  }
+}
 
-  catch(err){
+catch(err){
 
-    console.error(err)
+console.error(err)
 
-    return Response.json({
+return Response.json({
 
-      reply:"Hmm… something interrupted my thinking. Could you try asking that again?",
+reply:"Hmm… something interrupted my thinking. Could you try asking that again?",
 
-      topics:[],
+topics:[],
 
-      suggest:[]
+suggest:[]
 
-    })
+})
 
-  }
+}
 
 }
