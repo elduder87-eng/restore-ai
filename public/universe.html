@@ -931,23 +931,33 @@ async function testAI(){
 }
 
 function resetChat(e){
-  const event=e;
   const msgs = document.getElementById('tcMsgs');
   if(msgs){
-    msgs.innerHTML = '<div class="tc-msg ai"><div class="tc-bubble">Hey Alex! Ready to explore something new? What are you curious about today? 🌌</div></div>';
-    msgs.style.setProperty('height','300px','important');
+    // Build fresh greeting via DOM (avoids innerHTML quote escaping issues)
+    msgs.innerHTML = '';
+    const wrap = document.createElement('div');
+    wrap.className = 'tc-msg ai';
+    const bubble = document.createElement('div');
+    bubble.className = 'tc-bubble';
+    bubble.textContent = 'Hey Alex! Ready to explore something new? What are you curious about today? 🌌';
+    wrap.appendChild(bubble);
+    msgs.appendChild(wrap);
+    msgs.style.setProperty('height','420px','important');
     msgs.scrollTop = 0;
   }
   sessionMsgs = 0;
   const el = document.getElementById('statMsgs');
   if(el) el.textContent = '0';
-  // Visual confirmation
-  const btn = event && event.target;
-  if(btn){ const orig=btn.textContent; btn.textContent='✅ Reset!'; setTimeout(()=>btn.textContent=orig,1500); }
+  // Visual confirmation on the button
+  const btn = e && e.target ? e.target : (e && e.currentTarget ? e.currentTarget : null);
+  if(btn && btn.tagName === 'BUTTON'){
+    const orig = btn.textContent;
+    btn.textContent = '✅ Chat Reset!';
+    setTimeout(()=>{ btn.textContent = orig; }, 1500);
+  }
 }
 
 function resetGalaxy(e){
-  const event=e;
   if(typeof N !== 'undefined') N.forEach(n=>{ n.mas=0; n.highlight=false; n.pulse=false; });
   sessionTopics = 0;
   sessionPulse = 0;
@@ -956,9 +966,12 @@ function resetGalaxy(e){
   if(t) t.textContent = '0';
   if(p) p.textContent = '0';
   if(typeof refreshGrowth === 'function') refreshGrowth();
-  // Visual confirmation
-  const btn = event && event.target;
-  if(btn){ const orig=btn.textContent; btn.textContent='✅ Reset!'; setTimeout(()=>btn.textContent=orig,1500); }
+  const btn = e && e.target ? e.target : (e && e.currentTarget ? e.currentTarget : null);
+  if(btn && btn.tagName === 'BUTTON'){
+    const orig = btn.textContent;
+    btn.textContent = '✅ Galaxy Reset!';
+    setTimeout(()=>{ btn.textContent = orig; }, 1500);
+  }
 }
 
 // Track stats — patch into existing highlight/pulse functions
