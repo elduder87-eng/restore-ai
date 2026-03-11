@@ -573,6 +573,57 @@ function CY(){
   return topH+avail*(isMobile?0.50:0.48);
 }
 
+
+// ── TOPIC → NODE MAP ──────────────────────────────────────────
+const topicNodeMap = {
+  physics:"phys", gravity:"grav", relativity:"rel",
+  astronomy:"astro", blackholes:"bh", spacetime:"st",
+  cosmology:"cosmo", math:"math", calculus:"calc",
+  biology:"bio", genetics:"gen", evolution:"evol",
+  history:"hist", revolutions:"rev", renaissance:"ren"
+};
+
+
+// ── GALAXY INTERACTION FUNCTIONS ──────────────────────────────
+function highlightNodes(topics){
+  topics.forEach(topic=>{
+    const nodeId = topicNodeMap[topic.toLowerCase()] || topic;
+    const node = N.find(n=>n.id===nodeId);
+    if(node){
+      node.highlight = true;
+      setTimeout(()=>{ node.highlight = false; }, 3000);
+    }
+  });
+}
+
+function pulseNodes(suggest){
+  suggest.forEach(topic=>{
+    const nodeId = topicNodeMap[topic.toLowerCase()] || topic;
+    const node = N.find(n=>n.id===nodeId);
+    if(node){
+      node.pulse = true;
+      setTimeout(()=>{ node.pulse = false; }, 4000);
+    }
+  });
+}
+
+function updateMastery(topics){
+  topics.forEach(topic=>{
+    const nodeId = topicNodeMap[topic.toLowerCase()] || topic;
+    const node = N.find(n=>n.id===nodeId);
+    if(node){
+      node.mas = Math.min(100,(node.mas||0)+2);
+    }
+  });
+}
+
+function refreshGrowth(){
+  const total = N.reduce((sum,n)=>sum+(n.mas||0),0);
+  const avg = Math.round(total/N.length);
+  const el = document.querySelectorAll('.grwt')[0];
+  if(el) el.textContent = '↑ '+avg+'%';
+}
+
 // ── NODE DATA ─────────────────────────────────────────────────
 const N=[
   {id:'you',   label:'YOU',           sub:'Your Understanding', ang:0,    orb:0,   tilt:1,   r:34, col:'#fde68a', glow:'rgba(253,230,138,0.55)',mas:100},
@@ -929,10 +980,20 @@ loop();
     addMsg(text,'user');input.value='';btn.disabled=true;
     const typing=showTyping();
     try{
-      const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,userId:'demo-user'})});
+      // Build history from displayed messages
+      const bubbles=[...document.querySelectorAll('#tcMsgs .tc-msg')];
+      const history=bubbles.slice(-10).map(el=>({
+        role:el.classList.contains('user')?'user':'assistant',
+        content:el.querySelector('.tc-bubble')?.textContent||''
+      }));
+      const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history,userId:'demo-user'})});
       if(!res.ok)throw new Error();
       const data=await res.json();
       typing.remove();addMsg(data.reply,'ai');
+      highlightNodes(data.topics || []);
+      pulseNodes(data.suggest || []);
+      updateMastery(data.topics || []);
+      refreshGrowth();
     }catch(e){
       setTimeout(()=>{
         typing.remove();
