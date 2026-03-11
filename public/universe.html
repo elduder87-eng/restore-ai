@@ -2,583 +2,71 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes"/>
-<title>Restore — Your Learning Journey</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, maximum-scale=5.0, interactive-widget=resizes-visual"/>
+<title>Restore \u2014 Your Learning Journey</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
-  --bg:#05080f;--text:#e2e8f0;--muted:#64748b;
+  --bg:#05080f;--border:rgba(255,255,255,0.08);
+  --text:#e2e8f0;--muted:#64748b;
   --blue:#38bdf8;--green:#4ade80;--purple:#c084fc;
   --gold:#fbbf24;--red:#f87171;--teal:#2dd4bf;--orange:#fb923c;
-  --border:rgba(255,255,255,0.08);
-  --panel:rgba(5,8,20,0.6);
 }
-html,body{
-  width:100%;height:100%;
-  overflow:hidden;
-  background:var(--bg);
-  font-family:'Inter',sans-serif;
-  color:var(--text);
-  overscroll-behavior:none;
-}
+html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none;
+  background:var(--bg);font-family:'Inter',sans-serif;color:var(--text);}
+body{position:fixed;inset:0;}
 
-/* CANVAS */
-#bgCanvas{position:fixed;inset:0;z-index:0;}
-#galaxyCanvas{position:fixed;inset:0;z-index:1;pointer-events:none;}
-
-/* TOOLTIP */
-#tip{
-  position:fixed;z-index:9000;
-  background:rgba(5,8,20,0.95);
-  border:1px solid rgba(255,255,255,0.15);
-  border-radius:10px;padding:8px 12px;
-  font-size:12px;pointer-events:none;
-  opacity:0;transition:opacity .15s;max-width:160px;
-}
+#bg{position:fixed;inset:0;z-index:0;}
+#uni{position:fixed;inset:0;z-index:1;pointer-events:none;}
+#hit{position:fixed;inset:0;z-index:5;pointer-events:all;touch-action:pan-x pan-y;background:transparent;}
+.ui{position:fixed;inset:0;z-index:25;display:grid;grid-template-rows:56px 1fr;pointer-events:none;}
+.ui>*{pointer-events:all;}
 
 /* TOPBAR */
-#topbar{
-  position:fixed;top:0;left:0;right:0;height:56px;
-  background:rgba(5,8,15,0.9);
-  border-bottom:1px solid var(--border);
-  backdrop-filter:blur(12px);
-  display:flex;align-items:center;
-  padding:0 14px;gap:10px;
-  z-index:500;
-}
-.brand{display:flex;align-items:center;gap:8px;flex-shrink:0;}
-.brand-icon{width:30px;height:30px;background:linear-gradient(135deg,#38bdf8,#818cf8);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;}
-.brand-name{font-size:14px;font-weight:700;}
-.brand-sub{font-size:9px;color:var(--muted);}
-.nav{display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;flex:1;}
+.topbar{display:flex;align-items:center;padding:0 16px;gap:12px;
+  background:rgba(5,8,15,0.8);border-bottom:1px solid var(--border);height:56px;}
+.brand{display:flex;align-items:center;gap:8px;min-width:0;flex-shrink:0;}
+.brand-icon{width:34px;height:34px;flex-shrink:0;border-radius:50%;
+  background:conic-gradient(from 180deg,#38bdf8,#818cf8,#c084fc,#38bdf8);
+  display:flex;align-items:center;justify-content:center;
+  animation:spin 10s linear infinite;font-size:14px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.brand-name{font-size:16px;font-weight:800;color:#fff;letter-spacing:-.02em;white-space:nowrap;}
+.brand-sub{font-size:10px;color:var(--muted);}
+.nav{display:flex;gap:2px;flex:1;justify-content:center;overflow-x:auto;scrollbar-width:none;}
 .nav::-webkit-scrollbar{display:none;}
-.nb{background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:20px;color:var(--muted);font-size:11px;font-weight:500;padding:5px 11px;cursor:pointer;white-space:nowrap;font-family:'Inter',sans-serif;transition:all .2s;}
-.nb:active{transform:scale(0.95);}
-.nb.active{background:rgba(56,189,248,0.15);border-color:rgba(56,189,248,0.4);color:var(--blue);}
-.av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.nb{padding:6px 14px;border-radius:24px;font-size:12px;font-weight:500;color:var(--muted);
+  background:none;border:1px solid transparent;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s;white-space:nowrap;}
+.nb.active{background:rgba(255,255,255,0.1);color:#fff;border-color:rgba(255,255,255,0.15);}
+.tr{display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0;}
+.av{display:flex;align-items:center;gap:6px;}
+.av-img{width:28px;height:28px;border-radius:50%;
+  background:linear-gradient(135deg,#818cf8,#c084fc);border:2px solid rgba(255,255,255,0.2);flex-shrink:0;}
+.av-name{font-size:12px;font-weight:500;color:#fff;white-space:nowrap;}
+.ib{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.07);
+  border:1px solid var(--border);display:flex;align-items:center;justify-content:center;
+  font-size:13px;cursor:pointer;flex-shrink:0;}
+
+/* MAIN LAYOUT */
+.main{display:grid;grid-template-columns:240px 1fr 255px;height:100%;gap:0;overflow:hidden;}
 
 /* PANELS */
-.panel{
-  position:fixed;top:66px;bottom:10px;
-  background:var(--panel);
-  border:1px solid var(--border);
-  border-radius:16px;
-  padding:12px;
-  overflow-y:auto;
-  scrollbar-width:none;
-  z-index:10;
-}
-.panel::-webkit-scrollbar{display:none;}
-.panel.left{left:8px;width:270px;}
-.panel.right{right:8px;width:275px;}
-.sec-title{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;}
-.card{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:8px;}
-.prog-bar{height:3px;background:rgba(255,255,255,0.08);border-radius:2px;margin-top:5px;}
-.prog-fill{height:100%;border-radius:2px;}
-.lm-item{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);}
-.lm-item:last-child{border-bottom:none;}
-.lm-icon{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;}
-.lm-title{font-size:11px;font-weight:600;line-height:1.3;}
-.lm-sub{font-size:10px;color:var(--muted);}
+.left,.right{
+  background:rgba(5,8,20,0.55);border-right:1px solid var(--border);
+  overflow-y:auto;scrollbar-width:none;padding:14px 12px;}
+.left::-webkit-scrollbar,.right::-webkit-scrollbar{display:none;}
+.right{border-right:none;border-left:1px solid var(--border);}
 
-/* CHAT */
-#chat{
-  position:fixed;
-  bottom:125px;left:8px;right:8px;
-  height:min(370px,38vh);
-  background:rgba(5,8,20,0.93);
-  border:1px solid rgba(255,255,255,0.12);
-  border-radius:18px;
-  display:flex;flex-direction:column;
-  z-index:200;
-  overflow:hidden;
-  transition:bottom .2s;
-}
-#chatHead{
-  display:flex;align-items:center;gap:10px;
-  padding:11px 14px;
-  border-bottom:1px solid var(--border);
-  flex-shrink:0;
-}
-#chatMsgs{
-  flex:1;overflow-y:auto;
-  padding:10px;
-  display:flex;flex-direction:column;gap:7px;
-  scrollbar-width:none;
-}
-#chatMsgs::-webkit-scrollbar{display:none;}
-#chatFooter{
-  display:flex;align-items:center;gap:8px;
-  padding:9px 11px;
-  border-top:1px solid var(--border);
-  flex-shrink:0;
-}
-#chatInput{
-  flex:1;background:rgba(255,255,255,0.07);
-  border:1px solid var(--border);border-radius:18px;
-  color:var(--text);font-size:14px;
-  padding:8px 13px;font-family:'Inter',sans-serif;outline:none;
-}
-#chatSend{
-  width:34px;height:34px;border-radius:50%;
-  background:linear-gradient(135deg,#38bdf8,#6366f1);
-  border:none;color:white;font-size:15px;
-  cursor:pointer;flex-shrink:0;
-}
-.msg{display:flex;flex-direction:column;max-width:86%;}
-.msg.user{align-self:flex-end;}
-.msg.ai{align-self:flex-start;}
-.bubble{padding:8px 11px;border-radius:13px;font-size:13px;line-height:1.5;}
-.msg.user .bubble{background:rgba(56,189,248,0.18);border:1px solid rgba(56,189,248,0.3);}
-.msg.ai .bubble{background:rgba(255,255,255,0.07);border:1px solid var(--border);}
-.typing{display:flex;gap:4px;padding:8px 11px;}
-.typing span{width:5px;height:5px;border-radius:50%;background:var(--muted);animation:bounce .9s infinite;}
-.typing span:nth-child(2){animation-delay:.2s;}
-.typing span:nth-child(3){animation-delay:.4s;}
-@keyframes bounce{0%,60%,100%{transform:translateY(0);}30%{transform:translateY(-5px);}}
+.center{display:flex;flex-direction:column;position:relative;pointer-events:none;}
+.center>*{pointer-events:all;}
 
-/* BOTTOM BARS */
-#thinkBar{
-  position:fixed;bottom:62px;left:8px;right:8px;
-  background:var(--panel);border:1px solid var(--border);
-  border-radius:12px;padding:9px 12px;z-index:10;
-}
-#statsBar{
-  position:fixed;bottom:6px;left:8px;right:8px;
-  background:var(--panel);border:1px solid var(--border);
-  border-radius:12px;padding:7px 12px;
-  display:flex;align-items:center;gap:6px;z-index:10;
-}
-.think-row{display:flex;align-items:center;justify-content:space-between;gap:3px;margin-top:7px;}
-.think-node{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;}
-.think-icon{width:28px;height:28px;border-radius:50%;border:2px solid;display:flex;align-items:center;justify-content:center;font-size:13px;}
-.think-lbl{font-size:8px;font-weight:600;text-align:center;}
-.think-arr{color:var(--muted);font-size:9px;}
-.stat-item{display:flex;flex-direction:column;align-items:center;flex:1;}
-.stat-n{font-size:14px;font-weight:700;}
-.stat-l{font-size:8px;color:var(--muted);}
-.frontier{display:flex;align-items:center;gap:6px;margin-left:6px;padding-left:6px;border-left:1px solid var(--border);}
-.online-dot{width:7px;height:7px;border-radius:50%;background:#4ade80;box-shadow:0 0 5px #4ade80;flex-shrink:0;}
-</style>
-</head>
-<body>
-
-<canvas id="bgCanvas"></canvas>
-<canvas id="galaxyCanvas"></canvas>
-<div id="tip"></div>
-
-<!-- TOPBAR -->
-<div id="topbar">
-  <div class="brand">
-    <div class="brand-icon">✦</div>
-    <div><div class="brand-name">Restore</div><div class="brand-sub">Your Learning Journey</div></div>
-  </div>
-  <nav class="nav">
-    <button class="nb active">Journey</button>
-    <button class="nb">Dashboard</button>
-    <button class="nb">Curiosity</button>
-    <button class="nb">Connections</button>
-  </nav>
-  <div class="av">A</div>
-</div>
-
-<!-- LEFT PANEL -->
-<div class="panel left">
-  <div class="sec-title">Current Focus</div>
-  <div class="card">
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-      <div style="width:26px;height:26px;border-radius:7px;background:rgba(96,165,250,0.2);display:flex;align-items:center;justify-content:center;font-size:13px;">⚛</div>
-      <div><div style="font-size:12px;font-weight:600;">Quantum Physics</div><div style="font-size:10px;color:var(--muted);">Deep Exploration</div></div>
-    </div>
-    <div class="prog-bar"><div class="prog-fill" style="width:68%;background:var(--blue);"></div></div>
-    <button style="width:100%;margin-top:8px;padding:6px;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:11px;cursor:pointer;font-family:'Inter',sans-serif;">Continue Journey →</button>
-  </div>
-  <div class="sec-title" style="margin-top:8px;">Curiosity Feed</div>
-  <div class="lm-item"><div class="online-dot" style="background:var(--blue);box-shadow:none;"></div><div><div class="lm-title">What is consciousness?</div><div class="lm-sub">23 min ago</div></div></div>
-  <div class="lm-item"><div class="online-dot" style="background:var(--green);box-shadow:none;"></div><div><div class="lm-title">How did life begin?</div><div class="lm-sub">1 hour ago</div></div></div>
-  <div class="lm-item"><div class="online-dot" style="background:var(--purple);box-shadow:none;"></div><div><div class="lm-title">Time travel possible?</div><div class="lm-sub">3 hours ago</div></div></div>
-  <div class="sec-title" style="margin-top:10px;">Growth</div>
-  <div style="display:flex;flex-direction:column;gap:5px;">
-    <div><div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px;"><span style="color:var(--green);">● Understanding</span><span style="color:var(--muted);">78%</span></div><div class="prog-bar"><div class="prog-fill" style="width:78%;background:var(--green);"></div></div></div>
-    <div><div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px;"><span style="color:var(--gold);">● Curiosity</span><span style="color:var(--muted);">91%</span></div><div class="prog-bar"><div class="prog-fill" style="width:91%;background:var(--gold);"></div></div></div>
-    <div><div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px;"><span style="color:var(--purple);">● Connections</span><span style="color:var(--muted);">64%</span></div><div class="prog-bar"><div class="prog-fill" style="width:64%;background:var(--purple);"></div></div></div>
-    <div><div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px;"><span style="color:var(--red);">● Confusion</span><span style="color:var(--muted);">22%</span></div><div class="prog-bar"><div class="prog-fill" style="width:22%;background:var(--red);"></div></div></div>
-  </div>
-</div>
-
-<!-- RIGHT PANEL -->
-<div class="panel right">
-  <div class="sec-title">Learning Moments</div>
-  <div class="lm-item"><div class="lm-icon" style="background:rgba(251,191,36,0.15);">💡</div><div><div class="lm-title">Breakthrough Click</div><div class="lm-sub" style="color:var(--gold);">Physics → Space</div></div></div>
-  <div class="lm-item"><div class="lm-icon" style="background:rgba(56,189,248,0.15);">🔗</div><div><div class="lm-title">Connected: Math & Philosophy</div><div class="lm-sub" style="color:var(--blue);">Cross-domain link</div></div></div>
-  <div class="lm-item"><div class="lm-icon" style="background:rgba(192,132,252,0.15);">⚡</div><div><div class="lm-title">Curiosity Spike</div><div class="lm-sub" style="color:var(--purple);">Astronomy cluster</div></div></div>
-  <div class="lm-item"><div class="lm-icon" style="background:rgba(74,222,128,0.15);">✓</div><div><div class="lm-title">Mastered: Calculus</div><div class="lm-sub" style="color:var(--green);">Mathematics node</div></div></div>
-  <button style="width:100%;margin-top:6px;padding:6px;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:7px;color:var(--muted);font-size:11px;cursor:pointer;font-family:'Inter',sans-serif;">View Full History</button>
-</div>
-
-<!-- TEACHER CHAT -->
-<div id="chat">
-  <div id="chatHead">
-    <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;">🎓</div>
-    <div style="flex:1;">
-      <div style="font-size:13px;font-weight:600;">Restore Guide</div>
-      <div style="font-size:10px;color:var(--muted);display:flex;align-items:center;gap:4px;"><div class="online-dot"></div>Online · Teacher Mode</div>
-    </div>
-  </div>
-  <div id="chatMsgs">
-    <div class="msg ai"><div class="bubble">Hey Alex! You're deep into Quantum Physics — want me to connect it to something you already know well, like Calculus or Relativity? 🌌</div></div>
-  </div>
-  <div id="chatFooter">
-    <input id="chatInput" placeholder="Ask your Restore Guide…" autocomplete="off"/>
-    <button id="chatSend">➤</button>
-  </div>
-</div>
-
-<!-- THINKING BAR -->
-<div id="thinkBar">
-  <div class="sec-title" style="margin-bottom:0;">Your Thinking Evolution</div>
-  <div class="think-row">
-    <div class="think-node"><div class="think-icon" style="border-color:var(--blue);background:rgba(56,189,248,0.1);">💙</div><div class="think-lbl" style="color:var(--blue);">Curious</div></div>
-    <div class="think-arr">→</div>
-    <div class="think-node"><div class="think-icon" style="border-color:var(--red);background:rgba(248,113,113,0.1);">❤️</div><div class="think-lbl" style="color:var(--red);">Confused</div></div>
-    <div class="think-arr">→</div>
-    <div class="think-node"><div class="think-icon" style="border-color:var(--green);background:rgba(74,222,128,0.1);">💚</div><div class="think-lbl" style="color:var(--green);">Reflecting</div></div>
-    <div class="think-arr">→</div>
-    <div class="think-node"><div class="think-icon" style="border-color:var(--gold);background:rgba(251,191,36,0.1);">💛</div><div class="think-lbl" style="color:var(--gold);">Connecting</div></div>
-    <div class="think-arr">→</div>
-    <div class="think-node"><div class="think-icon" style="border-color:var(--text);background:rgba(226,232,240,0.06);">🤍</div><div class="think-lbl" style="color:var(--text);">Mastering</div></div>
-  </div>
-</div>
-
-<!-- STATS BAR -->
-<div id="statsBar">
-  <div class="stat-item"><div class="stat-n" style="color:var(--green);">🧩 142</div><div class="stat-l">Learning Moments</div></div>
-  <div class="stat-item"><div class="stat-n" style="color:var(--blue);">🔭 36</div><div class="stat-l">Topics Explored</div></div>
-  <div class="stat-item"><div class="stat-n" style="color:var(--gold);">⚡ 12</div><div class="stat-l">Breakthroughs</div></div>
-  <div class="frontier"><div style="font-size:18px;">🌌</div><div><div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;">Next Frontier</div><div style="font-size:11px;font-weight:600;color:var(--gold);">Theory of Everything</div></div></div>
-</div>
-
-<script>
-// ── NODES ──────────────────────────────────────────────────────
-const N=[
-  {id:'you',    label:'YOU',         sub:'Your Understanding', r:28, col:'#fde68a', glow:'rgba(253,230,138,0.4)', orb:0,   ang:0,   tilt:1,   mas:0},
-  {id:'phys',   label:'Physics',     sub:'42% mastery',        r:22, col:'#60a5fa', glow:'rgba(96,165,250,0.35)',  orb:155, ang:0.3, tilt:.52, mas:42},
-  {id:'math',   label:'Mathematics', sub:'78% mastery',        r:20, col:'#818cf8', glow:'rgba(129,140,248,0.35)',orb:170, ang:1.8, tilt:.52, mas:78},
-  {id:'bio',    label:'Biology',     sub:'55% mastery',        r:19, col:'#4ade80', glow:'rgba(74,222,128,0.35)', orb:185, ang:3.4, tilt:.52, mas:55},
-  {id:'hist',   label:'History',     sub:'31% mastery',        r:18, col:'#fb923c', glow:'rgba(251,146,60,0.35)', orb:205, ang:5.1, tilt:.52, mas:31},
-  {id:'astro',  label:'Astronomy',   sub:'28% mastery',        r:16, col:'#2dd4bf', glow:'rgba(45,212,191,0.3)',  orb:265, ang:2.2, tilt:.47, mas:28},
-  {id:'calc',   label:'Calculus',    sub:'82% mastery',        r:13, col:'#c084fc', glow:'rgba(192,132,252,0.3)', orb:112, ang:0.9, tilt:.55, mas:82},
-  {id:'qp',     label:'Quantum',     sub:'35% mastery',        r:15, col:'#38bdf8', glow:'rgba(56,189,248,0.3)',  orb:128, ang:4.2, tilt:.50, mas:35},
-  {id:'relat',  label:'Relativity',  sub:'35% mastery',        r:13, col:'#f472b6', glow:'rgba(244,114,182,0.3)', orb:195, ang:0.6, tilt:.48, mas:35},
-  {id:'cosmo',  label:'Cosmology',   sub:'22% mastery',        r:12, col:'#818cf8', glow:'rgba(129,140,248,0.25)',orb:230, ang:3.8, tilt:.45, mas:22},
-  {id:'evol',   label:'Evolution',   sub:'48% mastery',        r:12, col:'#4ade80', glow:'rgba(74,222,128,0.25)', orb:145, ang:2.9, tilt:.54, mas:48},
-  {id:'grav',   label:'Gravity',     sub:'61% mastery',        r:11, col:'#60a5fa', glow:'rgba(96,165,250,0.25)', orb:108, ang:3.5, tilt:.52, mas:61},
-  {id:'ethics', label:'Ethics',      sub:'44% mastery',        r:11, col:'#fbbf24', glow:'rgba(251,191,36,0.25)', orb:280, ang:1.1, tilt:.44, mas:44},
-  {id:'genes',  label:'Genetics',    sub:'39% mastery',        r:10, col:'#34d399', glow:'rgba(52,211,153,0.25)', orb:160, ang:4.8, tilt:.53, mas:39},
-  {id:'eco',    label:'Ecosystems',  sub:'33% mastery',        r:10, col:'#4ade80', glow:'rgba(74,222,128,0.2)',  orb:220, ang:3.1, tilt:.51, mas:33},
-  {id:'newt',   label:"Newton's",    sub:'71% mastery',        r:10, col:'#fb923c', glow:'rgba(251,146,60,0.2)',  orb:145, ang:5.8, tilt:.50, mas:71},
-  {id:'renais', label:'Renaissance', sub:'26% mastery',        r:9,  col:'#f87171', glow:'rgba(248,113,113,0.2)',orb:255, ang:5.5, tilt:.48, mas:26},
-  {id:'revol',  label:'Revolutions', sub:'29% mastery',        r:9,  col:'#fb923c', glow:'rgba(251,146,60,0.2)',  orb:300, ang:4.4, tilt:.46, mas:29},
-  {id:'st',     label:'Space-Time',  sub:'19% mastery',        r:11, col:'#a78bfa', glow:'rgba(167,139,250,0.25)',orb:345, ang:2.7, tilt:.42, mas:19},
-  {id:'knw',    label:'Knowledge',   sub:'67% mastery',        r:10, col:'#6ee7b7', glow:'rgba(110,231,183,0.2)',orb:95,  ang:1.5, tilt:.56, mas:67},
-  {id:'phil',   label:'Philosophy',  sub:'41% mastery',        r:10, col:'#c084fc', glow:'rgba(192,132,252,0.2)',orb:310, ang:0.4, tilt:.43, mas:41},
-  {id:'chem',   label:'Chemistry',   sub:'37% mastery',        r:10, col:'#fcd34d', glow:'rgba(252,211,77,0.2)', orb:175, ang:2.1, tilt:.53, mas:37},
-  {id:'neuro',  label:'Neuroscience',sub:'24% mastery',        r:9,  col:'#f9a8d4', glow:'rgba(249,168,212,0.2)',orb:235, ang:1.6, tilt:.49, mas:24},
-];
-
-const CONNS=[
-  ['you','phys'],['you','math'],['you','bio'],['you','hist'],['you','calc'],['you','qp'],
-  ['phys','qp'],['phys','relat'],['phys','grav'],['phys','astro'],
-  ['math','calc'],['math','phys'],['math','knw'],
-  ['bio','evol'],['bio','genes'],['bio','eco'],['bio','neuro'],
-  ['hist','revol'],['hist','renais'],['hist','ethics'],
-  ['qp','relat'],['qp','cosmo'],['astro','cosmo'],['astro','st'],
-  ['relat','grav'],['relat','st'],['calc','grav'],
-  ['cosmo','st'],['ethics','phil'],['phil','knw'],
-];
-
-// ── CANVAS ─────────────────────────────────────────────────────
-const bgC=document.getElementById('bgCanvas'), bgX=bgC.getContext('2d');
-const glC=document.getElementById('galaxyCanvas'), glX=glC.getContext('2d');
-let W,H,CX,CY;
-
-function resize(){
-  W=bgC.width=glC.width=window.innerWidth;
-  H=bgC.height=glC.height=window.innerHeight;
-  CX=W*0.5; CY=H*(W<600?.44:.46);
-}
-resize();
-window.addEventListener('resize',resize);
-
-// ── STARS ──────────────────────────────────────────────────────
-const STARS=Array.from({length:180},()=>({
-  x:Math.random(),y:Math.random(),
-  r:Math.random()*1.2+0.3,
-  a:Math.random(),spd:Math.random()*.0004+.0001
-}));
-
-// ── SPARKS ─────────────────────────────────────────────────────
-const SPARKS=Array.from({length:30},()=>newSpark());
-function newSpark(){
-  const n=N[Math.floor(Math.random()*N.length)];
-  return{nid:n.id,ang:Math.random()*Math.PI*2,orb:n.orb,tilt:n.tilt,
-    life:0,maxLife:80+Math.random()*120,r:Math.random()*1.5+0.4,col:n.col};
-}
-
-// ── STATE ──────────────────────────────────────────────────────
-let ROT=0,T=0,HOV=null;
-
-function nodePos(n,r){
-  if(n.orb===0) return{x:CX,y:CY};
-  const a=n.ang+r;
-  return{x:CX+Math.cos(a)*n.orb, y:CY+Math.sin(a)*n.orb*n.tilt};
-}
-
-// ── BACKGROUND ─────────────────────────────────────────────────
-function drawBg(){
-  const g=bgX.createRadialGradient(CX,CY,0,CX,CY,Math.max(W,H)*.7);
-  g.addColorStop(0,'rgba(15,20,40,1)');
-  g.addColorStop(.5,'rgba(8,12,25,1)');
-  g.addColorStop(1,'rgba(5,8,15,1)');
-  bgX.fillStyle=g; bgX.fillRect(0,0,W,H);
-  STARS.forEach(s=>{
-    const tw=0.4+0.6*Math.abs(Math.sin(T*s.spd*10));
-    bgX.beginPath(); bgX.arc(s.x*W,s.y*H,s.r,0,Math.PI*2);
-    bgX.fillStyle=`rgba(190,210,255,${s.a*tw*.7})`; bgX.fill();
-  });
-}
-
-// ── GALAXY ─────────────────────────────────────────────────────
-function drawGalaxy(){
-  glX.clearRect(0,0,W,H);
-
-  // Nebula
-  [[280,.07,'rgba(120,80,20,'],[170,.13,'rgba(200,130,30,'],[95,.22,'rgba(255,180,60,'],[50,.40,'rgba(255,210,90,'],[25,.68,'rgba(255,240,160,']].forEach(([r,a,c])=>{
-    const g=glX.createRadialGradient(CX,CY,0,CX,CY,r);
-    g.addColorStop(0,c+a+')'); g.addColorStop(.5,c+(a*.25)+')'); g.addColorStop(1,'transparent');
-    glX.beginPath(); glX.arc(CX,CY,r,0,Math.PI*2); glX.fillStyle=g; glX.fill();
-  });
-
-  // Orbits
-  N.filter(n=>n.orb>0).forEach(n=>{
-    const hot=HOV===n.id;
-    glX.beginPath(); glX.ellipse(CX,CY,n.orb,n.orb*n.tilt,0,0,Math.PI*2);
-    glX.strokeStyle=hot?'rgba(255,255,255,0.16)':'rgba(255,255,255,0.04)';
-    glX.lineWidth=hot?1:0.5; glX.stroke();
-  });
-
-  // Connections
-  CONNS.forEach(([a,b])=>{
-    const na=N.find(n=>n.id===a), nb=N.find(n=>n.id===b);
-    if(!na||!nb) return;
-    const pa=nodePos(na,ROT), pb=nodePos(nb,ROT);
-    const hot=HOV===a||HOV===b;
-    const main=na.orb<200||nb.orb<200;
-    glX.beginPath(); glX.moveTo(pa.x,pa.y); glX.lineTo(pb.x,pb.y);
-    glX.strokeStyle=hot?(main?'rgba(255,255,255,0.42)':'rgba(255,255,255,0.28)'):(main?'rgba(255,255,255,0.1)':'rgba(255,255,255,0.05)');
-    glX.lineWidth=hot?(main?1.8:1.2):(main?0.9:0.5); glX.stroke();
-  });
-
-  // Sparks
-  SPARKS.forEach((s,i)=>{
-    s.life++;
-    if(s.life>s.maxLife){ SPARKS[i]=newSpark(); return; }
-    const a=s.ang+ROT+s.life*.02;
-    const x=CX+Math.cos(a)*s.orb, y=CY+Math.sin(a)*s.orb*s.tilt;
-    const alpha=Math.sin((s.life/s.maxLife)*Math.PI)*.65;
-    glX.beginPath(); glX.arc(x,y,s.r,0,Math.PI*2);
-    glX.fillStyle=s.col.replace('rgb(','rgba(').replace(')',`,${alpha})`);
-    if(!s.col.includes('rgb')) glX.fillStyle=`rgba(255,255,255,${alpha})`;
-    glX.fill();
-  });
-
-  // Nodes
-  N.forEach(n=>{
-    const p=nodePos(n,ROT);
-    const{r,col,glow,label,id,mas}=n;
-    const isYou=id==='you', hot=HOV===id;
-    const pulse=1+Math.sin(T*.0022+n.ang)*.035;
-    const pr=r*pulse;
-
-    // Highlight ring
-    if(n.highlight){
-      glX.beginPath(); glX.arc(p.x,p.y,pr+10,0,Math.PI*2);
-      glX.strokeStyle=col; glX.lineWidth=2; glX.stroke();
-    }
-
-    // Glow
-    glX.globalCompositeOperation='lighter';
-    const gr=glX.createRadialGradient(p.x,p.y,0,p.x,p.y,pr*(isYou?4.2:3));
-    gr.addColorStop(0,glow);
-    gr.addColorStop(.4,glow.replace(/[\d.]+\)$/,'0.04)'));
-    gr.addColorStop(1,'transparent');
-    glX.beginPath(); glX.arc(p.x,p.y,pr*(isYou?4.2:3),0,Math.PI*2);
-    glX.fillStyle=gr; glX.fill();
-    glX.globalCompositeOperation='source-over';
-
-    // Sphere
-    const sg=glX.createRadialGradient(p.x-pr*.3,p.y-pr*.3,0,p.x,p.y,pr);
-    sg.addColorStop(0,'rgba(255,255,255,0.88)');
-    sg.addColorStop(.3,col);
-    sg.addColorStop(1,col+'aa');
-    glX.beginPath(); glX.arc(p.x,p.y,pr,0,Math.PI*2);
-    glX.fillStyle=sg; glX.fill();
-
-    // Mastery arc
-    if(!isYou && mas){
-      glX.beginPath(); glX.arc(p.x,p.y,pr+3,-Math.PI/2,-Math.PI/2+Math.PI*2*(mas/100));
-      glX.strokeStyle=col; glX.lineWidth=1.8; glX.stroke();
-    }
-
-    // Hover ring
-    n._ha=hot?Math.min(1,(n._ha||0)+.12):Math.max(0,(n._ha||0)-.08);
-    if(n._ha>0){
-      glX.beginPath(); glX.arc(p.x,p.y,pr+5,0,Math.PI*2);
-      glX.strokeStyle=`rgba(255,255,255,${n._ha*.55})`; glX.lineWidth=1.5; glX.stroke();
-    }
-
-    // Label
-    const fs=r>=24?13:r>=18?11.5:r>=12?10:9;
-    glX.font=`${hot?'600':'500'} ${fs}px Inter,sans-serif`;
-    glX.fillStyle=`rgba(226,232,240,${hot?1:.85})`;
-    glX.textAlign='center';
-    glX.fillText(label,p.x,p.y+pr+14);
-    if(isYou){
-      glX.font='500 9px Inter,sans-serif';
-      glX.fillStyle='rgba(226,232,240,0.5)';
-      glX.fillText('Your Understanding',p.x,p.y+pr+24);
-    }
-  });
-}
-
-// ── TOOLTIP ────────────────────────────────────────────────────
-const tip=document.getElementById('tip');
-function showTip(n,x,y){
-  tip.innerHTML=`<strong style="color:${n.col}">${n.label}</strong><br><span style="color:#94a3b8">${n.sub}</span>`;
-  tip.style.left=Math.min(x+14,W-170)+'px';
-  tip.style.top=Math.max(y-48,10)+'px';
-  tip.style.opacity='1';
-}
-function hideTip(){ tip.style.opacity='0'; }
-
-function findHit(x,y){
-  for(const n of N){
-    const p=nodePos(n,ROT);
-    const d=Math.sqrt((x-p.x)**2+(y-p.y)**2);
-    if(d<n.r+20) return n.id;
-  }
-  return null;
-}
-
-// ── MOUSE ──────────────────────────────────────────────────────
-document.addEventListener('mousemove',e=>{
-  HOV=findHit(e.clientX,e.clientY);
-  if(HOV) showTip(N.find(n=>n.id===HOV),e.clientX,e.clientY);
-  else hideTip();
-});
-
-// ── TOUCH ──────────────────────────────────────────────────────
-document.addEventListener('touchmove',e=>{
-  if(e.touches.length===1){
-    const t=e.touches[0];
-    HOV=findHit(t.clientX,t.clientY);
-    if(HOV) showTip(N.find(n=>n.id===HOV),t.clientX,t.clientY);
-    else hideTip();
-  }
-},{passive:true});
-
-document.addEventListener('touchend',()=>{
-  setTimeout(()=>{HOV=null;hideTip();},1800);
-},{passive:true});
-
-// ── HIGHLIGHT & PULSE ──────────────────────────────────────────
-function highlightNodes(topics){
-  if(!topics) return;
-  topics.forEach(t=>{const n=N.find(x=>x.id===t);if(n)n.highlight=true;});
-}
-function pulseNodes(suggest){
-  if(!suggest) return;
-  suggest.forEach(t=>{const n=N.find(x=>x.id===t);if(n)n.pulse=true;});
-}
-
-// ── CHAT ───────────────────────────────────────────────────────
-const msgs=document.getElementById('chatMsgs');
-const inp=document.getElementById('chatInput');
-const snd=document.getElementById('chatSend');
-let voice=null;
-
-speechSynthesis.onvoiceschanged=()=>{
-  const v=speechSynthesis.getVoices();
-  voice=v.find(x=>x.name.includes('Google'))||v.find(x=>x.name.includes('Samantha'))||v[0];
-};
-
-function speak(text){
-  speechSynthesis.cancel();
-  const u=new SpeechSynthesisUtterance(text);
-  u.voice=voice; speechSynthesis.speak(u);
-}
-
-function addMsg(text,role){
-  const d=document.createElement('div'); d.className='msg '+role;
-  const b=document.createElement('div'); b.className='bubble'; b.textContent=text;
-  d.appendChild(b);
-  if(role==='ai'){
-    const btn=document.createElement('button');
-    btn.textContent='🔊';
-    btn.style.cssText='background:none;border:none;color:#38bdf8;font-size:11px;cursor:pointer;padding:2px 0;opacity:.65;font-family:Inter,sans-serif;';
-    btn.onclick=()=>speak(text);
-    d.appendChild(btn);
-  }
-  msgs.appendChild(d); msgs.scrollTop=msgs.scrollHeight;
-}
-
-function showTyping(){
-  const d=document.createElement('div'); d.className='msg ai'; d.id='typing';
-  d.innerHTML='<div class="typing"><span></span><span></span><span></span></div>';
-  msgs.appendChild(d); msgs.scrollTop=msgs.scrollHeight; return d;
-}
-
-const FB=['Great question! Quantum mechanics and Calculus are deeply linked — Schrödinger\'s equation is a differential equation at its heart. 🔬','Think of wave functions like probability distributions — very similar to what you explored in Limits! ✨','Your mastery of Relativity is at 35% — want me to connect it with Quantum Physics? 🚀','You\'re connecting Physics → Space-Time beautifully. Black Holes are the next frontier. 🌑','There\'s a fascinating link between biological systems and Physics. Shall we explore? 🧬','You\'re at 78% understanding — top tier of learners on this journey. Keep going! 💫'];
-let fbI=0;
-
-async function sendMsg(){
-  const text=inp.value.trim(); if(!text) return;
-  addMsg(text,'user'); inp.value=''; snd.disabled=true;
-  const typing=showTyping();
-  try{
-    const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,userId:'demo-user'})});
-    if(!res.ok) throw new Error();
-    const data=await res.json();
-    typing.remove(); addMsg(data.reply,'ai');
-    highlightNodes(data.topics); pulseNodes(data.suggest);
-    speak(data.reply);
-  }catch(e){
-    typing.remove();
-    const reply=FB[fbI++%FB.length];
-    addMsg(reply,'ai'); speak(reply);
-  }
-  snd.disabled=false;
-}
-
-snd.addEventListener('click',sendMsg);
-inp.addEventListener('keydown',e=>{if(e.key==='Enter')sendMsg();});
-
-// Keyboard lift
-if(window.visualViewport){
-  window.visualViewport.addEventListener('resize',()=>{
-    const kh=window.innerHeight-window.visualViewport.height-window.visualViewport.offsetTop;
-    document.getElementById('chat').style.bottom=(kh>100?kh+8:125)+'px';
-  });
-}
-
-// ── LOOP ───────────────────────────────────────────────────────
-function loop(){
-  ROT+=.00018; T++;
-  drawBg(); drawGalaxy();
-  requestAnimationFrame(loop);
-}
-loop();
-</script>
-</body>
-</html>
+/* PANEL COMPONENTS */
+.sec{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.card{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin-bottom:10px;}
+.pb{height:3px;background:rgba(255,255,255,0.08);border-radius:2px;margin-top:6px;overflow:hidden;}
+.pf{height:100%;border-radius:2px;transition:width .6s;}
+.lmr{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);}
+.lmr:last-child{border-bottom:none;}
+.lmi{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+.
