@@ -617,6 +617,16 @@ function updateMastery(topics){
   });
 }
 
+
+function updateSessionStats(topics, suggest){
+  sessionTopics += topics.length;
+  sessionPulse  += suggest.length;
+  const t = document.getElementById('statTopics');
+  const p = document.getElementById('statPulse');
+  if(t) t.textContent = sessionTopics;
+  if(p) p.textContent = sessionPulse;
+}
+
 function refreshGrowth(){
   const total = N.reduce((sum,n)=>sum+(n.mas||0),0);
   const avg = Math.round(total/N.length);
@@ -1033,18 +1043,7 @@ function resetGalaxy(e){
 }
 
 // Track stats — patch into existing highlight/pulse functions
-const _origHighlight = highlightNodes;
-highlightNodes = function(topics){
-  sessionTopics += topics.length;
-  document.getElementById('statTopics').textContent = sessionTopics;
-  _origHighlight(topics);
-};
-const _origPulse = pulseNodes;
-pulseNodes = function(suggest){
-  sessionPulse += suggest.length;
-  document.getElementById('statPulse').textContent = sessionPulse;
-  _origPulse(suggest);
-};
+// stats now handled by updateSessionStats()
 
 
 // ── ZOOM LOCK ─────────────────────────────────────────────────
@@ -1222,6 +1221,7 @@ pulseNodes = function(suggest){
       pulseNodes(data.suggest || []);
       updateMastery(data.topics || []);
       refreshGrowth();
+      updateSessionStats(data.topics || [], data.suggest || []);
     }catch(e){
       setTimeout(()=>{
         typing.remove();
