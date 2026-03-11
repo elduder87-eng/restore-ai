@@ -306,7 +306,7 @@ body{position:fixed;inset:0;}
     <div class="tr">
       <div class="av">
         <div class="av-img"></div>
-        <span class="av-name">Alex's Profile</span>
+        <span class="av-name">Devin's Profile</span>
       </div>
       <div class="ib">⚙</div>
       <div class="ib">🔔</div>
@@ -452,7 +452,7 @@ body{position:fixed;inset:0;}
   </div>
   <div class="tc-msgs" id="tcMsgs">
     <div class="tc-msg ai">
-      <div class="tc-bubble">Hey Alex! You're deep into Quantum Physics — want me to connect it to something you already know well, like Calculus or Relativity? 🌌</div>
+      <div class="tc-bubble">Hey Devin! You're deep into Quantum Physics — want me to connect it to something you already know well, like Calculus or Relativity? 🌌</div>
     </div>
   </div>
   <div class="tc-footer">
@@ -894,6 +894,15 @@ loop();
 // ── DASHBOARD ─────────────────────────────────────────────────
 let sessionMsgs = 0, sessionTopics = 0, sessionPulse = 0;
 
+
+function handleDashClick(e){
+  // If click is on the dark backdrop (not inner content), close dashboard
+  if(e.target === document.getElementById('dashPanel')){
+    const journeyBtn = document.querySelector('.nb');
+    if(journeyBtn) switchTab('journey', journeyBtn);
+  }
+}
+
 function switchTab(tab, btn){
   // Update active button
   document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
@@ -940,7 +949,7 @@ function resetChat(e){
     wrap.className = 'tc-msg ai';
     const bubble = document.createElement('div');
     bubble.className = 'tc-bubble';
-    bubble.textContent = 'Hey Alex! Ready to explore something new? What are you curious about today? 🌌';
+    bubble.textContent = 'Hey Devin! Ready to explore something new? What are you curious about today? 🌌';
     wrap.appendChild(bubble);
     msgs.appendChild(wrap);
     msgs.style.setProperty('height','420px','important');
@@ -998,6 +1007,22 @@ function resetGalaxy(e){
 
   // Reset Understanding Pulse donut to just "Exploring"
   // (set all segments to 0 except baseline)
+
+  // Zero Understanding Pulse
+  const pulseNum = document.querySelector('.pn');
+  if(pulseNum) pulseNum.textContent = '0%';
+  const pulseSub = document.querySelector('.ps');
+  if(pulseSub) pulseSub.textContent = 'Starting';
+  // Reset donut SVG segments
+  document.querySelectorAll('.donut-seg').forEach(seg=>{
+    seg.style.strokeDasharray = '0 100';
+  });
+  // Reset pulse legend percentages
+  document.querySelectorAll('.ple').forEach((el,i)=>{
+    const labels = el.querySelectorAll('span');
+    labels.forEach(s=>{ if(s.textContent.includes('%')) s.textContent='0%'; });
+  });
+
   if(typeof refreshGrowth === 'function') refreshGrowth();
 
   // Reset chat too
@@ -1058,6 +1083,26 @@ pulseNodes = function(suggest){
   
   window.visualViewport.addEventListener('scroll', lockFixed);
   window.visualViewport.addEventListener('resize', lockFixed);
+})();
+
+
+// ── ZOOM LOCK — keep chat pinned during pinch ─────────────────
+(function(){
+  if(!window.visualViewport) return;
+  const fixedIds = ['teacherChat','thkBar','botBar'];
+  function onVP(){
+    const vv = window.visualViewport;
+    fixedIds.forEach(id=>{
+      const el = document.getElementById(id);
+      if(!el) return;
+      el.style.left   = vv.offsetLeft + 'px';
+      el.style.top    = '';
+      el.style.width  = vv.width + 'px';
+      el.style.right  = 'auto';
+    });
+  }
+  window.visualViewport.addEventListener('scroll', onVP);
+  window.visualViewport.addEventListener('resize', onVP);
 })();
 
 // ── LOADING SCREEN ────────────────────────────────────────────
@@ -1353,8 +1398,8 @@ pulseNodes = function(suggest){
 
 
 <!-- DASHBOARD PANEL -->
-<div id="dashPanel" style="display:none;position:fixed;top:56px;left:0;right:0;bottom:0;background:rgba(5,8,20,0.97);z-index:300;overflow-y:auto;padding:20px;pointer-events:all;">
-  <div style="max-width:500px;margin:0 auto;">
+<div id="dashPanel" onclick="handleDashClick(event)" style="display:none;position:fixed;top:56px;left:0;right:0;bottom:0;background:rgba(5,8,20,0.97);z-index:300;overflow-y:auto;padding:20px;pointer-events:all;">
+  <div style="max-width:500px;margin:0 auto;" onclick="event.stopPropagation()">
     
     <div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:4px;">Dashboard</div>
     <div style="font-size:12px;color:var(--muted);margin-bottom:24px;">Test your AI connection and manage your learning data</div>
