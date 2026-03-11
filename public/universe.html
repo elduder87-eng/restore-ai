@@ -187,9 +187,38 @@ body{position:fixed;inset:0;}
   .thkr{gap:4px;}
   .ti{width:32px;height:32px;font-size:16px;border-width:2px;}
 }
+
+/* ── LOADING SCREEN ─────────────────────────────────────────── */
+#loadingScreen{
+  position:fixed;inset:0;background:#05080f;
+  display:flex;align-items:center;justify-content:center;
+  z-index:99999;transition:opacity .6s ease;
+}
+.loader{display:flex;flex-direction:column;align-items:center;gap:18px;position:relative;}
+.loader-orbit{
+  width:70px;height:70px;border-radius:50%;
+  border:2px solid rgba(255,255,255,0.1);
+  border-top:2px solid #38bdf8;
+  animation:spinLoader 1.4s linear infinite;
+}
+.loader-core{
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-54%);
+  font-size:22px;color:#38bdf8;
+}
+.loader-text{font-size:12px;color:#94a3b8;letter-spacing:.05em;text-align:center;}
+@keyframes spinLoader{to{transform:rotate(360deg);}}
 </style>
 </head>
 <body>
+<div id="loadingScreen">
+  <div class="loader">
+    <div class="loader-orbit"></div>
+    <div class="loader-core">✦</div>
+    <div class="loader-text">Restoring your learning universe…</div>
+  </div>
+</div>
+
 <canvas id="bg"></canvas>
 <canvas id="uni"></canvas>
 <canvas id="hit"></canvas>
@@ -684,6 +713,27 @@ function loop(){
   requestAnimationFrame(loop);
 }
 loop();
+
+// ── LOADING SCREEN ────────────────────────────────────────────
+(function(){
+  const messages=[
+    "Restoring your learning universe…",
+    "Mapping knowledge nodes…",
+    "Connecting ideas…",
+    "Preparing your journey…"
+  ];
+  const txt = document.querySelector(".loader-text");
+  if(txt) txt.innerText = messages[Math.floor(Math.random()*messages.length)];
+
+  window.addEventListener("load",()=>{
+    const loader = document.getElementById("loadingScreen");
+    if(!loader) return;
+    setTimeout(()=>{
+      loader.style.opacity = "0";
+      setTimeout(()=>{ loader.remove(); }, 600);
+    }, 700);
+  });
+})();
 
 // ── TEACHER CHAT ──────────────────────────────────────────────
 (function(){
