@@ -180,7 +180,7 @@ body{position:fixed;inset:0;}
   .left{display:none !important;}
   .right{display:none !important;}
   .center{display:flex;flex-direction:column;width:100%;height:100%;grid-column:1;grid-row:1;}
-  .tc{position:fixed;bottom:168px;left:8px;right:8px;width:auto;transform:none;min-width:0;}
+  .tc{position:fixed;bottom:118px;left:8px;right:8px;width:auto;transform:none;min-width:0;}
   .bot{padding:6px 10px;}
   .thk{padding:10px 12px;}
   .frc{flex:2;}
@@ -457,7 +457,7 @@ function CX(){
 }
 function CY(){
   const topH=56,botH=isMobile?155:108;
-  return topH+(uc.height-topH-botH)*.38;
+  return topH+(uc.height-topH-botH)*.28;
 }
 
 // ── NODE DATA ─────────────────────────────────────────────────
@@ -774,7 +774,7 @@ loop();
   if(window.visualViewport){
     window.visualViewport.addEventListener('resize',()=>{
       const kh=window.innerHeight-window.visualViewport.height-window.visualViewport.offsetTop;
-      chat.style.bottom=(kh>100?kh+8:168)+'px';
+      chat.style.bottom=(kh>100?kh+8:118)+'px';
     });
   }
 })();
