@@ -145,19 +145,36 @@ body{position:fixed;inset:0;}
 /* TEACHER CHAT */
 .tc{
   position:fixed;
-  bottom:130px;
-  left:50%;
-  transform:translateX(-50%);
-  width:min(560px,calc(100vw - 520px));
-  min-width:260px;
+  bottom:118px;
+  left:0;
+  right:0;
+  width:100%;
+  max-width:100%;
+  min-width:0;
+  transform:none;
   background:rgba(5,8,20,0.88);
   border:1px solid rgba(255,255,255,0.13);
-  border-radius:20px;
+  border-radius:0;
+  border-left:none;
+  border-right:none;
   display:flex;flex-direction:column;
   overflow:hidden;
   z-index:200;
   box-shadow:0 8px 40px rgba(0,0,0,0.5);
   pointer-events:all;
+}
+@media(min-width:769px){
+  .tc{
+    bottom:130px;
+    left:50%;
+    right:auto;
+    width:min(560px,calc(100vw - 520px));
+    max-width:560px;
+    min-width:260px;
+    transform:translateX(-50%);
+    border-radius:20px;
+    border:1px solid rgba(255,255,255,0.13);
+  }
 }
 @media(max-width:768px){
   .tc{left:0;right:0;bottom:118px;width:100%;max-width:100%;transform:none;border-radius:0;border-left:none;border-right:none;}
