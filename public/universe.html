@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes"/>
-<title>Restore \u2014 Your Learning Journey</title>
+<title>Restore — Your Learning Journey</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -23,154 +23,143 @@ html,body{
   overscroll-behavior:none;
 }
 
-/* \u2500\u2500 CANVAS LAYERS \u2500\u2500 */
+/* CANVAS */
 #bgCanvas{position:fixed;inset:0;z-index:0;}
 #galaxyCanvas{position:fixed;inset:0;z-index:1;pointer-events:none;}
 
-/* \u2500\u2500 TOOLTIP \u2500\u2500 */
+/* TOOLTIP */
 #tip{
   position:fixed;z-index:9000;
   background:rgba(5,8,20,0.95);
   border:1px solid rgba(255,255,255,0.15);
   border-radius:10px;padding:8px 12px;
   font-size:12px;pointer-events:none;
-  opacity:0;transition:opacity .15s;
-  max-width:160px;
+  opacity:0;transition:opacity .15s;max-width:160px;
 }
 
-/* \u2500\u2500 PANELS \u2500\u2500 */
+/* TOPBAR */
+#topbar{
+  position:fixed;top:0;left:0;right:0;height:56px;
+  background:rgba(5,8,15,0.9);
+  border-bottom:1px solid var(--border);
+  backdrop-filter:blur(12px);
+  display:flex;align-items:center;
+  padding:0 14px;gap:10px;
+  z-index:500;
+}
+.brand{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.brand-icon{width:30px;height:30px;background:linear-gradient(135deg,#38bdf8,#818cf8);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;}
+.brand-name{font-size:14px;font-weight:700;}
+.brand-sub{font-size:9px;color:var(--muted);}
+.nav{display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;flex:1;}
+.nav::-webkit-scrollbar{display:none;}
+.nb{background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:20px;color:var(--muted);font-size:11px;font-weight:500;padding:5px 11px;cursor:pointer;white-space:nowrap;font-family:'Inter',sans-serif;transition:all .2s;}
+.nb:active{transform:scale(0.95);}
+.nb.active{background:rgba(56,189,248,0.15);border-color:rgba(56,189,248,0.4);color:var(--blue);}
+.av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+
+/* PANELS */
 .panel{
-  position:fixed;top:70px;bottom:10px;
+  position:fixed;top:66px;bottom:10px;
   background:var(--panel);
   border:1px solid var(--border);
-  border-radius:18px;
-  padding:14px;
+  border-radius:16px;
+  padding:12px;
   overflow-y:auto;
   scrollbar-width:none;
   z-index:10;
 }
 .panel::-webkit-scrollbar{display:none;}
-.panel.left{left:10px;width:280px;}
-.panel.right{right:10px;width:290px;}
+.panel.left{left:8px;width:270px;}
+.panel.right{right:8px;width:275px;}
+.sec-title{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;}
+.card{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:8px;}
+.prog-bar{height:3px;background:rgba(255,255,255,0.08);border-radius:2px;margin-top:5px;}
+.prog-fill{height:100%;border-radius:2px;}
+.lm-item{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);}
+.lm-item:last-child{border-bottom:none;}
+.lm-icon{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;}
+.lm-title{font-size:11px;font-weight:600;line-height:1.3;}
+.lm-sub{font-size:10px;color:var(--muted);}
 
-/* \u2500\u2500 TOPBAR \u2500\u2500 */
-#topbar{
-  position:fixed;top:0;left:0;right:0;height:60px;
-  background:rgba(5,8,15,0.85);
-  border-bottom:1px solid var(--border);
-  backdrop-filter:blur(12px);
-  display:flex;align-items:center;
-  padding:0 16px;gap:12px;
-  z-index:200;
-}
-.brand{display:flex;align-items:center;gap:10px;flex-shrink:0;}
-.brand-icon{width:32px;height:32px;background:linear-gradient(135deg,#38bdf8,#818cf8);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;}
-.brand-name{font-size:15px;font-weight:700;color:var(--text);}
-.brand-sub{font-size:10px;color:var(--muted);}
-.nav{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;flex:1;}
-.nav::-webkit-scrollbar{display:none;}
-.nb{background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:20px;color:var(--muted);font-size:11px;font-weight:500;padding:5px 12px;cursor:pointer;white-space:nowrap;font-family:'Inter',sans-serif;}
-.nb.active{background:rgba(56,189,248,0.15);border-color:rgba(56,189,248,0.4);color:var(--blue);}
-.av{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;}
-
-/* \u2500\u2500 BOTTOM BARS \u2500\u2500 */
-#thinkBar{
-  position:fixed;bottom:60px;left:10px;right:10px;
-  background:var(--panel);border:1px solid var(--border);
-  border-radius:14px;padding:10px 14px;z-index:10;
-}
-#statsBar{
-  position:fixed;bottom:8px;left:10px;right:10px;
-  background:var(--panel);border:1px solid var(--border);
-  border-radius:14px;padding:8px 14px;
-  display:flex;align-items:center;gap:8px;
-  z-index:10;
-}
-
-/* \u2500\u2500 TEACHER CHAT \u2500\u2500 */
+/* CHAT */
 #chat{
   position:fixed;
-  bottom:130px;left:10px;right:10px;
-  height:min(380px,38vh);
-  background:rgba(5,8,20,0.92);
+  bottom:125px;left:8px;right:8px;
+  height:min(370px,38vh);
+  background:rgba(5,8,20,0.93);
   border:1px solid rgba(255,255,255,0.12);
-  border-radius:20px;
+  border-radius:18px;
   display:flex;flex-direction:column;
-  z-index:100;
+  z-index:200;
   overflow:hidden;
+  transition:bottom .2s;
 }
 #chatHead{
   display:flex;align-items:center;gap:10px;
-  padding:12px 16px;
+  padding:11px 14px;
   border-bottom:1px solid var(--border);
   flex-shrink:0;
 }
 #chatMsgs{
   flex:1;overflow-y:auto;
-  padding:12px;
-  display:flex;flex-direction:column;gap:8px;
+  padding:10px;
+  display:flex;flex-direction:column;gap:7px;
   scrollbar-width:none;
 }
 #chatMsgs::-webkit-scrollbar{display:none;}
 #chatFooter{
   display:flex;align-items:center;gap:8px;
-  padding:10px 12px;
+  padding:9px 11px;
   border-top:1px solid var(--border);
   flex-shrink:0;
 }
 #chatInput{
   flex:1;background:rgba(255,255,255,0.07);
-  border:1px solid var(--border);border-radius:20px;
+  border:1px solid var(--border);border-radius:18px;
   color:var(--text);font-size:14px;
-  padding:8px 14px;font-family:'Inter',sans-serif;
-  outline:none;
+  padding:8px 13px;font-family:'Inter',sans-serif;outline:none;
 }
 #chatSend{
-  width:36px;height:36px;border-radius:50%;
+  width:34px;height:34px;border-radius:50%;
   background:linear-gradient(135deg,#38bdf8,#6366f1);
-  border:none;color:white;font-size:16px;
-  cursor:pointer;display:flex;align-items:center;justify-content:center;
-  flex-shrink:0;font-family:'Inter',sans-serif;
+  border:none;color:white;font-size:15px;
+  cursor:pointer;flex-shrink:0;
 }
-.msg{display:flex;flex-direction:column;max-width:85%;}
+.msg{display:flex;flex-direction:column;max-width:86%;}
 .msg.user{align-self:flex-end;}
 .msg.ai{align-self:flex-start;}
-.bubble{
-  padding:8px 12px;border-radius:14px;
-  font-size:13px;line-height:1.5;
-}
-.msg.user .bubble{background:rgba(56,189,248,0.2);border:1px solid rgba(56,189,248,0.3);}
+.bubble{padding:8px 11px;border-radius:13px;font-size:13px;line-height:1.5;}
+.msg.user .bubble{background:rgba(56,189,248,0.18);border:1px solid rgba(56,189,248,0.3);}
 .msg.ai .bubble{background:rgba(255,255,255,0.07);border:1px solid var(--border);}
-.typing{display:flex;gap:4px;padding:8px 12px;}
-.typing span{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:bounce .9s infinite;}
+.typing{display:flex;gap:4px;padding:8px 11px;}
+.typing span{width:5px;height:5px;border-radius:50%;background:var(--muted);animation:bounce .9s infinite;}
 .typing span:nth-child(2){animation-delay:.2s;}
 .typing span:nth-child(3){animation-delay:.4s;}
 @keyframes bounce{0%,60%,100%{transform:translateY(0);}30%{transform:translateY(-5px);}}
 
-/* \u2500\u2500 PANEL COMPONENTS \u2500\u2500 */
-.sec-title{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;}
-.card{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin-bottom:8px;}
-.prog-bar{height:3px;background:rgba(255,255,255,0.08);border-radius:2px;margin-top:6px;}
-.prog-fill{height:100%;border-radius:2px;}
-.think-row{display:flex;align-items:center;justify-content:space-between;gap:4px;}
-.think-node{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;}
-.think-icon{width:32px;height:32px;border-radius:50%;border:2px solid;display:flex;align-items:center;justify-content:center;font-size:14px;}
-.think-lbl{font-size:9px;font-weight:600;text-align:center;}
-.think-arr{color:var(--muted);font-size:10px;}
+/* BOTTOM BARS */
+#thinkBar{
+  position:fixed;bottom:62px;left:8px;right:8px;
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:12px;padding:9px 12px;z-index:10;
+}
+#statsBar{
+  position:fixed;bottom:6px;left:8px;right:8px;
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:12px;padding:7px 12px;
+  display:flex;align-items:center;gap:6px;z-index:10;
+}
+.think-row{display:flex;align-items:center;justify-content:space-between;gap:3px;margin-top:7px;}
+.think-node{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;}
+.think-icon{width:28px;height:28px;border-radius:50%;border:2px solid;display:flex;align-items:center;justify-content:center;font-size:13px;}
+.think-lbl{font-size:8px;font-weight:600;text-align:center;}
+.think-arr{color:var(--muted);font-size:9px;}
 .stat-item{display:flex;flex-direction:column;align-items:center;flex:1;}
-.stat-n{font-size:16px;font-weight:700;}
-.stat-l{font-size:9px;color:var(--muted);}
-.frontier{display:flex;align-items:center;gap:8px;margin-left:8px;padding-left:8px;border-left:1px solid var(--border);}
-.fr-icon{font-size:18px;}
-.fr-lbl{font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
-.fr-name{font-size:11px;font-weight:600;color:var(--gold);}
-.lm-item{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);}
-.lm-item:last-child{border-bottom:none;}
-.lm-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;}
-.lm-title{font-size:11px;font-weight:600;line-height:1.3;}
-.lm-sub{font-size:10px;color:var(--muted);}
-.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
-.online-dot{width:8px;height:8px;border-radius:50%;background:#4ade80;box-shadow:0 0 6px #4ade80;}
+.stat-n{font-size:14px;font-weight:700;}
+.stat-l{font-size:8px;color:var(--muted);}
+.frontier{display:flex;align-items:center;gap:6px;margin-left:6px;padding-left:6px;border-left:1px solid var(--border);}
+.online-dot{width:7px;height:7px;border-radius:50%;background:#4ade80;box-shadow:0 0 5px #4ade80;flex-shrink:0;}
 </style>
 </head>
 <body>
@@ -182,11 +171,8 @@ html,body{
 <!-- TOPBAR -->
 <div id="topbar">
   <div class="brand">
-    <div class="brand-icon">\u2726</div>
-    <div>
-      <div class="brand-name">Restore</div>
-      <div class="brand-sub">Your Learning Journey</div>
-    </div>
+    <div class="brand-icon">✦</div>
+    <div><div class="brand-name">Restore</div><div class="brand-sub">Your Learning Journey</div></div>
   </div>
   <nav class="nav">
     <button class="nb active">Journey</button>
@@ -202,155 +188,106 @@ html,body{
   <div class="sec-title">Current Focus</div>
   <div class="card">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-      <div style="width:28px;height:28px;border-radius:8px;background:rgba(96,165,250,0.2);display:flex;align-items:center;justify-content:center;font-size:14px;">\u269b</div>
-      <div>
-        <div style="font-size:12px;font-weight:600;">Quantum Physics</div>
-        <div style="font-size:10px;color:var(--muted);">Deep Exploration</div>
-      </div>
+      <div style="width:26px;height:26px;border-radius:7px;background:rgba(96,165,250,0.2);display:flex;align-items:center;justify-content:center;font-size:13px;">⚛</div>
+      <div><div style="font-size:12px;font-weight:600;">Quantum Physics</div><div style="font-size:10px;color:var(--muted);">Deep Exploration</div></div>
     </div>
     <div class="prog-bar"><div class="prog-fill" style="width:68%;background:var(--blue);"></div></div>
-    <button style="width:100%;margin-top:8px;padding:7px;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:11px;cursor:pointer;font-family:'Inter',sans-serif;">Continue Journey \u2192</button>
+    <button style="width:100%;margin-top:8px;padding:6px;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:11px;cursor:pointer;font-family:'Inter',sans-serif;">Continue Journey →</button>
   </div>
-
-  <div class="sec-title" style="margin-top:10px;">Curiosity Feed</div>
-  <div class="lm-item">
-    <div style="width:8px;height:8px;border-radius:50%;background:var(--blue);flex-shrink:0;"></div>
-    <div><div class="lm-title">What is consciousness?</div><div class="lm-sub">23 min ago</div></div>
-  </div>
-  <div class="lm-item">
-    <div style="width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0;"></div>
-    <div><div class="lm-title">How did life begin?</div><div class="lm-sub">1 hour ago</div></div>
-  </div>
-  <div class="lm-item">
-    <div style="width:8px;height:8px;border-radius:50%;background:var(--purple);flex-shrink:0;"></div>
-    <div><div class="lm-title">Time travel possible?</div><div class="lm-sub">3 hours ago</div></div>
-  </div>
-
+  <div class="sec-title" style="margin-top:8px;">Curiosity Feed</div>
+  <div class="lm-item"><div class="online-dot" style="background:var(--blue);box-shadow:none;"></div><div><div class="lm-title">What is consciousness?</div><div class="lm-sub">23 min ago</div></div></div>
+  <div class="lm-item"><div class="online-dot" style="background:var(--green);box-shadow:none;"></div><div><div class="lm-title">How did life begin?</div><div class="lm-sub">1 hour ago</div></div></div>
+  <div class="lm-item"><div class="online-dot" style="background:var(--purple);box-shadow:none;"></div><div><div class="lm-title">Time travel possible?</div><div class="lm-sub">3 hours ago</div></div></div>
   <div class="sec-title" style="margin-top:10px;">Growth</div>
-  <div style="display:flex;flex-direction:column;gap:6px;">
-    <div><div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px;"><span style="color:var(--green);">\u25cf Understanding</span><span style="color:var(--muted);">78%</span></div><div class="prog-bar"><div class="prog-fill" style="width:78%;background:var(--green);"></div></div></div>
-    <div><div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px;"><span style="color:var(--gold);">\u25cf Curiosity</span><span style="color:var(--muted);">91%</span></div><div class="prog-bar"><div class="prog-fill" style="width:91%;background:var(--gold);"></div></div></div>
-    <div><div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px;"><span style="color:var(--purple);">\u25cf Connections</span><span style="color:var(--muted);">64%</span></div><div class="prog-bar"><div class="prog-fill" style="width:64%;background:var(--purple);"></div></div></div>
-    <div><div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px;"><span style="color:var(--red);">\u25cf Confusion</span><span style="color:var(--muted);">22%</span></div><div class="prog-bar"><div class="prog-fill" style="width:22%;background:var(--red);"></div></div></div>
+  <div style="display:flex;flex-direction:column;gap:5px;">
+    <div><div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px;"><span style="color:var(--green);">● Understanding</span><span style="color:var(--muted);">78%</span></div><div class="prog-bar"><div class="prog-fill" style="width:78%;background:var(--green);"></div></div></div>
+    <div><div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px;"><span style="color:var(--gold);">● Curiosity</span><span style="color:var(--muted);">91%</span></div><div class="prog-bar"><div class="prog-fill" style="width:91%;background:var(--gold);"></div></div></div>
+    <div><div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px;"><span style="color:var(--purple);">● Connections</span><span style="color:var(--muted);">64%</span></div><div class="prog-bar"><div class="prog-fill" style="width:64%;background:var(--purple);"></div></div></div>
+    <div><div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px;"><span style="color:var(--red);">● Confusion</span><span style="color:var(--muted);">22%</span></div><div class="prog-bar"><div class="prog-fill" style="width:22%;background:var(--red);"></div></div></div>
   </div>
 </div>
 
 <!-- RIGHT PANEL -->
 <div class="panel right">
   <div class="sec-title">Learning Moments</div>
-  <div class="lm-item">
-    <div class="lm-icon" style="background:rgba(251,191,36,0.15);">\ud83d\udca1</div>
-    <div><div class="lm-title">Breakthrough Click</div><div class="lm-sub" style="color:var(--gold);">Physics \u2192 Space</div></div>
-  </div>
-  <div class="lm-item">
-    <div class="lm-icon" style="background:rgba(56,189,248,0.15);">\ud83d\udd17</div>
-    <div><div class="lm-title">Connected: Math & Philosophy</div><div class="lm-sub" style="color:var(--blue);">Cross-domain link</div></div>
-  </div>
-  <div class="lm-item">
-    <div class="lm-icon" style="background:rgba(192,132,252,0.15);">\u26a1</div>
-    <div><div class="lm-title">Curiosity Spike</div><div class="lm-sub" style="color:var(--purple);">Astronomy cluster</div></div>
-  </div>
-  <div class="lm-item">
-    <div class="lm-icon" style="background:rgba(74,222,128,0.15);">\u2713</div>
-    <div><div class="lm-title">Mastered: Calculus</div><div class="lm-sub" style="color:var(--green);">Mathematics node</div></div>
-  </div>
-  <button style="width:100%;margin-top:4px;padding:7px;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:11px;cursor:pointer;font-family:'Inter',sans-serif;">View Full History</button>
+  <div class="lm-item"><div class="lm-icon" style="background:rgba(251,191,36,0.15);">💡</div><div><div class="lm-title">Breakthrough Click</div><div class="lm-sub" style="color:var(--gold);">Physics → Space</div></div></div>
+  <div class="lm-item"><div class="lm-icon" style="background:rgba(56,189,248,0.15);">🔗</div><div><div class="lm-title">Connected: Math & Philosophy</div><div class="lm-sub" style="color:var(--blue);">Cross-domain link</div></div></div>
+  <div class="lm-item"><div class="lm-icon" style="background:rgba(192,132,252,0.15);">⚡</div><div><div class="lm-title">Curiosity Spike</div><div class="lm-sub" style="color:var(--purple);">Astronomy cluster</div></div></div>
+  <div class="lm-item"><div class="lm-icon" style="background:rgba(74,222,128,0.15);">✓</div><div><div class="lm-title">Mastered: Calculus</div><div class="lm-sub" style="color:var(--green);">Mathematics node</div></div></div>
+  <button style="width:100%;margin-top:6px;padding:6px;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:7px;color:var(--muted);font-size:11px;cursor:pointer;font-family:'Inter',sans-serif;">View Full History</button>
 </div>
 
 <!-- TEACHER CHAT -->
 <div id="chat">
   <div id="chatHead">
-    <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">\ud83c\udf93</div>
+    <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;">🎓</div>
     <div style="flex:1;">
       <div style="font-size:13px;font-weight:600;">Restore Guide</div>
-      <div style="font-size:10px;color:var(--muted);display:flex;align-items:center;gap:4px;"><div class="online-dot"></div> Online \u00b7 Teacher Mode</div>
+      <div style="font-size:10px;color:var(--muted);display:flex;align-items:center;gap:4px;"><div class="online-dot"></div>Online · Teacher Mode</div>
     </div>
   </div>
   <div id="chatMsgs">
-    <div class="msg ai">
-      <div class="bubble">Hey Alex! You're deep into Quantum Physics \u2014 want me to connect it to something you already know well, like Calculus or Relativity? \ud83c\udf0c</div>
-    </div>
+    <div class="msg ai"><div class="bubble">Hey Alex! You're deep into Quantum Physics — want me to connect it to something you already know well, like Calculus or Relativity? 🌌</div></div>
   </div>
   <div id="chatFooter">
-    <input id="chatInput" placeholder="Ask your Restore Guide\u2026" autocomplete="off"/>
-    <button id="chatSend">\u27a4</button>
+    <input id="chatInput" placeholder="Ask your Restore Guide…" autocomplete="off"/>
+    <button id="chatSend">➤</button>
   </div>
 </div>
 
-<!-- THINKING EVOLUTION BAR -->
+<!-- THINKING BAR -->
 <div id="thinkBar">
-  <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Your Thinking Evolution</div>
+  <div class="sec-title" style="margin-bottom:0;">Your Thinking Evolution</div>
   <div class="think-row">
-    <div class="think-node">
-      <div class="think-icon" style="border-color:var(--blue);background:rgba(56,189,248,0.1);color:var(--blue);">\ud83d\udc99</div>
-      <div class="think-lbl" style="color:var(--blue);">Curious</div>
-    </div>
-    <div class="think-arr">\u2192</div>
-    <div class="think-node">
-      <div class="think-icon" style="border-color:var(--red);background:rgba(248,113,113,0.1);color:var(--red);">\u2764\ufe0f</div>
-      <div class="think-lbl" style="color:var(--red);">Confused</div>
-    </div>
-    <div class="think-arr">\u2192</div>
-    <div class="think-node">
-      <div class="think-icon" style="border-color:var(--green);background:rgba(74,222,128,0.1);color:var(--green);">\ud83d\udc9a</div>
-      <div class="think-lbl" style="color:var(--green);">Reflecting</div>
-    </div>
-    <div class="think-arr">\u2192</div>
-    <div class="think-node">
-      <div class="think-icon" style="border-color:var(--gold);background:rgba(251,191,36,0.1);color:var(--gold);">\ud83d\udc9b</div>
-      <div class="think-lbl" style="color:var(--gold);">Connecting</div>
-    </div>
-    <div class="think-arr">\u2192</div>
-    <div class="think-node">
-      <div class="think-icon" style="border-color:var(--text);background:rgba(226,232,240,0.07);color:var(--text);">\ud83e\udd0d</div>
-      <div class="think-lbl" style="color:var(--text);">Mastering</div>
-    </div>
+    <div class="think-node"><div class="think-icon" style="border-color:var(--blue);background:rgba(56,189,248,0.1);">💙</div><div class="think-lbl" style="color:var(--blue);">Curious</div></div>
+    <div class="think-arr">→</div>
+    <div class="think-node"><div class="think-icon" style="border-color:var(--red);background:rgba(248,113,113,0.1);">❤️</div><div class="think-lbl" style="color:var(--red);">Confused</div></div>
+    <div class="think-arr">→</div>
+    <div class="think-node"><div class="think-icon" style="border-color:var(--green);background:rgba(74,222,128,0.1);">💚</div><div class="think-lbl" style="color:var(--green);">Reflecting</div></div>
+    <div class="think-arr">→</div>
+    <div class="think-node"><div class="think-icon" style="border-color:var(--gold);background:rgba(251,191,36,0.1);">💛</div><div class="think-lbl" style="color:var(--gold);">Connecting</div></div>
+    <div class="think-arr">→</div>
+    <div class="think-node"><div class="think-icon" style="border-color:var(--text);background:rgba(226,232,240,0.06);">🤍</div><div class="think-lbl" style="color:var(--text);">Mastering</div></div>
   </div>
 </div>
 
 <!-- STATS BAR -->
 <div id="statsBar">
-  <div class="stat-item"><div class="stat-n" style="color:var(--green);">\ud83e\udde9 142</div><div class="stat-l">Learning Moments</div></div>
-  <div class="stat-item"><div class="stat-n" style="color:var(--blue);">\ud83d\udd2d 36</div><div class="stat-l">Topics Explored</div></div>
-  <div class="stat-item"><div class="stat-n" style="color:var(--gold);">\u26a1 12</div><div class="stat-l">Breakthroughs</div></div>
-  <div class="frontier">
-    <div class="fr-icon">\ud83c\udf0c</div>
-    <div>
-      <div class="fr-lbl">Next Frontier</div>
-      <div class="fr-name">Theory of Everything</div>
-    </div>
-  </div>
+  <div class="stat-item"><div class="stat-n" style="color:var(--green);">🧩 142</div><div class="stat-l">Learning Moments</div></div>
+  <div class="stat-item"><div class="stat-n" style="color:var(--blue);">🔭 36</div><div class="stat-l">Topics Explored</div></div>
+  <div class="stat-item"><div class="stat-n" style="color:var(--gold);">⚡ 12</div><div class="stat-l">Breakthroughs</div></div>
+  <div class="frontier"><div style="font-size:18px;">🌌</div><div><div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;">Next Frontier</div><div style="font-size:11px;font-weight:600;color:var(--gold);">Theory of Everything</div></div></div>
 </div>
 
 <script>
-// \u2500\u2500 NODES \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-const NODES = [
-  {id:'you',    label:'YOU',        sub:'Your Understanding', r:28, col:'#fde68a', glow:'rgba(253,230,138,0.4)', orb:0,   ang:0,    tilt:1},
-  {id:'phys',   label:'Physics',    sub:'42% mastery',        r:22, col:'#60a5fa', glow:'rgba(96,165,250,0.35)', orb:155, ang:0.3,  tilt:.52},
-  {id:'math',   label:'Mathematics',sub:'78% mastery',        r:20, col:'#818cf8', glow:'rgba(129,140,248,0.35)',orb:170, ang:1.8,  tilt:.52},
-  {id:'bio',    label:'Biology',    sub:'55% mastery',        r:19, col:'#4ade80', glow:'rgba(74,222,128,0.35)', orb:185, ang:3.4,  tilt:.52},
-  {id:'hist',   label:'History',    sub:'31% mastery',        r:18, col:'#fb923c', glow:'rgba(251,146,60,0.35)', orb:205, ang:5.1,  tilt:.52},
-  {id:'astro',  label:'Astronomy',  sub:'28% mastery',        r:16, col:'#2dd4bf', glow:'rgba(45,212,191,0.3)',  orb:265, ang:2.2,  tilt:.47},
-  {id:'calc',   label:'Calculus',   sub:'82% mastery',        r:13, col:'#c084fc', glow:'rgba(192,132,252,0.3)', orb:112, ang:0.9,  tilt:.55},
-  {id:'qp',     label:'Quantum',    sub:'35% mastery',        r:15, col:'#38bdf8', glow:'rgba(56,189,248,0.3)',  orb:128, ang:4.2,  tilt:.50},
-  {id:'relat',  label:'Relativity', sub:'35% mastery',        r:13, col:'#f472b6', glow:'rgba(244,114,182,0.3)', orb:195, ang:0.6,  tilt:.48},
-  {id:'cosmo',  label:'Cosmology',  sub:'22% mastery',        r:12, col:'#818cf8', glow:'rgba(129,140,248,0.25)',orb:230, ang:3.8,  tilt:.45},
-  {id:'evol',   label:'Evolution',  sub:'48% mastery',        r:12, col:'#4ade80', glow:'rgba(74,222,128,0.25)', orb:145, ang:2.9,  tilt:.54},
-  {id:'grav',   label:'Gravity',    sub:'61% mastery',        r:11, col:'#60a5fa', glow:'rgba(96,165,250,0.25)', orb:108, ang:3.5,  tilt:.52},
-  {id:'ethics', label:'Ethics',     sub:'44% mastery',        r:11, col:'#fbbf24', glow:'rgba(251,191,36,0.25)', orb:280, ang:1.1,  tilt:.44},
-  {id:'genes',  label:'Genetics',   sub:'39% mastery',        r:10, col:'#34d399', glow:'rgba(52,211,153,0.25)', orb:160, ang:4.8,  tilt:.53},
-  {id:'eco',    label:'Ecosystems', sub:'33% mastery',        r:10, col:'#4ade80', glow:'rgba(74,222,128,0.2)',   orb:220, ang:3.1,  tilt:.51},
-  {id:'newt',   label:"Newton's",   sub:'71% mastery',        r:10, col:'#fb923c', glow:'rgba(251,146,60,0.2)',   orb:145, ang:5.8,  tilt:.50},
-  {id:'renais', label:'Renaissance',sub:'26% mastery',        r:9,  col:'#f87171', glow:'rgba(248,113,113,0.2)', orb:255, ang:5.5,  tilt:.48},
-  {id:'revol',  label:'Revolutions',sub:'29% mastery',        r:9,  col:'#fb923c', glow:'rgba(251,146,60,0.2)',   orb:300, ang:4.4,  tilt:.46},
-  {id:'st',     label:'Space-Time', sub:'19% mastery',        r:11, col:'#a78bfa', glow:'rgba(167,139,250,0.25)',orb:345, ang:2.7,  tilt:.42},
-  {id:'knw',    label:'Knowledge',  sub:'67% mastery',        r:10, col:'#6ee7b7', glow:'rgba(110,231,183,0.2)', orb:95,  ang:1.5,  tilt:.56},
-  {id:'phil',   label:'Philosophy', sub:'41% mastery',        r:10, col:'#c084fc', glow:'rgba(192,132,252,0.2)', orb:310, ang:0.4,  tilt:.43},
-  {id:'chem',   label:'Chemistry',  sub:'37% mastery',        r:10, col:'#fcd34d', glow:'rgba(252,211,77,0.2)',  orb:175, ang:2.1,  tilt:.53},
-  {id:'neuro',  label:'Neuroscience',sub:'24% mastery',       r:9,  col:'#f9a8d4', glow:'rgba(249,168,212,0.2)',orb:235, ang:1.6,  tilt:.49},
+// ── NODES ──────────────────────────────────────────────────────
+const N=[
+  {id:'you',    label:'YOU',         sub:'Your Understanding', r:28, col:'#fde68a', glow:'rgba(253,230,138,0.4)', orb:0,   ang:0,   tilt:1,   mas:0},
+  {id:'phys',   label:'Physics',     sub:'42% mastery',        r:22, col:'#60a5fa', glow:'rgba(96,165,250,0.35)',  orb:155, ang:0.3, tilt:.52, mas:42},
+  {id:'math',   label:'Mathematics', sub:'78% mastery',        r:20, col:'#818cf8', glow:'rgba(129,140,248,0.35)',orb:170, ang:1.8, tilt:.52, mas:78},
+  {id:'bio',    label:'Biology',     sub:'55% mastery',        r:19, col:'#4ade80', glow:'rgba(74,222,128,0.35)', orb:185, ang:3.4, tilt:.52, mas:55},
+  {id:'hist',   label:'History',     sub:'31% mastery',        r:18, col:'#fb923c', glow:'rgba(251,146,60,0.35)', orb:205, ang:5.1, tilt:.52, mas:31},
+  {id:'astro',  label:'Astronomy',   sub:'28% mastery',        r:16, col:'#2dd4bf', glow:'rgba(45,212,191,0.3)',  orb:265, ang:2.2, tilt:.47, mas:28},
+  {id:'calc',   label:'Calculus',    sub:'82% mastery',        r:13, col:'#c084fc', glow:'rgba(192,132,252,0.3)', orb:112, ang:0.9, tilt:.55, mas:82},
+  {id:'qp',     label:'Quantum',     sub:'35% mastery',        r:15, col:'#38bdf8', glow:'rgba(56,189,248,0.3)',  orb:128, ang:4.2, tilt:.50, mas:35},
+  {id:'relat',  label:'Relativity',  sub:'35% mastery',        r:13, col:'#f472b6', glow:'rgba(244,114,182,0.3)', orb:195, ang:0.6, tilt:.48, mas:35},
+  {id:'cosmo',  label:'Cosmology',   sub:'22% mastery',        r:12, col:'#818cf8', glow:'rgba(129,140,248,0.25)',orb:230, ang:3.8, tilt:.45, mas:22},
+  {id:'evol',   label:'Evolution',   sub:'48% mastery',        r:12, col:'#4ade80', glow:'rgba(74,222,128,0.25)', orb:145, ang:2.9, tilt:.54, mas:48},
+  {id:'grav',   label:'Gravity',     sub:'61% mastery',        r:11, col:'#60a5fa', glow:'rgba(96,165,250,0.25)', orb:108, ang:3.5, tilt:.52, mas:61},
+  {id:'ethics', label:'Ethics',      sub:'44% mastery',        r:11, col:'#fbbf24', glow:'rgba(251,191,36,0.25)', orb:280, ang:1.1, tilt:.44, mas:44},
+  {id:'genes',  label:'Genetics',    sub:'39% mastery',        r:10, col:'#34d399', glow:'rgba(52,211,153,0.25)', orb:160, ang:4.8, tilt:.53, mas:39},
+  {id:'eco',    label:'Ecosystems',  sub:'33% mastery',        r:10, col:'#4ade80', glow:'rgba(74,222,128,0.2)',  orb:220, ang:3.1, tilt:.51, mas:33},
+  {id:'newt',   label:"Newton's",    sub:'71% mastery',        r:10, col:'#fb923c', glow:'rgba(251,146,60,0.2)',  orb:145, ang:5.8, tilt:.50, mas:71},
+  {id:'renais', label:'Renaissance', sub:'26% mastery',        r:9,  col:'#f87171', glow:'rgba(248,113,113,0.2)',orb:255, ang:5.5, tilt:.48, mas:26},
+  {id:'revol',  label:'Revolutions', sub:'29% mastery',        r:9,  col:'#fb923c', glow:'rgba(251,146,60,0.2)',  orb:300, ang:4.4, tilt:.46, mas:29},
+  {id:'st',     label:'Space-Time',  sub:'19% mastery',        r:11, col:'#a78bfa', glow:'rgba(167,139,250,0.25)',orb:345, ang:2.7, tilt:.42, mas:19},
+  {id:'knw',    label:'Knowledge',   sub:'67% mastery',        r:10, col:'#6ee7b7', glow:'rgba(110,231,183,0.2)',orb:95,  ang:1.5, tilt:.56, mas:67},
+  {id:'phil',   label:'Philosophy',  sub:'41% mastery',        r:10, col:'#c084fc', glow:'rgba(192,132,252,0.2)',orb:310, ang:0.4, tilt:.43, mas:41},
+  {id:'chem',   label:'Chemistry',   sub:'37% mastery',        r:10, col:'#fcd34d', glow:'rgba(252,211,77,0.2)', orb:175, ang:2.1, tilt:.53, mas:37},
+  {id:'neuro',  label:'Neuroscience',sub:'24% mastery',        r:9,  col:'#f9a8d4', glow:'rgba(249,168,212,0.2)',orb:235, ang:1.6, tilt:.49, mas:24},
 ];
 
-const CONNECTIONS = [
+const CONNS=[
   ['you','phys'],['you','math'],['you','bio'],['you','hist'],['you','calc'],['you','qp'],
   ['phys','qp'],['phys','relat'],['phys','grav'],['phys','astro'],
   ['math','calc'],['math','phys'],['math','knw'],
@@ -361,62 +298,287 @@ const CONNECTIONS = [
   ['cosmo','st'],['ethics','phil'],['phil','knw'],
 ];
 
-// \u2500\u2500 CANVAS SETUP \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-const bgC = document.getElementById('bgCanvas');
-const bgX = bgC.getContext('2d');
-const glC = document.getElementById('galaxyCanvas');
-const glX = glC.getContext('2d');
+// ── CANVAS ─────────────────────────────────────────────────────
+const bgC=document.getElementById('bgCanvas'), bgX=bgC.getContext('2d');
+const glC=document.getElementById('galaxyCanvas'), glX=glC.getContext('2d');
+let W,H,CX,CY;
 
-let W, H, CX, CY;
 function resize(){
-  W = bgC.width  = glC.width  = window.innerWidth;
-  H = bgC.height = glC.height = window.innerHeight;
-  CX = W * (W < 600 ? 0.5 : 0.5);
-  CY = H * (W < 600 ? 0.44 : 0.46);
+  W=bgC.width=glC.width=window.innerWidth;
+  H=bgC.height=glC.height=window.innerHeight;
+  CX=W*0.5; CY=H*(W<600?.44:.46);
 }
 resize();
-window.addEventListener('resize', resize);
+window.addEventListener('resize',resize);
 
-// \u2500\u2500 STARS \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-const STARS = Array.from({length: W < 600 ? 80 : 220}, () => ({
-  x: Math.random(), y: Math.random(),
-  r: Math.random() * 1.2 + 0.3,
-  a: Math.random(),
-  spd: Math.random() * 0.0004 + 0.0001,
+// ── STARS ──────────────────────────────────────────────────────
+const STARS=Array.from({length:180},()=>({
+  x:Math.random(),y:Math.random(),
+  r:Math.random()*1.2+0.3,
+  a:Math.random(),spd:Math.random()*.0004+.0001
 }));
 
-// \u2500\u2500 SPARKS \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-const SPARKS = Array.from({length: W < 600 ? 20 : 40}, () => resetSpark({}));
-function resetSpark(s){
-  const n = NODES[Math.floor(Math.random()*NODES.length)];
-  s.nid = n.id; s.ang = Math.random()*Math.PI*2;
-  s.orb = n.orb; s.tilt = n.tilt;
-  s.life = 0; s.maxLife = 80 + Math.random()*120;
-  s.r = Math.random()*1.8 + 0.5;
-  s.col = n.col; return s;
+// ── SPARKS ─────────────────────────────────────────────────────
+const SPARKS=Array.from({length:30},()=>newSpark());
+function newSpark(){
+  const n=N[Math.floor(Math.random()*N.length)];
+  return{nid:n.id,ang:Math.random()*Math.PI*2,orb:n.orb,tilt:n.tilt,
+    life:0,maxLife:80+Math.random()*120,r:Math.random()*1.5+0.4,col:n.col};
 }
 
-// \u2500\u2500 STATE \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-let ROT = 0, T = 0;
-let HOV = null;
+// ── STATE ──────────────────────────────────────────────────────
+let ROT=0,T=0,HOV=null;
 
-// \u2500\u2500 POSITION \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-function pos(n, r){
-  if(n.orb === 0) return {x: CX, y: CY};
-  const a = n.ang + r;
-  return {x: CX + Math.cos(a)*n.orb, y: CY + Math.sin(a)*n.orb*n.tilt};
+function nodePos(n,r){
+  if(n.orb===0) return{x:CX,y:CY};
+  const a=n.ang+r;
+  return{x:CX+Math.cos(a)*n.orb, y:CY+Math.sin(a)*n.orb*n.tilt};
 }
 
-// \u2500\u2500 DRAW BACKGROUND \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// ── BACKGROUND ─────────────────────────────────────────────────
 function drawBg(){
-  const grad = bgX.createRadialGradient(CX,CY,0,CX,CY,Math.max(W,H)*0.7);
-  grad.addColorStop(0,'rgba(15,20,40,1)');
-  grad.addColorStop(0.5,'rgba(8,12,25,1)');
-  grad.addColorStop(1,'rgba(5,8,15,1)');
-  bgX.fillStyle = grad;
-  bgX.fillRect(0,0,W,H);
+  const g=bgX.createRadialGradient(CX,CY,0,CX,CY,Math.max(W,H)*.7);
+  g.addColorStop(0,'rgba(15,20,40,1)');
+  g.addColorStop(.5,'rgba(8,12,25,1)');
+  g.addColorStop(1,'rgba(5,8,15,1)');
+  bgX.fillStyle=g; bgX.fillRect(0,0,W,H);
+  STARS.forEach(s=>{
+    const tw=0.4+0.6*Math.abs(Math.sin(T*s.spd*10));
+    bgX.beginPath(); bgX.arc(s.x*W,s.y*H,s.r,0,Math.PI*2);
+    bgX.fillStyle=`rgba(190,210,255,${s.a*tw*.7})`; bgX.fill();
+  });
+}
 
-  STARS.forEach(s => {
-    const tw = 0.4 + 0.6*Math.abs(Math.sin(T*s.spd*10));
-    bgX.beginPath();
-    bgX.arc(s.x*W, s.y*H, s.
+// ── GALAXY ─────────────────────────────────────────────────────
+function drawGalaxy(){
+  glX.clearRect(0,0,W,H);
+
+  // Nebula
+  [[280,.07,'rgba(120,80,20,'],[170,.13,'rgba(200,130,30,'],[95,.22,'rgba(255,180,60,'],[50,.40,'rgba(255,210,90,'],[25,.68,'rgba(255,240,160,']].forEach(([r,a,c])=>{
+    const g=glX.createRadialGradient(CX,CY,0,CX,CY,r);
+    g.addColorStop(0,c+a+')'); g.addColorStop(.5,c+(a*.25)+')'); g.addColorStop(1,'transparent');
+    glX.beginPath(); glX.arc(CX,CY,r,0,Math.PI*2); glX.fillStyle=g; glX.fill();
+  });
+
+  // Orbits
+  N.filter(n=>n.orb>0).forEach(n=>{
+    const hot=HOV===n.id;
+    glX.beginPath(); glX.ellipse(CX,CY,n.orb,n.orb*n.tilt,0,0,Math.PI*2);
+    glX.strokeStyle=hot?'rgba(255,255,255,0.16)':'rgba(255,255,255,0.04)';
+    glX.lineWidth=hot?1:0.5; glX.stroke();
+  });
+
+  // Connections
+  CONNS.forEach(([a,b])=>{
+    const na=N.find(n=>n.id===a), nb=N.find(n=>n.id===b);
+    if(!na||!nb) return;
+    const pa=nodePos(na,ROT), pb=nodePos(nb,ROT);
+    const hot=HOV===a||HOV===b;
+    const main=na.orb<200||nb.orb<200;
+    glX.beginPath(); glX.moveTo(pa.x,pa.y); glX.lineTo(pb.x,pb.y);
+    glX.strokeStyle=hot?(main?'rgba(255,255,255,0.42)':'rgba(255,255,255,0.28)'):(main?'rgba(255,255,255,0.1)':'rgba(255,255,255,0.05)');
+    glX.lineWidth=hot?(main?1.8:1.2):(main?0.9:0.5); glX.stroke();
+  });
+
+  // Sparks
+  SPARKS.forEach((s,i)=>{
+    s.life++;
+    if(s.life>s.maxLife){ SPARKS[i]=newSpark(); return; }
+    const a=s.ang+ROT+s.life*.02;
+    const x=CX+Math.cos(a)*s.orb, y=CY+Math.sin(a)*s.orb*s.tilt;
+    const alpha=Math.sin((s.life/s.maxLife)*Math.PI)*.65;
+    glX.beginPath(); glX.arc(x,y,s.r,0,Math.PI*2);
+    glX.fillStyle=s.col.replace('rgb(','rgba(').replace(')',`,${alpha})`);
+    if(!s.col.includes('rgb')) glX.fillStyle=`rgba(255,255,255,${alpha})`;
+    glX.fill();
+  });
+
+  // Nodes
+  N.forEach(n=>{
+    const p=nodePos(n,ROT);
+    const{r,col,glow,label,id,mas}=n;
+    const isYou=id==='you', hot=HOV===id;
+    const pulse=1+Math.sin(T*.0022+n.ang)*.035;
+    const pr=r*pulse;
+
+    // Highlight ring
+    if(n.highlight){
+      glX.beginPath(); glX.arc(p.x,p.y,pr+10,0,Math.PI*2);
+      glX.strokeStyle=col; glX.lineWidth=2; glX.stroke();
+    }
+
+    // Glow
+    glX.globalCompositeOperation='lighter';
+    const gr=glX.createRadialGradient(p.x,p.y,0,p.x,p.y,pr*(isYou?4.2:3));
+    gr.addColorStop(0,glow);
+    gr.addColorStop(.4,glow.replace(/[\d.]+\)$/,'0.04)'));
+    gr.addColorStop(1,'transparent');
+    glX.beginPath(); glX.arc(p.x,p.y,pr*(isYou?4.2:3),0,Math.PI*2);
+    glX.fillStyle=gr; glX.fill();
+    glX.globalCompositeOperation='source-over';
+
+    // Sphere
+    const sg=glX.createRadialGradient(p.x-pr*.3,p.y-pr*.3,0,p.x,p.y,pr);
+    sg.addColorStop(0,'rgba(255,255,255,0.88)');
+    sg.addColorStop(.3,col);
+    sg.addColorStop(1,col+'aa');
+    glX.beginPath(); glX.arc(p.x,p.y,pr,0,Math.PI*2);
+    glX.fillStyle=sg; glX.fill();
+
+    // Mastery arc
+    if(!isYou && mas){
+      glX.beginPath(); glX.arc(p.x,p.y,pr+3,-Math.PI/2,-Math.PI/2+Math.PI*2*(mas/100));
+      glX.strokeStyle=col; glX.lineWidth=1.8; glX.stroke();
+    }
+
+    // Hover ring
+    n._ha=hot?Math.min(1,(n._ha||0)+.12):Math.max(0,(n._ha||0)-.08);
+    if(n._ha>0){
+      glX.beginPath(); glX.arc(p.x,p.y,pr+5,0,Math.PI*2);
+      glX.strokeStyle=`rgba(255,255,255,${n._ha*.55})`; glX.lineWidth=1.5; glX.stroke();
+    }
+
+    // Label
+    const fs=r>=24?13:r>=18?11.5:r>=12?10:9;
+    glX.font=`${hot?'600':'500'} ${fs}px Inter,sans-serif`;
+    glX.fillStyle=`rgba(226,232,240,${hot?1:.85})`;
+    glX.textAlign='center';
+    glX.fillText(label,p.x,p.y+pr+14);
+    if(isYou){
+      glX.font='500 9px Inter,sans-serif';
+      glX.fillStyle='rgba(226,232,240,0.5)';
+      glX.fillText('Your Understanding',p.x,p.y+pr+24);
+    }
+  });
+}
+
+// ── TOOLTIP ────────────────────────────────────────────────────
+const tip=document.getElementById('tip');
+function showTip(n,x,y){
+  tip.innerHTML=`<strong style="color:${n.col}">${n.label}</strong><br><span style="color:#94a3b8">${n.sub}</span>`;
+  tip.style.left=Math.min(x+14,W-170)+'px';
+  tip.style.top=Math.max(y-48,10)+'px';
+  tip.style.opacity='1';
+}
+function hideTip(){ tip.style.opacity='0'; }
+
+function findHit(x,y){
+  for(const n of N){
+    const p=nodePos(n,ROT);
+    const d=Math.sqrt((x-p.x)**2+(y-p.y)**2);
+    if(d<n.r+20) return n.id;
+  }
+  return null;
+}
+
+// ── MOUSE ──────────────────────────────────────────────────────
+document.addEventListener('mousemove',e=>{
+  HOV=findHit(e.clientX,e.clientY);
+  if(HOV) showTip(N.find(n=>n.id===HOV),e.clientX,e.clientY);
+  else hideTip();
+});
+
+// ── TOUCH ──────────────────────────────────────────────────────
+document.addEventListener('touchmove',e=>{
+  if(e.touches.length===1){
+    const t=e.touches[0];
+    HOV=findHit(t.clientX,t.clientY);
+    if(HOV) showTip(N.find(n=>n.id===HOV),t.clientX,t.clientY);
+    else hideTip();
+  }
+},{passive:true});
+
+document.addEventListener('touchend',()=>{
+  setTimeout(()=>{HOV=null;hideTip();},1800);
+},{passive:true});
+
+// ── HIGHLIGHT & PULSE ──────────────────────────────────────────
+function highlightNodes(topics){
+  if(!topics) return;
+  topics.forEach(t=>{const n=N.find(x=>x.id===t);if(n)n.highlight=true;});
+}
+function pulseNodes(suggest){
+  if(!suggest) return;
+  suggest.forEach(t=>{const n=N.find(x=>x.id===t);if(n)n.pulse=true;});
+}
+
+// ── CHAT ───────────────────────────────────────────────────────
+const msgs=document.getElementById('chatMsgs');
+const inp=document.getElementById('chatInput');
+const snd=document.getElementById('chatSend');
+let voice=null;
+
+speechSynthesis.onvoiceschanged=()=>{
+  const v=speechSynthesis.getVoices();
+  voice=v.find(x=>x.name.includes('Google'))||v.find(x=>x.name.includes('Samantha'))||v[0];
+};
+
+function speak(text){
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.voice=voice; speechSynthesis.speak(u);
+}
+
+function addMsg(text,role){
+  const d=document.createElement('div'); d.className='msg '+role;
+  const b=document.createElement('div'); b.className='bubble'; b.textContent=text;
+  d.appendChild(b);
+  if(role==='ai'){
+    const btn=document.createElement('button');
+    btn.textContent='🔊';
+    btn.style.cssText='background:none;border:none;color:#38bdf8;font-size:11px;cursor:pointer;padding:2px 0;opacity:.65;font-family:Inter,sans-serif;';
+    btn.onclick=()=>speak(text);
+    d.appendChild(btn);
+  }
+  msgs.appendChild(d); msgs.scrollTop=msgs.scrollHeight;
+}
+
+function showTyping(){
+  const d=document.createElement('div'); d.className='msg ai'; d.id='typing';
+  d.innerHTML='<div class="typing"><span></span><span></span><span></span></div>';
+  msgs.appendChild(d); msgs.scrollTop=msgs.scrollHeight; return d;
+}
+
+const FB=['Great question! Quantum mechanics and Calculus are deeply linked — Schrödinger\'s equation is a differential equation at its heart. 🔬','Think of wave functions like probability distributions — very similar to what you explored in Limits! ✨','Your mastery of Relativity is at 35% — want me to connect it with Quantum Physics? 🚀','You\'re connecting Physics → Space-Time beautifully. Black Holes are the next frontier. 🌑','There\'s a fascinating link between biological systems and Physics. Shall we explore? 🧬','You\'re at 78% understanding — top tier of learners on this journey. Keep going! 💫'];
+let fbI=0;
+
+async function sendMsg(){
+  const text=inp.value.trim(); if(!text) return;
+  addMsg(text,'user'); inp.value=''; snd.disabled=true;
+  const typing=showTyping();
+  try{
+    const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,userId:'demo-user'})});
+    if(!res.ok) throw new Error();
+    const data=await res.json();
+    typing.remove(); addMsg(data.reply,'ai');
+    highlightNodes(data.topics); pulseNodes(data.suggest);
+    speak(data.reply);
+  }catch(e){
+    typing.remove();
+    const reply=FB[fbI++%FB.length];
+    addMsg(reply,'ai'); speak(reply);
+  }
+  snd.disabled=false;
+}
+
+snd.addEventListener('click',sendMsg);
+inp.addEventListener('keydown',e=>{if(e.key==='Enter')sendMsg();});
+
+// Keyboard lift
+if(window.visualViewport){
+  window.visualViewport.addEventListener('resize',()=>{
+    const kh=window.innerHeight-window.visualViewport.height-window.visualViewport.offsetTop;
+    document.getElementById('chat').style.bottom=(kh>100?kh+8:125)+'px';
+  });
+}
+
+// ── LOOP ───────────────────────────────────────────────────────
+function loop(){
+  ROT+=.00018; T++;
+  drawBg(); drawGalaxy();
+  requestAnimationFrame(loop);
+}
+loop();
+</script>
+</body>
+</html>
