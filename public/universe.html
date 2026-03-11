@@ -107,10 +107,10 @@ body{position:fixed;inset:0;}
 .sc{display:flex;flex-direction:column;align-items:center;flex:1;}
 .sn{font-size:13px;font-weight:700;}
 .sl{font-size:9px;color:var(--muted);white-space:nowrap;}
-.frc{display:flex;align-items:center;gap:8px;flex:2;padding-left:12px;border-left:1px solid var(--border);margin-left:4px;}
+.frc{display:flex;align-items:center;gap:6px;flex:1.5;padding-left:8px;border-left:1px solid var(--border);margin-left:2px;min-width:0;overflow:hidden;}
 .frci{font-size:20px;}
 .frl{font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
-.frn{font-size:11px;font-weight:700;color:var(--gold);}
+.frn{font-size:10px;font-weight:700;color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .frp{display:flex;align-items:center;gap:6px;margin-top:2px;}
 .frt{flex:1;height:3px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden;}
 .frb{width:71%;height:100%;background:linear-gradient(90deg,var(--gold),#f59e0b);border-radius:2px;}
@@ -1008,20 +1008,16 @@ function resetGalaxy(e){
   // Reset Understanding Pulse donut to just "Exploring"
   // (set all segments to 0 except baseline)
 
-  // Zero Understanding Pulse
-  const pulseNum = document.querySelector('.pn');
+  // Zero Understanding Pulse — correct class names
+  const pulseNum = document.querySelector('.pulse-n');
   if(pulseNum) pulseNum.textContent = '0%';
-  const pulseSub = document.querySelector('.ps');
-  if(pulseSub) pulseSub.textContent = 'Starting';
-  // Reset donut SVG segments
-  document.querySelectorAll('.donut-seg').forEach(seg=>{
-    seg.style.strokeDasharray = '0 100';
-  });
-  // Reset pulse legend percentages
-  document.querySelectorAll('.ple').forEach((el,i)=>{
-    const labels = el.querySelectorAll('span');
-    labels.forEach(s=>{ if(s.textContent.includes('%')) s.textContent='0%'; });
-  });
+  const pulseLbl = document.querySelector('.pulse-lbl');
+  if(pulseLbl) pulseLbl.textContent = 'Starting';
+  // Zero donut arc — set dashoffset to full circumference (no fill)
+  const donutArc = document.querySelector('.pulse-donut circle:last-child');
+  if(donutArc){ donutArc.setAttribute('stroke-dasharray','0'); donutArc.setAttribute('stroke-dashoffset','0'); }
+  // Zero legend percentages
+  document.querySelectorAll('.plip').forEach(el=>{ el.textContent = '0%'; });
 
   if(typeof refreshGrowth === 'function') refreshGrowth();
 
@@ -1092,17 +1088,33 @@ pulseNodes = function(suggest){
   const fixedIds = ['teacherChat','thkBar','botBar'];
   function onVP(){
     const vv = window.visualViewport;
+    const left = vv.offsetLeft;
+    const top  = vv.offsetTop;
+    const w    = vv.width;
     fixedIds.forEach(id=>{
       const el = document.getElementById(id);
       if(!el) return;
-      el.style.left   = vv.offsetLeft + 'px';
-      el.style.top    = '';
-      el.style.width  = vv.width + 'px';
-      el.style.right  = 'auto';
+      // Use transform to counteract the viewport scroll caused by zoom
+      el.style.transform = 'translate(' + left + 'px, 0)';
+      el.style.width = w + 'px';
+      el.style.left = '0';
+      el.style.right = 'auto';
+    });
+  }
+  function onReset(){
+    fixedIds.forEach(id=>{
+      const el = document.getElementById(id);
+      if(!el) return;
+      if(window.visualViewport.scale <= 1.01){
+        el.style.transform = '';
+        el.style.width = '100%';
+        el.style.left = '0';
+        el.style.right = '0';
+      }
     });
   }
   window.visualViewport.addEventListener('scroll', onVP);
-  window.visualViewport.addEventListener('resize', onVP);
+  window.visualViewport.addEventListener('resize', ()=>{ onVP(); onReset(); });
 })();
 
 // ── LOADING SCREEN ────────────────────────────────────────────
