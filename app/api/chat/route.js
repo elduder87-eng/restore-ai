@@ -25,19 +25,28 @@ export async function POST(req) {
     const userMessage = body.message
     const userId = body.userId || "demo-user"
 
-    // Save user message
+    if (!userMessage || !userMessage.trim()) {
+
+      return Response.json({
+        reply: "I didn’t catch a question there. Try asking me something.",
+        topics: [],
+        suggest: []
+      })
+
+    }
+
     await addMessage(userId,"user",userMessage)
 
     const history = await getRecentMessages(userId)
 
     const profile = await getUserProfile(userId)
 
-    const interests = profile.interests || []
+    const interests = profile?.interests || []
 
     const lower = userMessage.toLowerCase()
 
     /*
-    MEMORY CHECK
+    MEMORY QUESTION
     */
 
     if(
@@ -48,7 +57,7 @@ export async function POST(req) {
       if(interests.length === 0){
 
         return Response.json({
-          reply:"We haven't explored many ideas yet, but as we talk I'll start remembering what topics spark your curiosity.",
+          reply:"We haven't explored many ideas together yet, but as we talk I'll start remembering what topics spark your curiosity.",
           topics:[],
           suggest:[]
         })
@@ -60,7 +69,7 @@ export async function POST(req) {
       return Response.json({
         reply:`From our conversations I remember:\n\n${formatted}\n\nThose interests might connect in interesting ways. What direction would you like to explore next?`,
         topics: interests,
-        suggest: []
+        suggest: interests.slice(0,3)
       })
 
     }
@@ -69,41 +78,77 @@ export async function POST(req) {
     TOPIC EXTRACTION
     */
 
-    const topics = extractTopics(userMessage)
+    const rawTopics = extractTopics(userMessage) || []
+
+    const topics = [...new Set(
+      rawTopics.map(t => String(t).toLowerCase().trim())
+    )]
 
     await connectTopics(userId,topics)
 
+    for(const topic of topics){
+      await saveInterest(userId,topic)
+    }
+
     /*
-    SIMPLE SUGGESTION ENGINE
+    SUGGESTION ENGINE
     */
 
     const suggestionMap = {
+
       physics:["relativity","astronomy","gravity"],
-      gravity:["relativity","black holes"],
-      astronomy:["black holes","cosmology","space-time"],
+
+      gravity:["relativity","astronomy","blackholes"],
+
+      astronomy:["blackholes","cosmology","spacetime"],
+
+      blackholes:["astronomy","relativity","gravity"],
+
+      mathematics:["calculus","limits","functions"],
+
+      calculus:["limits","functions","physics"],
+
       biology:["genetics","evolution","ecosystems"],
-      history:["revolutions","civilizations","technology"],
-      ai:["machine learning","ethics","future"],
-      mathematics:["calculus","limits","functions"]
+
+      genetics:["biology","evolution"],
+
+      evolution:["biology","genetics","history"],
+
+      history:["revolutions","renaissance","technology"],
+
+      revolutions:["history","politics"],
+
+      philosophy:["ethics","knowledge","history"],
+
+      ethics:["philosophy","knowledge"],
+
+      knowledge:["philosophy","ethics"],
+
+      ai:["technology","ethics","knowledge"],
+
+      technology:["ai","history","ethics"],
+
+      time:["relativity","spacetime","astronomy"],
+
+      timetravel:["relativity","spacetime","astronomy"]
+
     }
 
     let suggest = []
 
-    topics.forEach(topic=>{
+    topics.forEach(topic => {
+
       if(suggestionMap[topic]){
+
         suggest.push(...suggestionMap[topic])
+
       }
+
     })
 
-    suggest = [...new Set(suggest)].slice(0,3)
-
-    /*
-    SAVE INTERESTS
-    */
-
-    topics.forEach(async topic=>{
-      await saveInterest(userId,topic)
-    })
+    suggest = [...new Set(suggest)]
+      .filter(s => !topics.includes(s))
+      .slice(0,3)
 
     /*
     SYSTEM PROMPT
@@ -150,18 +195,22 @@ ${interests.join(", ") || "unknown"}
     */
 
     const completion = await openai.chat.completions.create({
+
       model:"gpt-4o-mini",
+
       messages,
+
       temperature:0.8
+
     })
 
-    const reply = completion.choices[0].message.content
+    const reply = completion.choices?.[0]?.message?.content?.trim() ||
+      "I had a thought but lost the thread. Could you ask that again?"
 
-    // Save AI response
     await addMessage(userId,"restore",reply)
 
     /*
-    RETURN DATA TO FRONTEND
+    FINAL RESPONSE
     */
 
     return Response.json({
