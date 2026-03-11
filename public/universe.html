@@ -750,6 +750,7 @@ function drawConns(){
 }
 
 function drawNode(n){
+  if(n.hidden) return;
   const p=pos(n,ROT);
   const{r,col,glow,label,mas,id}=n;
   const isYou=id==='you',hot=HOV===id;
@@ -931,9 +932,9 @@ async function testAI(){
 }
 
 function resetChat(e){
-  const msgs = document.getElementById('tcMsgs');
-  if(msgs){
-    // Build fresh greeting via DOM (avoids innerHTML quote escaping issues)
+  // Try every possible selector
+  const allMsgs = document.querySelectorAll('#tcMsgs, .tc-msgs');
+  allMsgs.forEach(msgs => {
     msgs.innerHTML = '';
     const wrap = document.createElement('div');
     wrap.className = 'tc-msg ai';
@@ -944,12 +945,11 @@ function resetChat(e){
     msgs.appendChild(wrap);
     msgs.style.setProperty('height','420px','important');
     msgs.scrollTop = 0;
-  }
+  });
   sessionMsgs = 0;
   const el = document.getElementById('statMsgs');
   if(el) el.textContent = '0';
-  // Visual confirmation on the button
-  const btn = e && e.target ? e.target : (e && e.currentTarget ? e.currentTarget : null);
+  const btn = e && e.currentTarget || (e && e.target);
   if(btn && btn.tagName === 'BUTTON'){
     const orig = btn.textContent;
     btn.textContent = '✅ Chat Reset!';
@@ -958,19 +958,56 @@ function resetChat(e){
 }
 
 function resetGalaxy(e){
-  if(typeof N !== 'undefined') N.forEach(n=>{ n.mas=0; n.highlight=false; n.pulse=false; });
+  if(typeof N === 'undefined') return;
+
+  // Hide all nodes except YOU — set orb to 0 and mas to 0
+  N.forEach(n=>{
+    if(n.id === 'you'){
+      n.mas = 100;
+      n.hidden = false;
+    } else {
+      n.mas = 0;
+      n.hidden = true;
+      n.highlight = false;
+      n.pulse = false;
+    }
+  });
+
+  // Zero session counters
   sessionTopics = 0;
   sessionPulse = 0;
-  const t = document.getElementById('statTopics');
-  const p = document.getElementById('statPulse');
-  if(t) t.textContent = '0';
-  if(p) p.textContent = '0';
+  sessionMsgs = 0;
+
+  // Zero stat panel
+  ['statTopics','statPulse','statMsgs'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.textContent = '0';
+  });
+
+  // Zero growth bars in right panel
+  document.querySelectorAll('.grwt').forEach((el,i)=>{
+    el.textContent = ['↑ 0%','↑ 0%','↑ 0%','↓ 0%'][i] || '↑ 0%';
+  });
+  document.querySelectorAll('.pf').forEach(el=>{ el.style.width='0%'; });
+
+  // Zero bottom stats bar
+  const sns = document.querySelectorAll('.sn');
+  if(sns[0]) sns[0].textContent = '🧩 0';
+  if(sns[1]) sns[1].textContent = '🔭 0';
+  if(sns[2]) sns[2].textContent = '⚡ 0';
+
+  // Reset Understanding Pulse donut to just "Exploring"
+  // (set all segments to 0 except baseline)
   if(typeof refreshGrowth === 'function') refreshGrowth();
-  const btn = e && e.target ? e.target : (e && e.currentTarget ? e.currentTarget : null);
+
+  // Reset chat too
+  resetChat({});
+
+  const btn = e && e.currentTarget || (e && e.target);
   if(btn && btn.tagName === 'BUTTON'){
     const orig = btn.textContent;
-    btn.textContent = '✅ Galaxy Reset!';
-    setTimeout(()=>{ btn.textContent = orig; }, 1500);
+    btn.textContent = '✅ Full Reset!';
+    setTimeout(()=>{ btn.textContent = orig; }, 2000);
   }
 }
 
@@ -987,6 +1024,41 @@ pulseNodes = function(suggest){
   document.getElementById('statPulse').textContent = sessionPulse;
   _origPulse(suggest);
 };
+
+
+// ── ZOOM LOCK ─────────────────────────────────────────────────
+// Prevent pinch-zoom from drifting fixed-position chat elements
+(function(){
+  if(!window.visualViewport) return;
+  
+  function lockFixed(){
+    const vv = window.visualViewport;
+    const offsetX = vv.offsetLeft;
+    const offsetY = vv.offsetTop;
+    const scale  = vv.scale;
+    
+    // Only reanchor if user has zoomed (scale != 1)
+    const els = ['teacherChat','thkBar','botBar','dashPanel'];
+    els.forEach(id=>{
+      const el = document.getElementById(id);
+      if(!el) return;
+      if(scale > 1.01){
+        // Counter the viewport offset so element stays at edge
+        el.style.left   = offsetX + 'px';
+        el.style.right  = 'auto';
+        el.style.width  = vv.width + 'px';
+      } else {
+        // Back to normal
+        el.style.left  = '0';
+        el.style.right = '0';
+        el.style.width = '100%';
+      }
+    });
+  }
+  
+  window.visualViewport.addEventListener('scroll', lockFixed);
+  window.visualViewport.addEventListener('resize', lockFixed);
+})();
 
 // ── LOADING SCREEN ────────────────────────────────────────────
 (function(){
@@ -1308,8 +1380,8 @@ pulseNodes = function(suggest){
 
     <!-- Reset Galaxy -->
     <div style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;">
-      <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;">🌌 Knowledge Galaxy</div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:12px;">Reset all node mastery and highlights back to zero</div>
+      <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;">🔄 Full Factory Reset</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:12px;">Zero all stats • hide all nodes except YOU • clear chat</div>
       <button onclick="resetGalaxy.call(this,event)" style="background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.3);color:var(--gold);padding:8px 16px;border-radius:8px;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;">
         Reset Galaxy
       </button>
