@@ -163,7 +163,7 @@ body{position:fixed;inset:0;}
   box-shadow:0 8px 40px rgba(0,0,0,0.5);
   pointer-events:all;
 }
-@media(min-width:1101px){
+@media(min-width:769px){
   .tc{
     bottom:130px;
     left:50%;
@@ -234,7 +234,7 @@ body{position:fixed;inset:0;}
 .tc-speak{background:none;border:none;color:var(--blue);font-size:11px;cursor:pointer;padding:2px 0;opacity:.65;font-family:'Inter',sans-serif;}
 
 /* MOBILE */
-@media(max-width:1100px){
+@media(max-width:768px){
   .main{grid-template-columns:1fr;grid-template-rows:1fr;}
   .left{display:none !important;}
   .right{display:none !important;}
@@ -812,7 +812,7 @@ loop();
 // Restore desktop centered layout for wide screens
 (function(){
   function applyLayout(){
-    const isMobile = window.innerWidth <= 1100;
+    const isMobile = window.innerWidth <= 1100; // device is mobile
     const chat = document.getElementById('teacherChat');
     const thk  = document.getElementById('thkBar');
     const bot  = document.getElementById('botBar');
