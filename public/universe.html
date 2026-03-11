@@ -50,7 +50,7 @@ body{position:fixed;inset:0;}
 
 /* MAIN LAYOUT */
 .main{display:grid;grid-template-columns:240px 1fr 255px;height:100%;gap:0;overflow:hidden;}
-@media(max-width:768px){.main{grid-template-columns:1fr;}}
+@media(max-width:1100px){.main{grid-template-columns:1fr;}}
 
 /* PANELS */
 .left,.right{
@@ -97,7 +97,7 @@ body{position:fixed;inset:0;}
 
 /* BOTTOM BAR */
 .bot{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(560px,calc(100vw - 520px));display:flex;align-items:center;gap:0;padding:8px 14px;background:rgba(5,8,20,0.88);border:1px solid var(--border);border-top:none;border-radius:0 0 16px 16px;z-index:198;pointer-events:all;backdrop-filter:blur(8px);}
-@media(max-width:768px){
+@media(max-width:1100px){
   .bot{
     position:fixed !important;
     bottom:0 !important;
@@ -163,7 +163,7 @@ body{position:fixed;inset:0;}
   box-shadow:0 8px 40px rgba(0,0,0,0.5);
   pointer-events:all;
 }
-@media(min-width:769px){
+@media(min-width:1101px){
   .tc{
     bottom:130px;
     left:50%;
@@ -176,7 +176,7 @@ body{position:fixed;inset:0;}
     border:1px solid rgba(255,255,255,0.13);
   }
 }
-@media(max-width:768px){
+@media(max-width:1100px){
   .tc{left:0;right:0;bottom:118px;width:100%;max-width:100%;transform:none;border-radius:0;border-left:none;border-right:none;}
   .thk{position:fixed;bottom:58px;left:0;right:0;width:100%;padding:10px 16px;border-radius:0;background:rgba(5,8,20,0.97);border-top:1px solid rgba(255,255,255,0.08);z-index:199;}
   .bot{position:fixed;bottom:0;left:0;right:0;width:100%;padding:8px 14px;background:rgba(5,8,20,0.97);border-top:1px solid rgba(255,255,255,0.08);z-index:198;}
@@ -185,7 +185,7 @@ body{position:fixed;inset:0;}
   .ti{width:36px;height:36px;font-size:18px;}
   .tl{font-size:11px;}
 }
-@media(max-width:768px){
+@media(max-width:1100px){
   .tc{
     left:0 !important;
     right:0 !important;
@@ -234,7 +234,7 @@ body{position:fixed;inset:0;}
 .tc-speak{background:none;border:none;color:var(--blue);font-size:11px;cursor:pointer;padding:2px 0;opacity:.65;font-family:'Inter',sans-serif;}
 
 /* MOBILE */
-@media(max-width:768px){
+@media(max-width:1100px){
   .main{grid-template-columns:1fr;grid-template-rows:1fr;}
   .left{display:none !important;}
   .right{display:none !important;}
@@ -514,7 +514,7 @@ const bg=document.getElementById('bg'),   bx=bg.getContext('2d');
 const uc=document.getElementById('uni'),  ux=uc.getContext('2d');
 const hit=document.getElementById('hit');
 
-const isMobile=window.innerWidth<768;
+const isMobile=window.innerWidth<=1100;
 
 // Apply mobile layout directly via JS — no CSS specificity issues
 if(isMobile){
@@ -812,7 +812,7 @@ loop();
 // Restore desktop centered layout for wide screens
 (function(){
   function applyLayout(){
-    const isMobile = window.innerWidth <= 768;
+    const isMobile = window.innerWidth <= 1100;
     const chat = document.getElementById('teacherChat');
     const thk  = document.getElementById('thkBar');
     const bot  = document.getElementById('botBar');
@@ -955,7 +955,7 @@ loop();
 
 // ── FORCE MOBILE LAYOUT ───────────────────────────────────────
 (function(){
-  if(window.innerWidth > 768) return;
+  if(window.innerWidth > 1100) return;
   
   function applyMobile(){
     const chat = document.getElementById('teacherChat');
@@ -1029,7 +1029,7 @@ loop();
 
 <style>
 /* NUCLEAR MOBILE OVERRIDE - highest possible specificity */
-@media screen and (max-width:900px){
+@media screen and (max-width:1100px){
   html body #teacherChat{
     position:fixed !important;
     left:0 !important;
@@ -1088,7 +1088,7 @@ loop();
 
 <style>
 /* PORTRAIT PHONE FALLBACK */
-@media screen and (orientation:portrait) and (max-width:900px){
+@media screen and (orientation:portrait) and (max-width:1100px){
   html body #teacherChat{
     position:fixed !important;
     left:0 !important; right:0 !important; bottom:118px !important;
