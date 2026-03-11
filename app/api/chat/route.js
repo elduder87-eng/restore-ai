@@ -1,214 +1,203 @@
 import OpenAI from "openai"
 
 import {
-  addMessage,
-  getRecentMessages,
-  getUserProfile,
-  saveInterest
+addMessage,
+getRecentMessages,
+getUserProfile,
+saveInterest
 } from "@/lib/memory"
 
 import {
-  extractTopics,
-  connectTopics
+extractTopics,
+connectTopics
 } from "@/lib/curiosity"
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
+apiKey: process.env.OPENAI_API_KEY
 })
 
-const topicToNodeMap = {
-  physics: "phys",
-  gravity: "grav",
-  relativity: "rel",
-  math: "math",
-  mathematics: "math",
-  calculus: "calc",
-  astronomy: "astro",
-  blackholes: "bh",
-  black_holes: "bh",
-  blackholesingularities: "bh",
-  biology: "bio",
-  evolution: "evol",
-  genetics: "gen",
-  history: "hist",
-  spacetime: "st",
-  "space-time": "st",
-  cosmology: "cosmo",
-  ethics: "eth",
-  knowledge: "know"
+export async function POST(req){
+
+try{
+
+const body = await req.json()
+
+const userMessage = body.message
+const userId = body.userId || "demo-user"
+
+await addMessage(userId,"user",userMessage)
+
+const history = await getRecentMessages(userId)
+
+const profile = await getUserProfile(userId)
+
+const interests = profile.interests || []
+
+const lower = userMessage.toLowerCase()
+
+/*
+MEMORY SUMMARY
+*/
+
+if(
+lower.includes("what do you remember") ||
+lower.includes("what do you know about me")
+){
+
+if(interests.length === 0){
+
+return Response.json({
+reply:"We haven't explored many ideas together yet, so I don't know much about your interests yet. As we talk I'll begin remembering what topics excite your curiosity.",
+topics:[],
+suggest:[]
+})
+
 }
 
-function unique(arr) {
-  return [...new Set(arr)]
+const formatted = interests.map(i=>`• You enjoy ${i}`).join("\n")
+
+return Response.json({
+reply:`From our conversations I remember:\n\n${formatted}\n\nThose interests might connect in interesting ways. What direction would you like to explore next?`,
+topics:interests,
+suggest:interests.slice(0,2)
+})
+
 }
 
-function inferSuggestedNodes(topics = []) {
-  const suggestions = new Set()
+/*
+CURIOSITY ENGINE
+*/
 
-  if (topics.includes("physics")) {
-    suggestions.add("rel")
-    suggestions.add("calc")
-  }
+const topics = extractTopics(userMessage) || []
 
-  if (topics.includes("astronomy")) {
-    suggestions.add("bh")
-    suggestions.add("st")
-  }
+await connectTopics(userId,topics)
 
-  if (topics.includes("math") || topics.includes("mathematics")) {
-    suggestions.add("calc")
-    suggestions.add("lim")
-  }
+for(const topic of topics){
 
-  if (topics.includes("biology")) {
-    suggestions.add("evol")
-    suggestions.add("gen")
-  }
+await saveInterest(userId,topic)
 
-  if (topics.includes("history")) {
-    suggestions.add("ren")
-    suggestions.add("rev")
-  }
-
-  if (topics.includes("relativity")) {
-    suggestions.add("st")
-    suggestions.add("astro")
-  }
-
-  if (topics.includes("blackholes") || topics.includes("black_holes")) {
-    suggestions.add("astro")
-    suggestions.add("grav")
-  }
-
-  return [...suggestions]
 }
 
-export async function POST(req) {
-  try {
-    const body = await req.json()
+/*
+NODE SUGGESTION ENGINE
+*/
 
-    const userMessage = body.message
-    const userId = body.userId || "demo-user"
+const suggestionMap = {
 
-    if (!userMessage || !userMessage.trim()) {
-      return Response.json({
-        reply: "Ask me anything you're curious about.",
-        topics: [],
-        suggestedNodes: []
-      })
-    }
+physics:["relativity","gravity","astronomy"],
 
-    await addMessage(userId, "user", userMessage)
+astronomy:["blackholes","cosmology","spacetime"],
 
-    const history = await getRecentMessages(userId)
-    const profile = await getUserProfile(userId)
+math:["calculus","physics"],
 
-    const interests = profile.interests || []
-    const lower = userMessage.toLowerCase()
+biology:["genetics","evolution"],
 
-    /*
-    MEMORY QUESTION
-    */
-    if (
-      lower.includes("what do you remember") ||
-      lower.includes("what do you know about me")
-    ) {
-      if (interests.length === 0) {
-        return Response.json({
-          reply:
-            "We haven't explored many ideas together yet. As we talk I'll begin remembering what topics excite your curiosity.",
-          topics: [],
-          suggestedNodes: []
-        })
-      }
+history:["revolutions","renaissance"]
 
-      const formatted = interests
-        .map((i) => `• You enjoy ${i}`)
-        .join("\n\n")
+}
 
-      return Response.json({
-        reply: `From our conversations I remember:\n\n${formatted}\n\nThose interests might connect in interesting ways. What direction would you like to explore next?`,
-        topics: interests,
-        suggestedNodes: inferSuggestedNodes(interests)
-      })
-    }
+let suggest = []
 
-    /*
-    CURIOSITY ENGINE
-    */
-    const extractedTopics = extractTopics(userMessage) || []
-    const topics = unique(extractedTopics)
+topics.forEach(topic=>{
 
-    await connectTopics(userId, topics)
+if(suggestionMap[topic]){
 
-    for (const topic of topics) {
-      await saveInterest(userId, topic)
-    }
+suggest.push(...suggestionMap[topic])
 
-    /*
-    SUGGESTED NODES
-    */
-    const directTopicNodes = topics
-      .map((topic) => topicToNodeMap[topic])
-      .filter(Boolean)
+}
 
-    const inferredNodes = inferSuggestedNodes(topics)
+})
 
-    const suggestedNodes = unique([...directTopicNodes, ...inferredNodes])
+suggest = [...new Set(suggest)].slice(0,3)
 
-    /*
-    SYSTEM PROMPT
-    */
-    const systemPrompt = `
+/*
+RESTORE PERSONALITY
+*/
+
+const systemPrompt = `
+
 You are Restore.
 
 Restore is a curiosity guide that helps people explore ideas and connect knowledge.
 
-You are not a generic AI assistant.
+You are thoughtful, conversational, and curious.
 
-Your personality:
-• thoughtful
-• curious
-• conversational
-• reflective
-• encouraging
-
-Your role:
-• guide curiosity
-• connect ideas across subjects
-• help users discover relationships between topics
-• ask thoughtful follow-up questions
+You guide exploration instead of giving long lectures.
 
 Rules:
-• keep responses concise
-• avoid sounding robotic
-• never say you are an AI assistant
-• never say you don't have opinions
-• speak like a knowledgeable guide or teacher
-• do not give long lectures unless clearly asked
-• when useful, suggest one related idea the user could explore next
 
-If a conversation topic connects to science, philosophy, history, or learning, gently explore that connection.
+• keep responses concise
+• avoid robotic phrasing
+• never say "as an AI"
+• never say you don't have opinions
+• speak like a teacher guiding discovery
 
 User interests:
 ${interests.join(", ") || "unknown"}
+
 `
 
-    const messages = [
-      { role: "system", content: systemPrompt },
+const messages = [
 
-      ...history.map((m) => ({
-        role: m.role === "restore" ? "assistant" : "user",
-        content: m.content
-      })),
+{role:"system",content:systemPrompt},
 
-      { role: "user", content: userMessage }
-    ]
+...history.map(m=>({
+role:m.role==="restore"?"assistant":"user",
+content:m.content
+})),
 
-    /*
-    AI RESPONSE
-    */
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages,
-      temperature:
+{role:"user",content:userMessage}
+
+]
+
+/*
+AI RESPONSE
+*/
+
+const completion = await openai.chat.completions.create({
+
+model:"gpt-4o-mini",
+
+messages,
+
+temperature:0.8
+
+})
+
+const reply =
+completion.choices?.[0]?.message?.content?.trim() ||
+"I had a thought but lost it for a second. Could you ask that again?"
+
+await addMessage(userId,"restore",reply)
+
+/*
+RETURN DATA FOR GALAXY
+*/
+
+return Response.json({
+
+reply,
+
+topics,
+
+suggest
+
+})
+
+}catch(err){
+
+console.error(err)
+
+return Response.json({
+
+reply:"Hmm… something interrupted my thinking. Could you try asking that again?",
+
+topics:[],
+
+suggest:[]
+
+})
+
+}
+
+}
