@@ -50,6 +50,7 @@ body{position:fixed;inset:0;}
 
 /* MAIN LAYOUT */
 .main{display:grid;grid-template-columns:240px 1fr 255px;height:100%;gap:0;overflow:hidden;}
+@media(max-width:768px){.main{grid-template-columns:1fr;}}
 
 /* PANELS */
 .left,.right{
