@@ -930,22 +930,35 @@ async function testAI(){
   }
 }
 
-function resetChat(){
+function resetChat(e){
+  const event=e;
   const msgs = document.getElementById('tcMsgs');
   if(msgs){
     msgs.innerHTML = '<div class="tc-msg ai"><div class="tc-bubble">Hey Alex! Ready to explore something new? What are you curious about today? 🌌</div></div>';
-    sessionMsgs = 0;
-    document.getElementById('statMsgs').textContent = '0';
+    msgs.style.setProperty('height','300px','important');
+    msgs.scrollTop = 0;
   }
+  sessionMsgs = 0;
+  const el = document.getElementById('statMsgs');
+  if(el) el.textContent = '0';
+  // Visual confirmation
+  const btn = event && event.target;
+  if(btn){ const orig=btn.textContent; btn.textContent='✅ Reset!'; setTimeout(()=>btn.textContent=orig,1500); }
 }
 
-function resetGalaxy(){
-  N.forEach(n=>{ n.mas=0; n.highlight=false; n.pulse=false; });
+function resetGalaxy(e){
+  const event=e;
+  if(typeof N !== 'undefined') N.forEach(n=>{ n.mas=0; n.highlight=false; n.pulse=false; });
   sessionTopics = 0;
   sessionPulse = 0;
-  document.getElementById('statTopics').textContent = '0';
-  document.getElementById('statPulse').textContent = '0';
-  refreshGrowth();
+  const t = document.getElementById('statTopics');
+  const p = document.getElementById('statPulse');
+  if(t) t.textContent = '0';
+  if(p) p.textContent = '0';
+  if(typeof refreshGrowth === 'function') refreshGrowth();
+  // Visual confirmation
+  const btn = event && event.target;
+  if(btn){ const orig=btn.textContent; btn.textContent='✅ Reset!'; setTimeout(()=>btn.textContent=orig,1500); }
 }
 
 // Track stats — patch into existing highlight/pulse functions
@@ -1275,7 +1288,7 @@ pulseNodes = function(suggest){
     <div style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;">
       <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;">💬 Chat History</div>
       <div style="font-size:11px;color:var(--muted);margin-bottom:12px;">Clear your conversation with the Restore Guide</div>
-      <button onclick="resetChat()" style="background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);color:#f87171;padding:8px 16px;border-radius:8px;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;">
+      <button onclick="resetChat.call(this,event)" style="background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);color:#f87171;padding:8px 16px;border-radius:8px;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;">
         Reset Chat
       </button>
     </div>
@@ -1284,7 +1297,7 @@ pulseNodes = function(suggest){
     <div style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;">
       <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;">🌌 Knowledge Galaxy</div>
       <div style="font-size:11px;color:var(--muted);margin-bottom:12px;">Reset all node mastery and highlights back to zero</div>
-      <button onclick="resetGalaxy()" style="background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.3);color:var(--gold);padding:8px 16px;border-radius:8px;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;">
+      <button onclick="resetGalaxy.call(this,event)" style="background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.3);color:var(--gold);padding:8px 16px;border-radius:8px;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;">
         Reset Galaxy
       </button>
     </div>
