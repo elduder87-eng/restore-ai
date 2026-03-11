@@ -286,6 +286,17 @@ body{position:fixed;inset:0;}
 .tc-send:hover{transform:scale(1.08);}
 .tc-send:active{transform:scale(0.94);}
 .tc-send:disabled{opacity:0.4;cursor:default;transform:none;}
+/* DEV RESET BUTTON */
+#devReset{
+  position:fixed;bottom:8px;left:50%;transform:translateX(-50%);
+  z-index:9999;background:rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.15);border-radius:20px;
+  color:rgba(255,255,255,0.4);font-size:11px;font-family:'Inter',sans-serif;
+  padding:6px 16px;cursor:pointer;letter-spacing:.05em;
+  transition:all .2s;pointer-events:all;
+}
+#devReset:hover{background:rgba(255,255,255,0.15);color:rgba(255,255,255,0.8);}
+
 .tc-replay,.tc-speak{
   background:none;border:none;cursor:pointer;
   font-size:14px;opacity:0.65;margin-top:5px;
@@ -896,6 +907,24 @@ document.addEventListener('touchend',e=>{
   setTimeout(()=>{HOV_TARGET=null;hideTip();},1800);
 },{passive:true});
 
+// ── DEV RESET ────────────────────────────────────────────────
+document.getElementById('devReset').addEventListener('click', ()=>{
+  // Randomise all node angles
+  N.forEach(n => {
+    n.ang = Math.random() * Math.PI * 2;
+    n.highlight = false;
+    n.pulse = false;
+    n._ha = 0;
+  });
+  // Reset rotation
+  ROT = Math.random() * Math.PI * 2;
+  T = 0;
+  // Clear any tooltips
+  hideTip();
+  HOV_TARGET = null;
+  HOV = null;
+});
+
 // ── NODE HIGHLIGHT & PULSE ────────────────────────────────────
 function highlightNodes(topics){
   if(!topics) return
@@ -1149,5 +1178,6 @@ input.addEventListener("keydown",e=>{
 
 </script>
 
+<button id="devReset">⟳ Reset Universe</button>
 </body>
 </html>
