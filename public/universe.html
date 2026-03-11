@@ -492,6 +492,25 @@ const hit=document.getElementById('hit');
 
 const isMobile=window.innerWidth<768;
 
+// Apply mobile layout directly via JS — no CSS specificity issues
+if(isMobile){
+  // Chat — full width, no border radius
+  const tc=document.getElementById('teacherChat');
+  if(tc){
+    tc.style.cssText='position:fixed;bottom:118px;left:0;right:0;width:100vw;max-width:100vw;border-radius:0;transform:none;border-left:none;border-right:none;border-top:1px solid rgba(255,255,255,0.13);z-index:200;background:rgba(5,8,20,0.92);display:flex;flex-direction:column;overflow:hidden;box-shadow:0 -4px 30px rgba(0,0,0,0.5);pointer-events:all;';
+  }
+  // Thinking bar — full width fixed
+  const thk=document.querySelector('.thk');
+  if(thk){
+    thk.style.cssText='position:fixed;bottom:58px;left:0;right:0;width:100vw;padding:10px 16px;border-radius:0;background:rgba(5,8,20,0.97);border-top:1px solid rgba(255,255,255,0.08);z-index:199;flex-shrink:0;';
+  }
+  // Stats bar — full width fixed at very bottom
+  const bot=document.querySelector('.bot');
+  if(bot){
+    bot.style.cssText='position:fixed;bottom:0;left:0;right:0;width:100vw;padding:8px 14px;background:rgba(5,8,20,0.97);border-top:1px solid rgba(255,255,255,0.08);z-index:198;display:flex;align-items:center;gap:0;';
+  }
+}
+
 const _initW=document.documentElement.clientWidth;
 const _initH=document.documentElement.clientHeight;
 
@@ -878,6 +897,79 @@ loop();
     });
   }
 })();
+
+// ── FORCE MOBILE LAYOUT ───────────────────────────────────────
+(function(){
+  if(window.innerWidth > 768) return;
+  
+  function applyMobile(){
+    const chat = document.getElementById('teacherChat');
+    const thk  = document.querySelector('.thk');
+    const bot  = document.querySelector('.bot');
+    
+    if(chat){
+      chat.style.cssText = `
+        position:fixed;
+        bottom:118px;
+        left:0;
+        right:0;
+        width:100vw;
+        max-width:100vw;
+        min-width:0;
+        transform:none;
+        border-radius:0;
+        border-left:none;
+        border-right:none;
+        z-index:200;
+      `;
+      const msgs = chat.querySelector('.tc-msgs');
+      if(msgs) msgs.style.height = '150px';
+    }
+    
+    if(thk){
+      thk.style.cssText = `
+        position:fixed;
+        bottom:58px;
+        left:0;
+        right:0;
+        width:100vw;
+        padding:10px 16px;
+        border-radius:0;
+        background:rgba(5,8,20,0.97);
+        border-top:1px solid rgba(255,255,255,0.08);
+        z-index:199;
+      `;
+      const thkr = thk.querySelector('.thkr');
+      if(thkr){ thkr.style.justifyContent='space-around'; thkr.style.width='100%'; }
+      thk.querySelectorAll('.tn').forEach(el=>{ el.style.flex='1'; el.style.alignItems='center'; });
+      thk.querySelectorAll('.ti').forEach(el=>{ el.style.width='36px'; el.style.height='36px'; el.style.fontSize='18px'; });
+      thk.querySelectorAll('.tl').forEach(el=>{ el.style.fontSize='11px'; });
+    }
+    
+    if(bot){
+      bot.style.cssText = `
+        position:fixed;
+        bottom:0;
+        left:0;
+        right:0;
+        width:100vw;
+        padding:8px 14px;
+        background:rgba(5,8,20,0.97);
+        border-top:1px solid rgba(255,255,255,0.08);
+        z-index:198;
+        display:flex;
+        align-items:center;
+      `;
+    }
+  }
+  
+  // Run on load and after short delay to override any late styles
+  document.addEventListener('DOMContentLoaded', applyMobile);
+  window.addEventListener('load', applyMobile);
+  setTimeout(applyMobile, 100);
+  setTimeout(applyMobile, 500);
+})();
+
 </script>
 </body>
 </html>
