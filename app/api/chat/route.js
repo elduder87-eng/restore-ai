@@ -1,203 +1,195 @@
 import OpenAI from "openai"
 
 import {
-addMessage,
-getRecentMessages,
-getUserProfile,
-saveInterest
+  addMessage,
+  getRecentMessages,
+  getUserProfile,
+  saveInterest
 } from "@/lib/memory"
 
 import {
-extractTopics,
-connectTopics
+  extractTopics,
+  connectTopics
 } from "@/lib/curiosity"
 
 const openai = new OpenAI({
-apiKey: process.env.OPENAI_API_KEY
+  apiKey: process.env.OPENAI_API_KEY
 })
 
-export async function POST(req){
+export async function POST(req) {
 
-try{
+  try {
 
-const body = await req.json()
+    const body = await req.json()
 
-const userMessage = body.message
-const userId = body.userId || "demo-user"
+    const userMessage = body.message
+    const userId = body.userId || "demo-user"
 
-await addMessage(userId,"user",userMessage)
+    // Save user message
+    await addMessage(userId,"user",userMessage)
 
-const history = await getRecentMessages(userId)
+    const history = await getRecentMessages(userId)
 
-const profile = await getUserProfile(userId)
+    const profile = await getUserProfile(userId)
 
-const interests = profile.interests || []
+    const interests = profile.interests || []
 
-const lower = userMessage.toLowerCase()
+    const lower = userMessage.toLowerCase()
 
-/*
-MEMORY SUMMARY
-*/
+    /*
+    MEMORY CHECK
+    */
 
-if(
-lower.includes("what do you remember") ||
-lower.includes("what do you know about me")
-){
+    if(
+      lower.includes("what do you remember") ||
+      lower.includes("what do you know about me")
+    ){
 
-if(interests.length === 0){
+      if(interests.length === 0){
 
-return Response.json({
-reply:"We haven't explored many ideas together yet, so I don't know much about your interests yet. As we talk I'll begin remembering what topics excite your curiosity.",
-topics:[],
-suggest:[]
-})
+        return Response.json({
+          reply:"We haven't explored many ideas yet, but as we talk I'll start remembering what topics spark your curiosity.",
+          topics:[],
+          suggest:[]
+        })
 
-}
+      }
 
-const formatted = interests.map(i=>`• You enjoy ${i}`).join("\n")
+      const formatted = interests.map(i=>`• You enjoy ${i}`).join("\n")
 
-return Response.json({
-reply:`From our conversations I remember:\n\n${formatted}\n\nThose interests might connect in interesting ways. What direction would you like to explore next?`,
-topics:interests,
-suggest:interests.slice(0,2)
-})
+      return Response.json({
+        reply:`From our conversations I remember:\n\n${formatted}\n\nThose interests might connect in interesting ways. What direction would you like to explore next?`,
+        topics: interests,
+        suggest: []
+      })
 
-}
+    }
 
-/*
-CURIOSITY ENGINE
-*/
+    /*
+    TOPIC EXTRACTION
+    */
 
-const topics = extractTopics(userMessage) || []
+    const topics = extractTopics(userMessage)
 
-await connectTopics(userId,topics)
+    await connectTopics(userId,topics)
 
-for(const topic of topics){
+    /*
+    SIMPLE SUGGESTION ENGINE
+    */
 
-await saveInterest(userId,topic)
+    const suggestionMap = {
+      physics:["relativity","astronomy","gravity"],
+      gravity:["relativity","black holes"],
+      astronomy:["black holes","cosmology","space-time"],
+      biology:["genetics","evolution","ecosystems"],
+      history:["revolutions","civilizations","technology"],
+      ai:["machine learning","ethics","future"],
+      mathematics:["calculus","limits","functions"]
+    }
 
-}
+    let suggest = []
 
-/*
-NODE SUGGESTION ENGINE
-*/
+    topics.forEach(topic=>{
+      if(suggestionMap[topic]){
+        suggest.push(...suggestionMap[topic])
+      }
+    })
 
-const suggestionMap = {
+    suggest = [...new Set(suggest)].slice(0,3)
 
-physics:["relativity","gravity","astronomy"],
+    /*
+    SAVE INTERESTS
+    */
 
-astronomy:["blackholes","cosmology","spacetime"],
+    topics.forEach(async topic=>{
+      await saveInterest(userId,topic)
+    })
 
-math:["calculus","physics"],
+    /*
+    SYSTEM PROMPT
+    */
 
-biology:["genetics","evolution"],
-
-history:["revolutions","renaissance"]
-
-}
-
-let suggest = []
-
-topics.forEach(topic=>{
-
-if(suggestionMap[topic]){
-
-suggest.push(...suggestionMap[topic])
-
-}
-
-})
-
-suggest = [...new Set(suggest)].slice(0,3)
-
-/*
-RESTORE PERSONALITY
-*/
-
-const systemPrompt = `
+    const systemPrompt = `
 
 You are Restore.
 
-Restore is a curiosity guide that helps people explore ideas and connect knowledge.
+Restore is a curiosity companion designed to help users explore ideas.
 
-You are thoughtful, conversational, and curious.
+Communication style:
 
-You guide exploration instead of giving long lectures.
+• thoughtful
+• curious
+• conversational
+• reflective
 
 Rules:
 
 • keep responses concise
-• avoid robotic phrasing
-• never say "as an AI"
-• never say you don't have opinions
-• speak like a teacher guiding discovery
+• avoid long lectures
+• guide curiosity
+• ask follow-up questions
 
 User interests:
 ${interests.join(", ") || "unknown"}
 
 `
 
-const messages = [
+    const messages = [
 
-{role:"system",content:systemPrompt},
+      {role:"system",content:systemPrompt},
 
-...history.map(m=>({
-role:m.role==="restore"?"assistant":"user",
-content:m.content
-})),
+      ...history.map(m=>({
+        role:m.role==="restore"?"assistant":"user",
+        content:m.content
+      }))
 
-{role:"user",content:userMessage}
+    ]
 
-]
+    /*
+    AI RESPONSE
+    */
 
-/*
-AI RESPONSE
-*/
+    const completion = await openai.chat.completions.create({
+      model:"gpt-4o-mini",
+      messages,
+      temperature:0.8
+    })
 
-const completion = await openai.chat.completions.create({
+    const reply = completion.choices[0].message.content
 
-model:"gpt-4o-mini",
+    // Save AI response
+    await addMessage(userId,"restore",reply)
 
-messages,
+    /*
+    RETURN DATA TO FRONTEND
+    */
 
-temperature:0.8
+    return Response.json({
 
-})
+      reply,
 
-const reply =
-completion.choices?.[0]?.message?.content?.trim() ||
-"I had a thought but lost it for a second. Could you ask that again?"
+      topics,
 
-await addMessage(userId,"restore",reply)
+      suggest
 
-/*
-RETURN DATA FOR GALAXY
-*/
+    })
 
-return Response.json({
+  }
 
-reply,
+  catch(err){
 
-topics,
+    console.error(err)
 
-suggest
+    return Response.json({
 
-})
+      reply:"Hmm… something interrupted my thinking. Could you try asking that again?",
 
-}catch(err){
+      topics:[],
 
-console.error(err)
+      suggest:[]
 
-return Response.json({
+    })
 
-reply:"Hmm… something interrupted my thinking. Could you try asking that again?",
-
-topics:[],
-
-suggest:[]
-
-})
-
-}
+  }
 
 }
