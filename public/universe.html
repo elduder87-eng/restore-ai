@@ -705,6 +705,15 @@ function drawNode(n){
   const pulse=1+Math.sin(T*.0022+n.ang)*.035;
   const pr=r*pulse;
 
+  if(n.highlight){
+    ux.globalCompositeOperation="source-over";
+    ux.beginPath();
+    ux.arc(p.x,p.y,pr+10,0,Math.PI*2);
+    ux.strokeStyle=n.col;
+    ux.lineWidth=2;
+    ux.stroke();
+  }
+
   // halo — additive blend for richer glow
   ux.globalCompositeOperation="lighter";
   const gr=ux.createRadialGradient(p.x,p.y,0,p.x,p.y,pr*(isYou?4.2:3.0));
@@ -887,6 +896,23 @@ document.addEventListener('touchend',e=>{
   setTimeout(()=>{HOV_TARGET=null;hideTip();},1800);
 },{passive:true});
 
+// ── NODE HIGHLIGHT & PULSE ────────────────────────────────────
+function highlightNodes(topics){
+  if(!topics) return
+  topics.forEach(topic => {
+    const node = N.find(n => n.id === topic)
+    if(node) node.highlight = true
+  })
+}
+
+function pulseNodes(suggest){
+  if(!suggest) return
+  suggest.forEach(topic => {
+    const node = N.find(n => n.id === topic)
+    if(node) node.pulse = true
+  })
+}
+
 // ── TEACHER CHAT (REAL AI VERSION) ─────────────────────────────
 (function(){
 
@@ -1036,6 +1062,9 @@ async function send(){
     typing.remove()
 
     const aiText = data.reply
+
+    highlightNodes(data.topics)
+    pulseNodes(data.suggest)
 
     const div = document.createElement("div")
     div.className = "tc-msg ai"
