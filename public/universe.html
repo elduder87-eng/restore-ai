@@ -508,13 +508,7 @@ input{cursor:text!important;}
   const vw = window.innerWidth;
   document.documentElement.style.setProperty('--vh', vh + 'px');
   document.documentElement.style.setProperty('--vw', vw + 'px');
-  // Keep body truly fixed
-  document.body.style.width  = vw + 'px';
-  document.body.style.height = vh + 'px';
-  document.body.style.position = 'fixed';
-  document.body.style.top = '0';
-  document.body.style.left = '0';
-  document.body.style.overflow = 'hidden';
+  // Body sizing handled by CSS only — JS body style overrides break Android taps
 })();
 // ── CANVAS SETUP ─────────────────────────────────────────────
 const bg=document.getElementById('bg'),bx=bg.getContext('2d');
@@ -1165,20 +1159,12 @@ input.addEventListener("keydown",e=>{
 
   function lockChat(){
     const vv = window.visualViewport;
-    const scale = 1 / vv.scale;
-    const offsetX = -vv.offsetLeft * scale;
-    const offsetY = -vv.offsetTop * scale;
-
-    chat.style.transform = `scale(${scale})`;
-    chat.style.transformOrigin = 'bottom left';
-    chat.style.left = (8 * vv.scale + vv.offsetLeft) + 'px';
-    chat.style.bottom = (180 * vv.scale) + 'px';
-    chat.style.width = `calc((100vw - 16px) * ${vv.scale})`;
-
-    // Also lift above keyboard if open
+    // Only lift chat above keyboard — no scale transform that misaligns tap targets
     const keyboardH = window.innerHeight - vv.height - vv.offsetTop;
     if(keyboardH > 100){
-      chat.style.bottom = ((keyboardH + 8) * vv.scale) + 'px';
+      chat.style.bottom = (keyboardH + 8) + 'px';
+    } else {
+      chat.style.bottom = '180px';
     }
   }
 
