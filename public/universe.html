@@ -452,7 +452,7 @@ body{position:fixed;inset:0;}
   </div><!-- /main -->
 </div><!-- /ui -->
 <!-- ── BOTTOM UI (outside grid so it's truly full width) ────── -->
-<div class="tc" id="teacherChat">
+<div class="tc" id="teacherChat" style="position:fixed;left:0;right:0;bottom:118px;width:100%;max-width:100%;transform:none;border-radius:0;border-left:none;border-right:none;box-sizing:border-box;">
   <div class="tc-head">
     <div class="tc-avatar">🎓</div>
     <div style="flex:1;">
@@ -471,7 +471,7 @@ body{position:fixed;inset:0;}
   </div>
 </div>
 
-<div class="thk" id="thkBar">
+<div class="thk" id="thkBar" style="position:fixed;left:0;right:0;bottom:58px;width:100%;max-width:100%;transform:none;border-radius:0;padding:10px 16px;background:rgba(5,8,20,0.97);border-top:1px solid rgba(255,255,255,0.08);z-index:199;box-sizing:border-box;">
   <div class="thkt">Your Thinking Evolution</div>
   <div class="thkr">
     <div class="tn"><div class="tl" style="color:#38bdf8;">Curious</div><div class="ti" style="background:rgba(56,189,248,0.2);border-color:#38bdf8;">💙</div></div>
@@ -486,7 +486,7 @@ body{position:fixed;inset:0;}
   </div>
 </div>
 
-<div class="bot" id="botBar">
+<div class="bot" id="botBar" style="position:fixed;left:0;right:0;bottom:0;width:100%;max-width:100%;transform:none;border-radius:0;padding:8px 14px;background:rgba(5,8,20,0.97);border-top:1px solid rgba(255,255,255,0.08);z-index:198;box-sizing:border-box;display:flex;align-items:center;">
   <div class="sc"><div class="sn" style="color:#4ade80;">🧩 142</div><div class="sl">Learning Moments</div></div>
   <div class="sc"><div class="sn" style="color:#38bdf8;">🔭 36</div><div class="sl">Topics Explored</div></div>
   <div class="sc"><div class="sn" style="color:#fbbf24;">⚡ 12</div><div class="sl">Breakthroughs</div></div>
@@ -807,6 +807,33 @@ function loop(){
 }
 loop();
 
+
+
+// Restore desktop centered layout for wide screens
+(function(){
+  function applyLayout(){
+    const isMobile = window.innerWidth <= 768;
+    const chat = document.getElementById('teacherChat');
+    const thk  = document.getElementById('thkBar');
+    const bot  = document.getElementById('botBar');
+    if(!chat) return;
+    
+    if(!isMobile){
+      // Desktop: centered
+      chat.style.left = '50%';
+      chat.style.right = 'auto';
+      chat.style.width = 'min(560px, calc(100vw - 520px))';
+      chat.style.maxWidth = '560px';
+      chat.style.transform = 'translateX(-50%)';
+      chat.style.borderRadius = '20px';
+      chat.style.border = '1px solid rgba(255,255,255,0.13)';
+      if(thk){ thk.style.left='50%'; thk.style.right='auto'; thk.style.width='min(560px,calc(100vw - 520px))'; thk.style.transform='translateX(-50%)'; thk.style.borderRadius='0 0 8px 8px'; }
+      if(bot){ bot.style.left='50%'; bot.style.right='auto'; bot.style.width='min(560px,calc(100vw - 520px))'; bot.style.transform='translateX(-50%)'; bot.style.borderRadius='0 0 16px 16px'; }
+    }
+  }
+  document.addEventListener('DOMContentLoaded', applyLayout);
+  window.addEventListener('load', applyLayout);
+})();
 
 // ── LOADING SCREEN ────────────────────────────────────────────
 (function(){
