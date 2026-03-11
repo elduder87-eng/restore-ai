@@ -286,6 +286,17 @@ body{position:fixed;inset:0;}
 .tc-send:hover{transform:scale(1.08);}
 .tc-send:active{transform:scale(0.94);}
 .tc-send:disabled{opacity:0.4;cursor:default;transform:none;}
+/* GLOBAL INTERACTIVE ELEMENTS — always clickable */
+button,input,a,.tc-replay,.tc-speak,.tc-send,.tc-input,#devReset{
+  pointer-events:all!important;
+  touch-action:manipulation!important;
+  -webkit-tap-highlight-color:rgba(0,0,0,0);
+  cursor:pointer;
+  position:relative;
+  z-index:99999!important;
+}
+input{cursor:text!important;}
+
 /* DEV RESET BUTTON */
 #devReset{
   position:fixed;bottom:8px;left:50%;transform:translateX(-50%);
