@@ -893,6 +893,7 @@ document.addEventListener('mousemove',e=>{
 
 // ── TOUCH HOVER ───────────────────────────────────────────────
 document.addEventListener('touchmove',e=>{
+  if(e.touches.length>1) return; // handled by pinch blocker
   if(e.touches.length===1){
     const t=e.touches[0];
     HOV=findHit(t.clientX,t.clientY);
@@ -1138,39 +1139,21 @@ function resetGalaxy(e){
 })();
 
 
-// ── ZOOM LOCK — keep chat pinned during pinch ─────────────────
+// ── PINCH BLOCK — prevent ALL multi-touch zoom ────────────────
+// Chrome Android ignores user-scalable=no, so we block it in JS
 (function(){
-  if(!window.visualViewport) return;
-  const fixedIds = ['teacherChat','thkBar','botBar'];
-  function onVP(){
-    const vv = window.visualViewport;
-    const left = vv.offsetLeft;
-    const top  = vv.offsetTop;
-    const w    = vv.width;
-    fixedIds.forEach(id=>{
-      const el = document.getElementById(id);
-      if(!el) return;
-      // Use transform to counteract the viewport scroll caused by zoom
-      el.style.transform = 'translate(' + left + 'px, 0)';
-      el.style.width = w + 'px';
-      el.style.left = '0';
-      el.style.right = 'auto';
-    });
+  // Block pinch zoom on document — but allow normal touch in chat input
+  function blockPinch(e){
+    if(e.touches.length > 1){
+      e.preventDefault();
+    }
   }
-  function onReset(){
-    fixedIds.forEach(id=>{
-      const el = document.getElementById(id);
-      if(!el) return;
-      if(window.visualViewport.scale <= 1.01){
-        el.style.transform = '';
-        el.style.width = '100%';
-        el.style.left = '0';
-        el.style.right = '0';
-      }
-    });
-  }
-  window.visualViewport.addEventListener('scroll', onVP);
-  window.visualViewport.addEventListener('resize', ()=>{ onVP(); onReset(); });
+  document.addEventListener('touchstart', blockPinch, {passive:false});
+  document.addEventListener('touchmove',  blockPinch, {passive:false});
+
+  // Also block gesturestart (Safari)
+  document.addEventListener('gesturestart', e=>e.preventDefault(), {passive:false});
+  document.addEventListener('gesturechange', e=>e.preventDefault(), {passive:false});
 })();
 
 // ── LOADING SCREEN ────────────────────────────────────────────
