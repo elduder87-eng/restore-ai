@@ -777,6 +777,23 @@ function updateSessionStats(topics, suggest){
   const bottomBreakthroughs = document.getElementById('bottomBreakthroughs');
   if(bottomTopics) bottomTopics.textContent = '🔭 ' + sessionTopics;
   if(bottomBreakthroughs) bottomBreakthroughs.textContent = '⚡ ' + sessionPulse;
+
+  // Update curiosity panel live stats
+  const curTotalQ = document.getElementById('curTotalQ');
+  const curTopics = document.getElementById('curTopics');
+  const curBreakthroughs = document.getElementById('curBreakthroughs');
+  if(curTotalQ) curTotalQ.textContent = sessionMsgs;
+  if(curTopics) curTopics.textContent = sessionTopics;
+  if(curBreakthroughs) curBreakthroughs.textContent = sessionPulse;
+
+  // Update connections panel live stats
+  const litNodes = N ? N.filter(n=>!n.hidden).length : 1;
+  const conNodes = document.getElementById('conNodes');
+  const conLinks = document.getElementById('conLinks');
+  const conClusters = document.getElementById('conClusters');
+  if(conNodes) conNodes.textContent = litNodes;
+  if(conLinks) conLinks.textContent = Math.max(0, litNodes - 1);
+  if(conClusters) conClusters.textContent = Math.floor(litNodes / 3);
 }
 
 
@@ -1105,23 +1122,21 @@ let sessionMsgs = 0, sessionTopics = 0, sessionPulse = 0;
 
 function handleDashClick(e){
   // If click is on the dark backdrop (not inner content), close dashboard
-  if(e.target === document.getElementById('dashPanel')){
+  if(e.target === document.getElementById('dashPanel') || e.target === document.getElementById('curiosityPanel') || e.target === document.getElementById('connectionsPanel')){
     const journeyBtn = document.querySelector('.nb');
     if(journeyBtn) switchTab('journey', journeyBtn);
   }
 }
 
 function switchTab(tab, btn){
-  // Update active button
   document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  // Show/hide dashboard
   const dash = document.getElementById('dashPanel');
-  if(tab === 'dashboard'){
-    dash.style.display = 'block';
-  } else {
-    dash.style.display = 'none';
-  }
+  const cur  = document.getElementById('curiosityPanel');
+  const con  = document.getElementById('connectionsPanel');
+  dash.style.display = tab === 'dashboard'   ? 'block' : 'none';
+  cur.style.display  = tab === 'curiosity'   ? 'block' : 'none';
+  con.style.display  = tab === 'connections' ? 'block' : 'none';
 }
 
 async function testAI(){
@@ -1256,7 +1271,7 @@ function resetGalaxy(e){
     const scale  = vv.scale;
     
     // Only reanchor if user has zoomed (scale != 1)
-    const els = ['teacherChat','thkBar','botBar','dashPanel'];
+    const els = ['teacherChat','thkBar','botBar','dashPanel','curiosityPanel','connectionsPanel'];
     els.forEach(id=>{
       const el = document.getElementById(id);
       if(!el) return;
@@ -1693,6 +1708,213 @@ function resetGalaxy(e){
         Messages sent: <span id="statMsgs">0</span><br>
         Topics lit up: <span id="statTopics">0</span><br>
         Nodes pulsed: <span id="statPulse">0</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ══ CURIOSITY PANEL ══════════════════════════════════════ -->
+<div id="curiosityPanel" onclick="handleDashClick(event)" style="display:none;position:fixed;top:56px;left:0;right:0;bottom:0;background:rgba(5,8,20,0.97);z-index:300;overflow-y:auto;padding:20px;pointer-events:all;">
+  <div style="max-width:500px;margin:0 auto;" onclick="event.stopPropagation()">
+
+    <!-- Header -->
+    <div style="margin-bottom:24px;">
+      <div style="font-size:10px;letter-spacing:4px;text-transform:uppercase;color:#fbbf24;margin-bottom:6px;">Your Questions</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;letter-spacing:2px;color:#f0f4ff;">Curiosity Feed</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px;">Every question you've ever asked. Nothing forgotten.</div>
+    </div>
+
+    <!-- Stats row -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px;">
+      <div style="background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);border-radius:12px;padding:14px;text-align:center;">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:#fbbf24;" id="curTotalQ">0</div>
+        <div style="font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:3px;">Questions</div>
+      </div>
+      <div style="background:rgba(56,189,248,0.08);border:1px solid rgba(56,189,248,0.2);border-radius:12px;padding:14px;text-align:center;">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:#38bdf8;" id="curTopics">0</div>
+        <div style="font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:3px;">Topics</div>
+      </div>
+      <div style="background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);border-radius:12px;padding:14px;text-align:center;">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:#4ade80;" id="curBreakthroughs">0</div>
+        <div style="font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:3px;">Breakthroughs</div>
+      </div>
+    </div>
+
+    <!-- Top curiosity topics -->
+    <div style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;">
+      <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:14px;">🔥 Hottest Topics</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="font-size:16px;width:28px;text-align:center;">🕳</div>
+          <div style="flex:1;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span style="font-size:12px;font-weight:600;">Black Holes</span><span style="font-size:11px;color:#fbbf24;">82%</span></div>
+            <div style="height:3px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden;"><div style="width:82%;height:100%;background:#fbbf24;border-radius:2px;"></div></div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="font-size:16px;width:28px;text-align:center;">⚡</div>
+          <div style="flex:1;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span style="font-size:12px;font-weight:600;">Relativity</span><span style="font-size:11px;color:#38bdf8;">74%</span></div>
+            <div style="height:3px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden;"><div style="width:74%;height:100%;background:#38bdf8;border-radius:2px;"></div></div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="font-size:16px;width:28px;text-align:center;">🌿</div>
+          <div style="flex:1;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span style="font-size:12px;font-weight:600;">Evolution</span><span style="font-size:11px;color:#4ade80;">61%</span></div>
+            <div style="height:3px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden;"><div style="width:61%;height:100%;background:#4ade80;border-radius:2px;"></div></div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="font-size:16px;width:28px;text-align:center;">💡</div>
+          <div style="flex:1;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span style="font-size:12px;font-weight:600;">Philosophy</span><span style="font-size:11px;color:#c084fc;">45%</span></div>
+            <div style="height:3px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden;"><div style="width:45%;height:100%;background:#c084fc;border-radius:2px;"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent questions feed -->
+    <div style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;">
+      <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:14px;">💬 Recent Questions</div>
+      <div style="display:flex;flex-direction:column;gap:0;">
+        <div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:10px;">
+          <div style="width:7px;height:7px;border-radius:50%;background:#fbbf24;flex-shrink:0;margin-top:5px;"></div>
+          <div><div style="font-size:12px;color:var(--text);line-height:1.4;">Why does time slow down near a black hole?</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">Black Holes · 23 min ago</div></div>
+        </div>
+        <div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:10px;">
+          <div style="width:7px;height:7px;border-radius:50%;background:#38bdf8;flex-shrink:0;margin-top:5px;"></div>
+          <div><div style="font-size:12px;color:var(--text);line-height:1.4;">If light has no mass, how does gravity bend it?</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">Physics · 1 hour ago</div></div>
+        </div>
+        <div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:10px;">
+          <div style="width:7px;height:7px;border-radius:50%;background:#4ade80;flex-shrink:0;margin-top:5px;"></div>
+          <div><div style="font-size:12px;color:var(--text);line-height:1.4;">What came before the Big Bang?</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">Cosmology · 3 hours ago</div></div>
+        </div>
+        <div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:10px;">
+          <div style="width:7px;height:7px;border-radius:50%;background:#c084fc;flex-shrink:0;margin-top:5px;"></div>
+          <div><div style="font-size:12px;color:var(--text);line-height:1.4;">Can natural selection happen within a single lifetime?</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">Evolution · Yesterday</div></div>
+        </div>
+        <div style="padding:10px 0;display:flex;align-items:flex-start;gap:10px;">
+          <div style="width:7px;height:7px;border-radius:50%;background:#fb923c;flex-shrink:0;margin-top:5px;"></div>
+          <div><div style="font-size:12px;color:var(--text);line-height:1.4;">Is mathematics invented or discovered?</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">Philosophy · Yesterday</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Next frontier suggestions -->
+    <div style="background:rgba(56,189,248,0.06);border:1px solid rgba(56,189,248,0.2);border-radius:12px;padding:16px;">
+      <div style="font-size:11px;font-weight:600;color:#38bdf8;text-transform:uppercase;letter-spacing:2px;margin-bottom:12px;">🚀 Next Frontiers</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;align-items:center;gap:10px;padding:8px;background:rgba(255,255,255,0.04);border-radius:8px;cursor:pointer;" onclick="document.getElementById('curiosityPanel').style.display='none';document.querySelector('.nb').click();">
+          <span style="font-size:14px;">🌌</span>
+          <div><div style="font-size:12px;font-weight:500;">Dark Matter & Dark Energy</div><div style="font-size:10px;color:var(--muted);">Natural next step from Black Holes</div></div>
+          <span style="margin-left:auto;font-size:11px;color:var(--muted);">→</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:8px;background:rgba(255,255,255,0.04);border-radius:8px;cursor:pointer;">
+          <span style="font-size:14px;">🧬</span>
+          <div><div style="font-size:12px;font-weight:500;">Quantum Biology</div><div style="font-size:10px;color:var(--muted);">Where Physics meets Evolution</div></div>
+          <span style="margin-left:auto;font-size:11px;color:var(--muted);">→</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:8px;background:rgba(255,255,255,0.04);border-radius:8px;cursor:pointer;">
+          <span style="font-size:14px;">🔢</span>
+          <div><div style="font-size:12px;font-weight:500;">Infinity in Mathematics</div><div style="font-size:10px;color:var(--muted);">Bridges your Math & Philosophy nodes</div></div>
+          <span style="margin-left:auto;font-size:11px;color:var(--muted);">→</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ CONNECTIONS PANEL ═════════════════════════════════════ -->
+<div id="connectionsPanel" onclick="handleDashClick(event)" style="display:none;position:fixed;top:56px;left:0;right:0;bottom:0;background:rgba(5,8,20,0.97);z-index:300;overflow-y:auto;padding:20px;pointer-events:all;">
+  <div style="max-width:500px;margin:0 auto;" onclick="event.stopPropagation()">
+
+    <!-- Header -->
+    <div style="margin-bottom:24px;">
+      <div style="font-size:10px;letter-spacing:4px;text-transform:uppercase;color:#c084fc;margin-bottom:6px;">Your Galaxy</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;letter-spacing:2px;color:#f0f4ff;">Connections</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px;">How your knowledge nodes link together. This is your mind.</div>
+    </div>
+
+    <!-- Connection stats -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px;">
+      <div style="background:rgba(192,132,252,0.08);border:1px solid rgba(192,132,252,0.2);border-radius:12px;padding:14px;text-align:center;">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:#c084fc;" id="conNodes">1</div>
+        <div style="font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:3px;">Nodes Lit</div>
+      </div>
+      <div style="background:rgba(56,189,248,0.08);border:1px solid rgba(56,189,248,0.2);border-radius:12px;padding:14px;text-align:center;">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:#38bdf8;" id="conLinks">0</div>
+        <div style="font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:3px;">Links Found</div>
+      </div>
+      <div style="background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);border-radius:12px;padding:14px;text-align:center;">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:#fbbf24;" id="conClusters">0</div>
+        <div style="font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:3px;">Clusters</div>
+      </div>
+    </div>
+
+    <!-- Cross-domain connections -->
+    <div style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;">
+      <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:14px;">🔗 Cross-Domain Breakthroughs</div>
+      <div style="display:flex;flex-direction:column;gap:10px;" id="crossDomainList">
+        <div style="display:flex;align-items:center;gap:10px;padding:10px;background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.15);border-radius:10px;">
+          <span style="font-size:16px;">⚡</span>
+          <div style="flex:1;">
+            <div style="font-size:12px;font-weight:600;color:var(--text);">Physics → Philosophy</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:2px;">If time is relative, is our perception of reality objective?</div>
+          </div>
+          <div style="font-size:9px;color:#fbbf24;background:rgba(251,191,36,0.1);padding:3px 7px;border-radius:8px;flex-shrink:0;">Rare</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px;background:rgba(56,189,248,0.06);border:1px solid rgba(56,189,248,0.15);border-radius:10px;">
+          <span style="font-size:16px;">🧬</span>
+          <div style="flex:1;">
+            <div style="font-size:12px;font-weight:600;color:var(--text);">Biology → Mathematics</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:2px;">Natural selection follows exponential growth curves</div>
+          </div>
+          <div style="font-size:9px;color:#38bdf8;background:rgba(56,189,248,0.1);padding:3px 7px;border-radius:8px;flex-shrink:0;">Strong</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px;background:rgba(74,222,128,0.06);border:1px solid rgba(74,222,128,0.15);border-radius:10px;">
+          <span style="font-size:16px;">🌌</span>
+          <div style="flex:1;">
+            <div style="font-size:12px;font-weight:600;color:var(--text);">Cosmology → History</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:2px;">The Big Bang mirrors how civilizations expand from a single point</div>
+          </div>
+          <div style="font-size:9px;color:#4ade80;background:rgba(74,222,128,0.1);padding:3px 7px;border-radius:8px;flex-shrink:0;">New</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Knowledge clusters -->
+    <div style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;">
+      <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:14px;">🌐 Knowledge Clusters</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">
+        <div style="padding:8px 14px;border-radius:20px;background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.25);font-size:11px;color:#38bdf8;">🔭 Space & Physics</div>
+        <div style="padding:8px 14px;border-radius:20px;background:rgba(74,222,128,0.1);border:1px solid rgba(74,222,128,0.25);font-size:11px;color:#4ade80;">🌿 Life Sciences</div>
+        <div style="padding:8px 14px;border-radius:20px;background:rgba(192,132,252,0.1);border:1px solid rgba(192,132,252,0.25);font-size:11px;color:#c084fc;">💡 Humanities</div>
+        <div style="padding:8px 14px;border-radius:20px;background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.25);font-size:11px;color:#fbbf24;">∑ Mathematics</div>
+      </div>
+    </div>
+
+    <!-- Undiscovered connections -->
+    <div style="background:rgba(192,132,252,0.06);border:1px solid rgba(192,132,252,0.2);border-radius:12px;padding:16px;">
+      <div style="font-size:11px;font-weight:600;color:#c084fc;text-transform:uppercase;letter-spacing:2px;margin-bottom:12px;">✨ Undiscovered Connections</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Topics you know that could connect — but haven't yet.</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;align-items:center;gap:8px;padding:8px;background:rgba(255,255,255,0.04);border-radius:8px;">
+          <span style="font-size:12px;">🕳 Black Holes</span>
+          <span style="color:var(--muted);font-size:11px;">↔</span>
+          <span style="font-size:12px;">∑ Calculus</span>
+          <span style="margin-left:auto;font-size:9px;color:#c084fc;background:rgba(192,132,252,0.1);padding:2px 7px;border-radius:6px;">Ask about it</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;padding:8px;background:rgba(255,255,255,0.04);border-radius:8px;">
+          <span style="font-size:12px;">⚡ Relativity</span>
+          <span style="color:var(--muted);font-size:11px;">↔</span>
+          <span style="font-size:12px;">📜 History</span>
+          <span style="margin-left:auto;font-size:9px;color:#c084fc;background:rgba(192,132,252,0.1);padding:2px 7px;border-radius:6px;">Ask about it</span>
+        </div>
       </div>
     </div>
 
