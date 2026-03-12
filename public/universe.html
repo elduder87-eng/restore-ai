@@ -639,6 +639,31 @@ function updateSessionStats(topics, suggest){
   if(bottomBreakthroughs) bottomBreakthroughs.textContent = '⚡ ' + sessionPulse;
 }
 
+
+function checkFrontierUnlock(topics){
+  const unlockRules = {
+    gravity: ['rel'],
+    physics: ['rel','astro'],
+    biology: ['gen','evol'],
+    astronomy: ['bh','cosmo'],
+    math: ['calc']
+  };
+
+  topics.forEach(topic=>{
+    const next = unlockRules[topic];
+    if(!next) return;
+
+    next.forEach(id=>{
+      const node = N.find(n=>n.id===id);
+      if(node && node.hidden){
+        node.hidden = false;
+        node.pulse = true;
+        setTimeout(()=>{ node.pulse = false; },4000);
+      }
+    });
+  });
+}
+
 function refreshGrowth(){
   const total = N.reduce((sum,n)=>sum+(n.mas||0),0);
   const avg = Math.round(total/N.length);
@@ -1254,6 +1279,7 @@ function resetGalaxy(e){
       updateMastery(data.topics || []);
       refreshGrowth();
       updateSessionStats(data.topics || [], data.suggest || []);
+      checkFrontierUnlock(data.topics || []);
     }catch(e){
       setTimeout(()=>{
         typing.remove();
