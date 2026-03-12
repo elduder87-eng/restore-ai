@@ -259,6 +259,81 @@ body{position:fixed;inset:0;}
   .frpc{font-size:10px;}
 }
 
+/* ── GALAXY NAME & SHARE ─────────────────────────────────────── */
+.galaxy-name-bar{
+  position:fixed;top:56px;left:50%;transform:translateX(-50%);
+  z-index:30;display:flex;align-items:center;gap:8px;
+  padding:5px 12px;background:rgba(5,8,20,0.7);
+  border:1px solid rgba(255,255,255,0.08);border-top:none;
+  border-radius:0 0 12px 12px;backdrop-filter:blur(8px);
+  pointer-events:all;
+}
+.galaxy-name-txt{
+  font-size:11px;font-weight:500;color:rgba(255,255,255,0.6);
+  letter-spacing:.04em;cursor:pointer;transition:color .2s;
+  font-family:'Inter',sans-serif;
+}
+.galaxy-name-txt:hover{color:#f0f4ff;}
+.galaxy-name-edit{
+  background:none;border:none;outline:none;
+  font-size:11px;font-weight:600;color:#fde68a;
+  font-family:'Inter',sans-serif;letter-spacing:.04em;
+  width:140px;border-bottom:1px solid rgba(253,230,138,0.4);
+  padding:1px 2px;
+}
+.share-btn{
+  position:fixed;bottom:130px;right:16px;z-index:50;
+  width:44px;height:44px;border-radius:50%;
+  background:rgba(5,8,20,0.85);border:1px solid rgba(99,179,237,0.4);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;backdrop-filter:blur(8px);
+  box-shadow:0 0 20px rgba(99,179,237,0.15);
+  transition:all .2s;font-size:18px;
+  animation:shareGlow 3s ease-in-out infinite;
+}
+.share-btn:hover{transform:scale(1.08);box-shadow:0 0 30px rgba(99,179,237,0.3);}
+@keyframes shareGlow{
+  0%,100%{box-shadow:0 0 12px rgba(99,179,237,0.15);border-color:rgba(99,179,237,0.3);}
+  50%{box-shadow:0 0 24px rgba(99,179,237,0.35);border-color:rgba(99,179,237,0.7);}
+}
+/* Galaxy grew toast */
+.grow-toast{
+  position:fixed;top:70px;left:50%;transform:translateX(-50%) translateY(-80px);
+  z-index:400;background:rgba(5,8,20,0.95);
+  border:1px solid rgba(74,222,128,0.4);border-radius:14px;
+  padding:10px 18px;display:flex;align-items:center;gap:10px;
+  backdrop-filter:blur(12px);
+  box-shadow:0 0 30px rgba(74,222,128,0.15);
+  transition:transform .4s cubic-bezier(0.175,0.885,0.32,1.275),opacity .4s;
+  opacity:0;pointer-events:none;white-space:nowrap;
+}
+.grow-toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+.grow-toast-icon{font-size:18px;}
+.grow-toast-text{font-size:12px;font-weight:600;color:#4ade80;}
+.grow-toast-sub{font-size:10px;color:var(--muted);margin-top:1px;}
+
+/* Teacher view overlay */
+.teacher-view{
+  display:none;position:fixed;inset:0;top:56px;
+  background:rgba(5,8,20,0.97);z-index:300;
+  overflow-y:auto;padding:20px;
+}
+.teacher-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+  gap:14px;max-width:900px;margin:0 auto;
+}
+.student-card{
+  background:rgba(255,255,255,0.04);border:1px solid var(--border);
+  border-radius:14px;padding:14px;cursor:pointer;
+  transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:8px;
+}
+.student-card:hover{background:rgba(255,255,255,0.07);border-color:rgba(99,179,237,0.3);transform:translateY(-2px);}
+.student-mini-galaxy{width:80px;height:80px;border-radius:50%;background:#05080f;border:1px solid rgba(99,179,237,0.2);overflow:hidden;flex-shrink:0;}
+.student-name{font-size:12px;font-weight:600;color:var(--text);text-align:center;}
+.student-nodes{font-size:10px;color:var(--muted);}
+.student-mastery{width:100%;height:3px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden;margin-top:2px;}
+.student-mastery-fill{height:100%;border-radius:2px;}
+
 /* ── LOADING SCREEN ─────────────────────────────────────────── */
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400&family=Montserrat:wght@300;400&display=swap');
 #loadingScreen{
@@ -396,6 +471,24 @@ body{position:fixed;inset:0;}
     <div class="ls-dot"></div>
   </div>
 
+</div>
+
+<!-- Galaxy Name Bar -->
+<div class="galaxy-name-bar" id="galaxyNameBar">
+  <span style="font-size:10px;opacity:0.4;">🌌</span>
+  <span class="galaxy-name-txt" id="galaxyNameDisplay" onclick="editGalaxyName()">Devin's Galaxy</span>
+</div>
+
+<!-- Share Button -->
+<button class="share-btn" onclick="shareGalaxy()" title="Share your galaxy">📸</button>
+
+<!-- Galaxy Grew Toast -->
+<div class="grow-toast" id="growToast">
+  <span class="grow-toast-icon">🌌</span>
+  <div>
+    <div class="grow-toast-text" id="growToastText">Your galaxy just grew!</div>
+    <div class="grow-toast-sub" id="growToastSub">New node unlocked</div>
+  </div>
 </div>
 
 <canvas id="bg"></canvas>
@@ -1353,6 +1446,203 @@ function resetGalaxy(e){
   });
 })();
 
+
+// ── GALAXY NAME ────────────────────────────────────────────────
+let galaxyName = localStorage.getItem('galaxyName') || "Devin's Galaxy";
+document.getElementById('galaxyNameDisplay').textContent = galaxyName;
+
+function editGalaxyName(){
+  const bar = document.getElementById('galaxyNameBar');
+  const display = document.getElementById('galaxyNameDisplay');
+  const input = document.createElement('input');
+  input.className = 'galaxy-name-edit';
+  input.value = galaxyName;
+  input.maxLength = 30;
+  bar.replaceChild(input, display);
+  input.focus(); input.select();
+  function save(){
+    galaxyName = input.value.trim() || "Devin's Galaxy";
+    localStorage.setItem('galaxyName', galaxyName);
+    display.textContent = galaxyName;
+    bar.replaceChild(display, input);
+  }
+  input.addEventListener('blur', save);
+  input.addEventListener('keydown', e=>{ if(e.key==='Enter') save(); if(e.key==='Escape'){ bar.replaceChild(display,input); } });
+}
+
+// ── GALAXY GREW TOAST ─────────────────────────────────────────
+let toastTimer = null;
+function showGrowToast(nodeName){
+  const toast = document.getElementById('growToast');
+  const txt   = document.getElementById('growToastText');
+  const sub   = document.getElementById('growToastSub');
+  txt.textContent = 'Your galaxy just grew!';
+  sub.textContent = nodeName + ' node unlocked 🌟';
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>toast.classList.remove('show'), 3200);
+}
+
+// Patch checkFrontierUnlock to trigger toast
+const _origUnlock = checkFrontierUnlock;
+window.checkFrontierUnlock = function(topics){
+  const before = N.filter(n=>!n.hidden).length;
+  _origUnlock(topics);
+  const after = N.filter(n=>!n.hidden).length;
+  if(after > before){
+    const newNode = N.filter(n=>!n.hidden)[after-1];
+    if(newNode) showGrowToast(newNode.label);
+  }
+};
+
+// Also show toast when updateMastery unlocks a node
+const _origMastery = updateMastery;
+window.updateMastery = function(topics){
+  const before = N.filter(n=>!n.hidden).length;
+  _origMastery(topics);
+  const after = N.filter(n=>!n.hidden).length;
+  if(after > before){
+    const newNode = N.find((n,i)=>!n.hidden && i===after-1);
+    if(newNode) showGrowToast(newNode.label);
+  }
+};
+
+// ── SHARE GALAXY ──────────────────────────────────────────────
+async function shareGalaxy(){
+  try {
+    // Create an off-screen canvas for the share image
+    const shareW = 1080, shareH = 1080;
+    const sc = document.createElement('canvas');
+    sc.width = shareW; sc.height = shareH;
+    const sx = sc.getContext('2d');
+
+    // Dark background
+    sx.fillStyle = '#05080f';
+    sx.fillRect(0,0,shareW,shareH);
+
+    // Draw stars
+    for(let i=0;i<180;i++){
+      const x=Math.random()*shareW, y=Math.random()*shareH;
+      const r=Math.random()*1.4+0.3;
+      const a=Math.random()*0.6+0.1;
+      sx.beginPath();sx.arc(x,y,r,0,Math.PI*2);
+      sx.fillStyle=`rgba(255,255,255,${a})`;sx.fill();
+    }
+
+    // Scale and center galaxy canvas onto share canvas
+    const scale = shareW / uc.width;
+    sx.save();
+    sx.scale(scale, scale);
+    sx.drawImage(uc, 0, 0);
+    sx.restore();
+
+    // Overlay: gradient vignette
+    const vg = sx.createRadialGradient(shareW/2,shareH/2,shareW*0.35,shareW/2,shareH/2,shareW*0.72);
+    vg.addColorStop(0,'transparent');
+    vg.addColorStop(1,'rgba(5,8,15,0.6)');
+    sx.fillStyle=vg; sx.fillRect(0,0,shareW,shareH);
+
+    // Top: door logo circle
+    const logoSize = 70;
+    const lx = shareW/2, ly = 80;
+    sx.beginPath(); sx.arc(lx,ly,logoSize/2,0,Math.PI*2);
+    sx.strokeStyle='rgba(99,179,237,0.5)'; sx.lineWidth=1.5; sx.stroke();
+
+    // Bottom branding bar
+    sx.fillStyle='rgba(5,8,20,0.85)';
+    sx.beginPath();
+    const bh=110;
+    sx.roundRect(40, shareH-bh-20, shareW-80, bh, 16);
+    sx.fill();
+    sx.strokeStyle='rgba(99,179,237,0.25)'; sx.lineWidth=1;
+    sx.beginPath();
+    sx.roundRect(40, shareH-bh-20, shareW-80, bh, 16);
+    sx.stroke();
+
+    // Galaxy name
+    sx.font='300 38px "Georgia", serif';
+    sx.fillStyle='#f0f4ff';
+    sx.textAlign='center';
+    sx.fillText(galaxyName, shareW/2, shareH-bh+22);
+
+    // Lit nodes count
+    const litCount = N.filter(n=>!n.hidden).length;
+    const avgMas = Math.round(N.filter(n=>!n.hidden).reduce((a,n)=>a+n.mas,0)/litCount);
+    sx.font='400 22px Inter, sans-serif';
+    sx.fillStyle='rgba(99,179,237,0.8)';
+    sx.fillText(litCount + ' nodes lit  ·  ' + avgMas + '% mastery', shareW/2, shareH-bh+58);
+
+    // Tagline
+    sx.font='300 18px Inter, sans-serif';
+    sx.fillStyle='rgba(255,255,255,0.35)';
+    sx.fillText('mappedknowledge.ai  ·  Restore™', shareW/2, shareH-bh+88);
+
+    // Convert to blob and share
+    sc.toBlob(async (blob)=>{
+      const file = new File([blob], 'my-galaxy.png', {type:'image/png'});
+      if(navigator.canShare && navigator.canShare({files:[file]})){
+        await navigator.share({
+          title: galaxyName,
+          text: 'My knowledge galaxy on Restore — ' + litCount + ' nodes lit!',
+          files: [file],
+          url: 'https://mappedknowledge.ai'
+        });
+      } else {
+        // Fallback: download
+        const a=document.createElement('a');
+        a.href=URL.createObjectURL(blob);
+        a.download='my-galaxy.png';
+        a.click();
+      }
+    }, 'image/png', 0.95);
+
+  } catch(err){
+    console.error('Share failed:', err);
+  }
+}
+
+// ── TEACHER VIEW ──────────────────────────────────────────────
+const mockStudents = [
+  {name:'Emma K.',    nodes:8,  mastery:82, color:'#38bdf8'},
+  {name:'James T.',   nodes:6,  mastery:71, color:'#4ade80'},
+  {name:'Sarah M.',   nodes:11, mastery:90, color:'#fbbf24'},
+  {name:'Carlos R.',  nodes:4,  mastery:45, color:'#c084fc'},
+  {name:'Aisha L.',   nodes:9,  mastery:78, color:'#fb923c'},
+  {name:'Tyler B.',   nodes:3,  mastery:32, color:'#f87171'},
+  {name:'Maya P.',    nodes:7,  mastery:68, color:'#38bdf8'},
+  {name:'Noah W.',    nodes:5,  mastery:55, color:'#4ade80'},
+  {name:'Zoe C.',     nodes:12, mastery:95, color:'#fde68a'},
+  {name:'Liam S.',    nodes:6,  mastery:62, color:'#c084fc'},
+  {name:'Olivia H.',  nodes:4,  mastery:41, color:'#f87171'},
+  {name:'Ethan J.',   nodes:8,  mastery:75, color:'#38bdf8'},
+];
+
+function buildStudentCards(){
+  return mockStudents.map(s=>{
+    const alert = s.mastery < 50 ? '⚠️' : s.mastery >= 85 ? '⭐' : '';
+    return `<div class="student-card" title="${s.name}: ${s.mastery}% mastery">
+      <div class="student-mini-galaxy" style="display:flex;align-items:center;justify-content:center;font-size:24px;background:radial-gradient(circle,${s.color}22,#05080f);">
+        <span style="opacity:0.9;">🌌</span>
+      </div>
+      <div class="student-name">${alert} ${s.name}</div>
+      <div class="student-nodes">${s.nodes} nodes · ${s.mastery}%</div>
+      <div class="student-mastery"><div class="student-mastery-fill" style="width:${s.mastery}%;background:${s.color};"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function openTeacherView(){
+  const tv = document.getElementById('teacherView');
+  // Build grid dynamically
+  const grid = tv.querySelector('.teacher-grid');
+  if(grid) grid.innerHTML = buildStudentCards();
+  tv.style.display = 'block';
+}
+function closeTeacherView(){
+  document.getElementById('teacherView').style.display = 'none';
+}
+
+
 // ── TEACHER CHAT ──────────────────────────────────────────────
 (function(){
   const msgs=document.getElementById('tcMsgs');
@@ -1918,6 +2208,49 @@ function resetGalaxy(e){
       </div>
     </div>
 
+  </div>
+</div>
+
+
+<!-- ══ TEACHER VIEW ═════════════════════════════════════════════ -->
+<div class="teacher-view" id="teacherView" onclick="if(event.target===this){closeTeacherView();}">
+  <div style="max-width:900px;margin:0 auto;">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
+      <button onclick="closeTeacherView()" style="background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:8px;color:var(--muted);padding:6px 12px;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;">← Back</button>
+      <div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;letter-spacing:2px;color:#f0f4ff;">Teacher View</div>
+        <div style="font-size:11px;color:var(--muted);">Every student's galaxy at a glance</div>
+      </div>
+      <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+        <div style="font-size:11px;color:var(--muted);">Class avg mastery:</div>
+        <div style="font-size:14px;font-weight:700;color:#4ade80;">67%</div>
+      </div>
+    </div>
+
+    <!-- Class stats -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px;">
+      <div style="background:rgba(56,189,248,0.08);border:1px solid rgba(56,189,248,0.2);border-radius:12px;padding:12px;text-align:center;">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:28px;color:#38bdf8;">24</div>
+        <div style="font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:2px;">Students</div>
+      </div>
+      <div style="background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);border-radius:12px;padding:12px;text-align:center;">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:28px;color:#4ade80;">142</div>
+        <div style="font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:2px;">Breakthroughs</div>
+      </div>
+      <div style="background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);border-radius:12px;padding:12px;text-align:center;">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:28px;color:#fbbf24;">38</div>
+        <div style="font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:2px;">Topics Lit</div>
+      </div>
+      <div style="background:rgba(192,132,252,0.08);border:1px solid rgba(192,132,252,0.2);border-radius:12px;padding:12px;text-align:center;">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:28px;color:#c084fc;">7</div>
+        <div style="font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:2px;">Need Help</div>
+      </div>
+    </div>
+
+    <!-- Student galaxy grid -->
+    <div class="teacher-grid">
+      <!-- students rendered by JS -->
+    </div>
   </div>
 </div>
 
