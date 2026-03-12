@@ -477,9 +477,9 @@ body{position:fixed;inset:0;}
 </div>
 
 <div class="bot" id="botBar" style="position:fixed;left:0;right:0;bottom:0;width:100%;max-width:100%;transform:none;border-radius:0;padding:8px 14px;background:rgba(5,8,20,0.97);border-top:1px solid rgba(255,255,255,0.08);z-index:198;box-sizing:border-box;display:flex;align-items:center;">
-  <div class="sc"><div class="sn" style="color:#4ade80;">🧩 142</div><div class="sl">Learning Moments</div></div>
-  <div class="sc"><div class="sn" style="color:#38bdf8;">🔭 36</div><div class="sl">Topics Explored</div></div>
-  <div class="sc"><div class="sn" style="color:#fbbf24;">⚡ 12</div><div class="sl">Breakthroughs</div></div>
+  <div class="sc"><div class="sn" id="bottomMoments" style="color:#4ade80;">🧩 0</div><div class="sl">Learning Moments</div></div>
+  <div class="sc"><div class="sn" id="bottomTopics" style="color:#38bdf8;">🔭 0</div><div class="sl">Topics Explored</div></div>
+  <div class="sc"><div class="sn" id="bottomBreakthroughs" style="color:#fbbf24;">⚡ 0</div><div class="sl">Breakthroughs</div></div>
   <div class="frc">
     <div class="frci">🌌</div>
     <div style="flex:1;min-width:0;">
@@ -578,9 +578,12 @@ function CY(){
 const topicNodeMap = {
   physics:"phys", gravity:"grav", relativity:"rel",
   astronomy:"astro", blackholes:"bh", spacetime:"st",
-  cosmology:"cosmo", math:"math", calculus:"calc",
+  cosmology:"cosmo", math:"math", mathematics:"math",
+  calculus:"calc", functions:"func", limits:"lim",
   biology:"bio", genetics:"gen", evolution:"evol",
-  history:"hist", revolutions:"rev", renaissance:"ren"
+  ecosystems:"eco", history:"hist", revolutions:"rev",
+  renaissance:"ren", philosophy:"eth", ethics:"eth",
+  knowledge:"know"
 };
 
 
@@ -590,6 +593,7 @@ function highlightNodes(topics){
     const nodeId = topicNodeMap[topic.toLowerCase()] || topic;
     const node = N.find(n=>n.id===nodeId);
     if(node){
+      node.hidden = false;
       node.highlight = true;
       setTimeout(()=>{ node.highlight = false; }, 3000);
     }
@@ -601,6 +605,7 @@ function pulseNodes(suggest){
     const nodeId = topicNodeMap[topic.toLowerCase()] || topic;
     const node = N.find(n=>n.id===nodeId);
     if(node){
+      node.hidden = false;
       node.pulse = true;
       setTimeout(()=>{ node.pulse = false; }, 4000);
     }
@@ -612,6 +617,7 @@ function updateMastery(topics){
     const nodeId = topicNodeMap[topic.toLowerCase()] || topic;
     const node = N.find(n=>n.id===nodeId);
     if(node){
+      node.hidden = false;
       node.mas = Math.min(100,(node.mas||0)+2);
     }
   });
@@ -621,10 +627,16 @@ function updateMastery(topics){
 function updateSessionStats(topics, suggest){
   sessionTopics += topics.length;
   sessionPulse  += suggest.length;
+
   const t = document.getElementById('statTopics');
   const p = document.getElementById('statPulse');
   if(t) t.textContent = sessionTopics;
   if(p) p.textContent = sessionPulse;
+
+  const bottomTopics = document.getElementById('bottomTopics');
+  const bottomBreakthroughs = document.getElementById('bottomBreakthroughs');
+  if(bottomTopics) bottomTopics.textContent = '🔭 ' + sessionTopics;
+  if(bottomBreakthroughs) bottomBreakthroughs.textContent = '⚡ ' + sessionPulse;
 }
 
 function refreshGrowth(){
@@ -763,7 +775,8 @@ function drawNode(n){
   if(n.hidden) return;
   const p=pos(n,ROT);
   const{r,col,glow,label,mas,id}=n;
-  const isYou=id==='you',hot=HOV===id;
+  const isYou=id==='you';
+  const hot=HOV===id||n.highlight||n.pulse;
   const pulse=1+Math.sin(T*.0022+n.ang)*.035;
   const pr=r*pulse;
 
@@ -792,6 +805,25 @@ function drawNode(n){
   if(n._ha>0){
     ux.beginPath();ux.arc(p.x,p.y,pr+6,0,Math.PI*2);
     ux.strokeStyle=`rgba(255,255,255,${n._ha*.5})`;ux.lineWidth=1.5;ux.stroke();
+  }
+
+  // highlight ring (AI mentioned this topic)
+  if(n.highlight){
+    ux.beginPath();
+    ux.arc(p.x,p.y,pr+10,0,Math.PI*2);
+    ux.strokeStyle=ha(col,0.9);
+    ux.lineWidth=2;
+    ux.stroke();
+  }
+
+  // pulse ring (AI suggests exploring this topic)
+  if(n.pulse){
+    const pulseSize=Math.sin(Date.now()*0.008)*4;
+    ux.beginPath();
+    ux.arc(p.x,p.y,pr+14+pulseSize,0,Math.PI*2);
+    ux.strokeStyle=ha(col,0.6);
+    ux.lineWidth=1.5;
+    ux.stroke();
   }
 
   // label
