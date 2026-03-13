@@ -1440,6 +1440,137 @@ const SPARKS=Array.from({length:isMobile?22:55},()=>({
 }));
 
 let ROT=isMobile?0.42:0,T=0; // 0.42 rad ≈ 24° diagonal tilt on mobile
+
+// ── FOCUS STATE ────────────────────────────────────────────────
+let FOCUSED = null;      // currently focused node id
+let focusAnim = 0;       // 0→1 animation progress
+let focusRotTarget = ROT;// rotation target to bring node to nice position
+let focusRotStart = ROT;
+let focusAnimStart = 0;
+let dimOthers = 0;       // 0→1 dim non-connected nodes
+
+// Focus card DOM (created once)
+let focusCard = null;
+function getFocusCard(){
+  if(focusCard) return focusCard;
+  focusCard = document.createElement('div');
+  focusCard.id = 'focusCard';
+  focusCard.style.cssText = [
+    'position:fixed',
+    'left:50%','transform:translateX(-50%)',
+    'bottom:148px',
+    'background:rgba(5,8,20,0.94)',
+    'border:1px solid rgba(255,255,255,0.12)',
+    'border-radius:18px',
+    'padding:14px 18px',
+    'z-index:195',
+    'backdrop-filter:blur(16px)',
+    'box-shadow:0 8px 40px rgba(0,0,0,0.6)',
+    'min-width:240px','max-width:320px',
+    'opacity:0','transition:opacity .25s',
+    'pointer-events:all',
+  ].join(';');
+  focusCard.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <div id="fcLabel" style="font-size:16px;font-weight:700;color:#fff;"></div>
+      <button onclick="clearFocus()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.6);border-radius:50%;width:26px;height:26px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;">✕</button>
+    </div>
+    <div id="fcSub" style="font-size:12px;color:#94a3b8;margin-bottom:10px;"></div>
+    <div style="display:flex;gap:10px;margin-bottom:10px;">
+      <div style="flex:1;text-align:center;">
+        <div id="fcMas" style="font-size:22px;font-weight:800;color:#fff;"></div>
+        <div style="font-size:9px;color:#94a3b8;text-transform:uppercase;letter-spacing:.08em;">Mastery</div>
+      </div>
+      <div style="width:1px;background:rgba(255,255,255,0.08);"></div>
+      <div style="flex:2;display:flex;flex-direction:column;gap:4px;justify-content:center;">
+        <div id="fcBar" style="height:4px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden;">
+          <div id="fcBarFill" style="height:100%;border-radius:2px;transition:width .6s;"></div>
+        </div>
+        <div id="fcConns" style="font-size:11px;color:#94a3b8;"></div>
+      </div>
+    </div>
+    <button id="fcAsk" style="width:100%;padding:8px;background:rgba(99,179,237,0.12);border:1px solid rgba(99,179,237,0.3);border-radius:10px;color:#63b3ed;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;">Ask about this →</button>
+  `;
+  document.body.appendChild(focusCard);
+  return focusCard;
+}
+
+function showFocusCard(n){
+  const card = getFocusCard();
+  const connectedIds = CONNS.filter(c=>c[0]===n.id||c[1]===n.id).map(c=>c[0]===n.id?c[1]:c[0]);
+  const connNodes = connectedIds.map(id=>N.find(x=>x.id===id)).filter(Boolean);
+
+  document.getElementById('fcLabel').textContent = n.label;
+  document.getElementById('fcLabel').style.color = n.col;
+  document.getElementById('fcSub').textContent = n.sub;
+  document.getElementById('fcMas').textContent = (n.mas||0)+'%';
+  document.getElementById('fcMas').style.color = n.col;
+  document.getElementById('fcBarFill').style.width = (n.mas||0)+'%';
+  document.getElementById('fcBarFill').style.background = n.col;
+  document.getElementById('fcConns').textContent = connNodes.length
+    ? '🔗 Links: '+connNodes.map(x=>x.label).join(', ')
+    : 'No connections yet';
+
+  // Ask about this button
+  document.getElementById('fcAsk').onclick = ()=>{
+    const inp = isMobile ? document.getElementById('msInput') : document.getElementById('tcInput');
+    if(inp){
+      inp.value = 'Tell me more about '+n.label;
+      inp.focus();
+      if(isMobile){
+        document.getElementById('mobileSheet').classList.add('ms-expanded');
+        document.getElementById('msHead').style.display='flex';
+        document.getElementById('msMsgs').style.display='flex';
+        document.getElementById('msThinking').style.display='block';
+      }
+    }
+    clearFocus();
+  };
+
+  // Position card — on mobile bottom above nav, on desktop above chat
+  if(isMobile){
+    card.style.bottom = '148px';
+    card.style.left = '50%';
+    card.style.transform = 'translateX(-50%)';
+    card.style.maxWidth = 'calc(100vw - 32px)';
+    card.style.minWidth = '280px';
+  }
+
+  card.style.opacity = '1';
+}
+
+function clearFocus(){
+  FOCUSED = null;
+  dimOthers = 0;
+  if(focusCard) focusCard.style.opacity = '0';
+}
+
+function focusNode(nodeId){
+  const n = N.find(x=>x.id===nodeId);
+  if(!n || n.hidden) return;
+  if(FOCUSED === nodeId){ clearFocus(); return; } // tap again = close
+
+  FOCUSED = nodeId;
+  dimOthers = 0;
+  focusAnimStart = T;
+
+  // Rotate galaxy so this node floats to a comfortable viewing position
+  // Target: node sits at roughly 10 o'clock (angle -2.0 from center right)
+  const currentAng = (isMobile && window.mobileAngles && window.mobileAngles[nodeId] !== undefined)
+    ? window.mobileAngles[nodeId] : n.ang;
+  const targetViewAng = -1.8; // where we want node to appear
+  focusRotTarget = ROT + (targetViewAng - ((currentAng + ROT) % (Math.PI*2)));
+  focusRotStart = ROT;
+
+  showFocusCard(n);
+
+  // Highlight connected nodes
+  const connectedIds = CONNS.filter(c=>c[0]===n.id||c[1]===n.id).map(c=>c[0]===n.id?c[1]:c[0]);
+  N.forEach(x=>{
+    x._focused = (x.id === nodeId);
+    x._connected = connectedIds.includes(x.id);
+  });
+}
 let HOV=null;
 
 // On mobile: scale galaxy to fit screen — outermost node (orb 345) fits in 88% of half-width
@@ -1453,7 +1584,7 @@ function galaxyScale(){
 }
 
 // Mobile angle overrides — nodes evenly distributed per ring
-const mobileAngles = {
+window.mobileAngles = {
     'grav':-0.79,
     'calc':0.79,
     'evol':2.36,
@@ -1482,7 +1613,7 @@ function pos(n,r){
   const cx=CX(),cy=CY();
   if(n.orb===0)return{x:cx,y:cy};
   // On mobile use redistributed angles for even spread
-  const baseAng = (isMobile && mobileAngles[n.id] !== undefined) ? mobileAngles[n.id] : n.ang;
+  const baseAng = (isMobile && window.mobileAngles && window.mobileAngles[n.id] !== undefined) ? window.mobileAngles[n.id] : n.ang;
   const a = baseAng + r;
   const orb = n.orb * galaxyScale();
   // On mobile: rounder orbits so nodes use full screen height
@@ -1567,6 +1698,12 @@ function drawNode(n){
   const pulse=1+Math.sin(T*.0022+n.ang)*.035;
   const pr=r*pulse;
 
+  // Focus dim — non-connected nodes fade out
+  const isFocusTarget = n._focused;
+  const isConnected = n._connected || isYou;
+  const dimAlpha = FOCUSED ? (isFocusTarget||isConnected ? 1 : Math.max(0.12, 1-dimOthers*0.82)) : 1;
+  ux.globalAlpha = dimAlpha;
+
   // halo — additive blend
   ux.globalCompositeOperation='lighter';
   const gr=ux.createRadialGradient(p.x,p.y,0,p.x,p.y,pr*(isYou?3.8:2.8));
@@ -1628,6 +1765,16 @@ function drawNode(n){
     ux.fillText('Your Understanding',p.x,p.y+pr+24);
   }
   ux.textBaseline='alphabetic';
+  ux.globalAlpha = 1; // reset after each node
+
+  // Focus ring on the focused node
+  if(isFocusTarget){
+    const pulse = Math.sin(Date.now()*0.006)*3;
+    ux.beginPath();ux.arc(p.x,p.y,pr+12+pulse,0,Math.PI*2);
+    ux.strokeStyle=ha(col,0.9);ux.lineWidth=2.5;ux.stroke();
+    ux.beginPath();ux.arc(p.x,p.y,pr+20+pulse*0.5,0,Math.PI*2);
+    ux.strokeStyle=ha(col,0.3);ux.lineWidth=1;ux.stroke();
+  }
 }
 
 // ── TOOLTIP ───────────────────────────────────────────────────
@@ -1664,14 +1811,46 @@ document.addEventListener('touchmove',e=>{
   }
 },{passive:true});
 
-document.addEventListener('touchend',()=>{
+document.addEventListener('touchend', e=>{
   clearTimeout(tipTimer);
+  // On mobile: tap node = focus it
+  if(isMobile && e.changedTouches.length===1){
+    const t = e.changedTouches[0];
+    const hit = findHit(t.clientX, t.clientY);
+    if(hit){
+      focusNode(hit);
+      hideTip();
+      return;
+    } else if(FOCUSED){
+      // tap empty space = clear focus
+      clearFocus();
+    }
+  }
   tipTimer=setTimeout(()=>{HOV=null;hideTip();},1800);
 },{passive:true});
 
+// Desktop click = focus
+document.addEventListener('click', e=>{
+  if(isMobile) return; // handled by touchend
+  const hit = findHit(e.clientX, e.clientY);
+  if(hit){ focusNode(hit); }
+  else if(FOCUSED){ clearFocus(); }
+});
+
 // ── ANIMATION LOOP ────────────────────────────────────────────
 function loop(){
-  T++;ROT+=.00032;
+  T++;
+  // Smooth focus rotation
+  if(FOCUSED){
+    dimOthers = Math.min(1, dimOthers + 0.04);
+    const t = Math.min(1,(T-focusAnimStart)/60);
+    const ease = t<0.5?2*t*t:(1-Math.pow(-2*t+2,2)/2);
+    ROT = focusRotStart + (focusRotTarget - focusRotStart)*ease;
+    if(t>=1) ROT += 0.00008; // very slow drift when focused
+  } else {
+    ROT += .00032;
+    dimOthers = Math.max(0, dimOthers - 0.06);
+  }
   drawBg(T);
   ux.clearRect(0,0,uc.width,uc.height);
   drawNebula();drawOrbits();drawSparks();drawConns();
