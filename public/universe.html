@@ -1232,14 +1232,14 @@ function drawBg(t){
 
 // ── GALAXY CENTRE ─────────────────────────────────────────────
 function CX(){
-  if(isMobile) return uc.width*.5;
+  if(isMobile) return uc.width*.46;
   const panelL=240,panelR=255;
   return panelL+(uc.width-panelL-panelR)*.5;
 }
 function CY(){
   const topH=56,botH=isMobile?136:108;
   const avail=uc.height-topH-botH;
-  return topH+avail*(isMobile?0.44:0.48);
+  return topH+avail*(isMobile?0.42:0.48);
 }
 
 
@@ -1407,7 +1407,7 @@ const SPARKS=Array.from({length:isMobile?22:55},()=>({
 let ROT=0,T=0;
 let HOV=null;
 
-const GALAXY_SCALE = isMobile ? 0.72 : 1.0;
+const GALAXY_SCALE = isMobile ? 0.60 : 1.0;
 
 function pos(n,r){
   const cx=CX(),cy=CY();
