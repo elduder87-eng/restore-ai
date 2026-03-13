@@ -1417,13 +1417,41 @@ function galaxyScale(){
   return Math.min(availW / maxOrbW, availH / maxOrbH);
 }
 
+// Mobile angle overrides — nodes evenly distributed per ring
+const mobileAngles = {
+    'grav':-0.79,
+    'calc':0.79,
+    'evol':2.36,
+    'phys':0.40,
+    'math':1.97,
+    'bio':3.54,
+    'hist':5.11,
+    'func':0.50,
+    'lim':1.55,
+    'eco':2.60,
+    'gen':3.65,
+    'ren':4.70,
+    'rev':5.75,
+    'newt':-0.30,
+    'ind':1.27,
+    'astro':2.84,
+    'eth':4.41,
+    'rel':0.20,
+    'bh':1.77,
+    'st':3.34,
+    'cosmo':4.91,
+    'know':3.10
+  };
+
 function pos(n,r){
   const cx=CX(),cy=CY();
   if(n.orb===0)return{x:cx,y:cy};
-  const a=n.ang+r;
-  const orb=n.orb*galaxyScale();
-  // On mobile: tall vertical orbits (tilt → 0.85) so galaxy spreads top-to-bottom
-  const tilt = isMobile ? n.tilt * 1.65 : n.tilt; // 0.52 × 1.65 ≈ 0.86
+  // On mobile use redistributed angles for even spread
+  const baseAng = (isMobile && mobileAngles[n.id] !== undefined) ? mobileAngles[n.id] : n.ang;
+  const a = baseAng + r;
+  const orb = n.orb * galaxyScale();
+  // On mobile: rounder orbits so nodes use full screen height
+  const tilt = isMobile ? Math.min(n.tilt * 1.55, 0.92) : n.tilt;
   return{x:cx+Math.cos(a)*orb,y:cy+Math.sin(a)*orb*tilt};
 }
 
