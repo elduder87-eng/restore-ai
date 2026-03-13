@@ -1404,7 +1404,7 @@ const SPARKS=Array.from({length:isMobile?22:55},()=>({
   col:['#fbbf24','#fb923c','#4ade80','#38bdf8','#c084fc','#f472b6'][Math.floor(Math.random()*6)]
 }));
 
-let ROT=0,T=0;
+let ROT=isMobile?0.42:0,T=0; // 0.42 rad ≈ 24° diagonal tilt on mobile
 let HOV=null;
 
 // On mobile: scale galaxy to fit screen — outermost node (orb 345) fits in 88% of half-width
@@ -3189,18 +3189,25 @@ function closeTeacherView(){
     msHead.style.display  = 'none';
     msMsgs.style.display  = 'none';
     msThink.style.display = 'none';
+    // messages stay in DOM — NOT cleared
   }
 
+  let msgsSynced = false;
   function syncMessages(){
-    const src  = document.getElementById('tcMsgs');
+    if(msgsSynced) return; // only sync once — after that mobile manages its own
+    const src = document.getElementById('tcMsgs');
     if(!src) return;
-    msMsgs.innerHTML = src.innerHTML;
-    // resize bubbles for mobile
-    msMsgs.querySelectorAll('.tc-bubble').forEach(b=>{
-      b.style.fontSize   = '15px';
-      b.style.lineHeight = '1.6';
-      b.style.padding    = '10px 14px';
+    msMsgs.innerHTML = '';
+    src.querySelectorAll('.tc-msg').forEach(el=>{
+      const clone = el.cloneNode(true);
+      clone.querySelectorAll('.tc-bubble').forEach(b=>{
+        b.style.fontSize   = '15px';
+        b.style.lineHeight = '1.6';
+        b.style.padding    = '10px 14px';
+      });
+      msMsgs.appendChild(clone);
     });
+    msgsSynced = true;
   }
 
   msHandle.addEventListener('click', ()=>{
@@ -3260,7 +3267,37 @@ function closeTeacherView(){
 
       const am = document.createElement('div');
       am.className = 'tc-msg ai';
-      am.innerHTML = `<div class="tc-bubble" style="font-size:15px;line-height:1.6;padding:10px 14px;">${data.reply}</div>`;
+      const ab = document.createElement('div');
+      ab.className = 'tc-bubble';
+      ab.style.cssText = 'font-size:15px;line-height:1.6;padding:10px 14px;';
+      ab.textContent = data.reply;
+      am.appendChild(ab);
+      // speak button
+      const msb = document.createElement('button');
+      msb.textContent = '🔊';
+      msb.className = 'tc-speak';
+      msb.style.cssText = 'font-size:14px;padding:4px 2px;';
+      let mSpeaking = false;
+      msb.onclick = () => {
+        if(mSpeaking){ speechSynthesis.cancel(); msb.textContent='🔊'; mSpeaking=false; }
+        else {
+          if(typeof speechSynthesis !== 'undefined'){
+            speechSynthesis.cancel();
+            const u = new SpeechSynthesisUtterance(data.reply);
+            u.rate = 0.95; u.pitch = 1;
+            speechSynthesis.speak(u);
+            msb.textContent = '⏹'; mSpeaking = true;
+            const ck = setInterval(()=>{ if(!speechSynthesis.speaking){ msb.textContent='🔊'; mSpeaking=false; clearInterval(ck); }}, 200);
+          }
+        }
+      };
+      am.appendChild(msb);
+      // auto-speak new response
+      if(typeof speechSynthesis !== 'undefined'){
+        speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(data.reply);
+        u.rate = 0.95; speechSynthesis.speak(u);
+      }
       msMsgs.appendChild(am);
       msMsgs.scrollTop = msMsgs.scrollHeight;
 
