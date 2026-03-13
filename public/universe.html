@@ -1245,22 +1245,59 @@ function CY(){
 
 // ── TOPIC → NODE MAP ──────────────────────────────────────────
 const topicNodeMap = {
-  physics:"phys", gravity:"grav", relativity:"rel",
-  astronomy:"astro", blackholes:"bh", spacetime:"st",
-  cosmology:"cosmo", math:"math", mathematics:"math",
-  calculus:"calc", functions:"func", limits:"lim",
-  biology:"bio", genetics:"gen", evolution:"evol",
-  ecosystems:"eco", history:"hist", revolutions:"rev",
-  renaissance:"ren", philosophy:"eth", ethics:"eth",
-  knowledge:"know"
+  // Physics cluster
+  physics:"phys", physical:"phys", "quantum physics":"phys", quantum:"phys",
+  gravity:"grav", gravitation:"grav", gravitational:"grav", newtonian:"grav",
+  relativity:"rel", einstein:"rel", "general relativity":"rel", "special relativity":"rel",
+  newton:"newt", "newton's laws":"newt", "newtons laws":"newt", mechanics:"newt",
+  // Astronomy cluster
+  astronomy:"astro", astrology:"astro", astrophysics:"astro", stars:"astro",
+  "black holes":"bh", "black hole":"bh", blackhole:"bh", blackholes:"bh", singularity:"bh",
+  "space-time":"st", spacetime:"st", "space time":"st",
+  cosmology:"cosmo", "big bang":"cosmo", universe:"cosmo", cosmic:"cosmo",
+  // Math cluster
+  math:"math", mathematics:"math", mathematical:"math", algebra:"math",
+  calculus:"calc", derivatives:"calc", integrals:"calc",
+  functions:"func", function:"func",
+  limits:"lim", limit:"lim", convergence:"lim",
+  // Biology cluster
+  biology:"bio", biological:"bio", cells:"bio", cell:"bio", organisms:"bio",
+  genetics:"gen", genes:"gen", dna:"gen", gene:"gen", heredity:"gen",
+  evolution:"evol", darwin:"evol", "natural selection":"evol", evolutionary:"evol",
+  ecosystems:"eco", ecosystem:"eco", ecology:"eco", "food web":"eco",
+  // History cluster
+  history:"hist", historical:"hist", civilization:"hist", civilizations:"hist",
+  revolutions:"rev", revolution:"rev", revolutionary:"rev",
+  renaissance:"ren", "renaissance period":"ren",
+  "industrial revolution":"ind", industrial:"ind", "industrial rev":"ind",
+  // Philosophy cluster
+  philosophy:"eth", ethics:"eth", ethical:"eth", moral:"eth", morality:"eth",
+  knowledge:"know", epistemology:"know", wisdom:"know",
+  // Space
+  space:"astro", "outer space":"astro",
 };
 
 
 // ── GALAXY INTERACTION FUNCTIONS ──────────────────────────────
+function resolveNode(topic){
+  const t = topic.toLowerCase().trim();
+  // Direct map lookup
+  if(topicNodeMap[t]) return N.find(n=>n.id===topicNodeMap[t]);
+  // Direct id match
+  let node = N.find(n=>n.id===t);
+  if(node) return node;
+  // Label match (partial)
+  node = N.find(n=>n.label.toLowerCase().includes(t) || t.includes(n.label.toLowerCase()));
+  if(node) return node;
+  // Fuzzy: any map key that contains the topic word
+  const key = Object.keys(topicNodeMap).find(k=>t.includes(k)||k.includes(t));
+  if(key) return N.find(n=>n.id===topicNodeMap[key]);
+  return null;
+}
+
 function highlightNodes(topics){
   topics.forEach(topic=>{
-    const nodeId = topicNodeMap[topic.toLowerCase()] || topic;
-    const node = N.find(n=>n.id===nodeId);
+    const node = resolveNode(topic);
     if(node){
       node.hidden = false;
       node.highlight = true;
@@ -1271,8 +1308,7 @@ function highlightNodes(topics){
 
 function pulseNodes(suggest){
   suggest.forEach(topic=>{
-    const nodeId = topicNodeMap[topic.toLowerCase()] || topic;
-    const node = N.find(n=>n.id===nodeId);
+    const node = resolveNode(topic);
     if(node){
       node.hidden = false;
       node.pulse = true;
@@ -1283,8 +1319,7 @@ function pulseNodes(suggest){
 
 function updateMastery(topics){
   topics.forEach(topic=>{
-    const nodeId = topicNodeMap[topic.toLowerCase()] || topic;
-    const node = N.find(n=>n.id===nodeId);
+    const node = resolveNode(topic);
     if(node){
       node.hidden = false;
       node.mas = Math.min(100,(node.mas||0)+2);
@@ -3265,17 +3300,6 @@ function closeTeacherView(){
     typing.innerHTML = '<div class="tc-bubble" style="padding:10px 14px;"><div class="tc-typing"><span></span><span></span><span></span></div></div>';
     msMsgs.appendChild(typing);
     msMsgs.scrollTop = msMsgs.scrollHeight;
-
-    // Also fire desktop chat for galaxy updates
-    const desktopInput = document.getElementById('tcInput');
-    if(desktopInput){
-      desktopInput.value = text;
-      const sendFn = window.sendMessage || window.send;
-      if(sendFn) {
-        // Use the existing send() function
-        try { await sendMessage(text); } catch(e){}
-      }
-    }
 
     // Call API directly
     try {
