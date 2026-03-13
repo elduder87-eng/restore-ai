@@ -1407,15 +1407,14 @@ const SPARKS=Array.from({length:isMobile?22:55},()=>({
 let ROT=0,T=0;
 let HOV=null;
 
-// On mobile: dynamically scale galaxy to fill 82% of available half-width
+// On mobile: scale galaxy to fit screen — outermost node (orb 345) fits in 88% of half-width
 function galaxyScale(){
   if(!isMobile) return 1.0;
-  const halfW = uc.width * 0.46; // usable half (center is at 46%)
-  const halfH = (uc.height - 56 - 136) * 0.56; // usable half vertically
-  const maxOrb = 345; // outermost node orb
-  const scaleW = (halfW * 0.92) / maxOrb;
-  const scaleH = (halfH * 0.92) / (maxOrb * 0.47); // tilt ~0.47
-  return Math.min(scaleW, scaleH);
+  const availW = uc.width * 0.46 * 0.88; // left half (center offset) × 88% margin
+  const availH = (uc.height - 56 - 136) * 0.50 * 0.82; // vertical half × margin
+  const maxOrbW = 345;
+  const maxOrbH = 345 * 0.47; // tilt of outermost ring
+  return Math.min(availW / maxOrbW, availH / maxOrbH);
 }
 
 function pos(n,r){
@@ -3375,7 +3374,7 @@ function closeTeacherView(){
   };
 
   window.mobileResetGalaxy = function(){
-    if(confirm('Reset your entire galaxy? This cannot be undone.')){ factoryReset(); closeMobileOverlay('me'); updateMobileChips(); }
+    if(confirm('Reset your entire galaxy? This cannot be undone.')){ resetGalaxy(); resetChat(); closeMobileOverlay('me'); updateMobileChips(); }
   };
 
   // Init chips on load
