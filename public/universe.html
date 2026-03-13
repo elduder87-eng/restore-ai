@@ -1359,7 +1359,7 @@ function refreshGrowth(){
 
 // ── NODE DATA ─────────────────────────────────────────────────
 const N=[
-  {id:'you',   label:'YOU',           sub:'Your Understanding', ang:0,    orb:0,   tilt:1,   r:34, col:'#fde68a', glow:'rgba(253,230,138,0.55)',mas:100},
+  {id:'you',   label:'YOU',           sub:'Your Understanding', ang:0,    orb:0,   tilt:1,   r:34, col:'#c8860a', glow:'rgba(200,134,10,0.6)',  mas:100},
   {id:'phys',  label:'Physics',       sub:'Gravity · Motion',   ang:.2,   orb:162, tilt:.52, r:27, col:'#fb923c', glow:'rgba(251,146,60,0.5)',  mas:78},
   {id:'math',  label:'Mathematics',   sub:'Calculus · Limits',  ang:2.45, orb:148, tilt:.52, r:26, col:'#38bdf8', glow:'rgba(56,189,248,0.5)',  mas:65},
   {id:'bio',   label:'Biology',       sub:'Evolution · Cells',  ang:3.85, orb:162, tilt:.52, r:25, col:'#4ade80', glow:'rgba(74,222,128,0.5)',  mas:55},
@@ -1407,11 +1407,14 @@ const SPARKS=Array.from({length:isMobile?22:55},()=>({
 let ROT=0,T=0;
 let HOV=null;
 
+const GALAXY_SCALE = isMobile ? 0.68 : 1.0;
+
 function pos(n,r){
   const cx=CX(),cy=CY();
   if(n.orb===0)return{x:cx,y:cy};
   const a=n.ang+r;
-  return{x:cx+Math.cos(a)*n.orb,y:cy+Math.sin(a)*n.orb*n.tilt};
+  const orb=n.orb*GALAXY_SCALE;
+  return{x:cx+Math.cos(a)*orb,y:cy+Math.sin(a)*orb*n.tilt};
 }
 
 function ha(hex,a){
@@ -1435,7 +1438,7 @@ function drawNebula(){
 
 function drawOrbits(){
   const cx=CX(),cy=CY();
-  [[105,.52],[165,.52],[215,.52],[265,.47],[335,.45]].forEach(([orb,tilt])=>{
+  [[105,.52],[165,.52],[215,.52],[265,.47],[335,.45]].map(([orb,tilt])=>[orb*GALAXY_SCALE,tilt]).forEach(([orb,tilt])=>{
     ux.beginPath();ux.ellipse(cx,cy,orb,orb*tilt,0,0,Math.PI*2);
     ux.strokeStyle='rgba(255,255,255,0.045)';ux.lineWidth=.5;
     ux.setLineDash([3,10]);ux.stroke();ux.setLineDash([]);
