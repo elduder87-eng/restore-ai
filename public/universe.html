@@ -282,7 +282,7 @@ body{position:fixed;inset:0;}
   padding:1px 2px;
 }
 .share-btn{
-  position:fixed;bottom:130px;right:16px;z-index:50;
+  position:fixed;bottom:180px;right:16px;z-index:500;
   width:44px;height:44px;border-radius:50%;
   background:rgba(5,8,20,0.85);border:1px solid rgba(99,179,237,0.4);
   display:flex;align-items:center;justify-content:center;
@@ -1961,6 +1961,15 @@ function closeTeacherView(){
         <div style="font-family:'Georgia',serif;font-size:28px;font-weight:300;letter-spacing:6px;color:#f0f4ff;text-transform:uppercase;">Restore</div>
         <div style="font-size:9px;font-weight:400;letter-spacing:4px;color:#63b3ed;text-transform:uppercase;margin-top:4px;">Where Understanding Grows</div>
       </div>
+    </div>
+
+    <!-- Teacher View -->
+    <div style="background:rgba(74,222,128,0.06);border:1px solid rgba(74,222,128,0.2);border-radius:12px;padding:16px;margin-bottom:16px;">
+      <div style="font-size:13px;font-weight:600;color:#4ade80;margin-bottom:4px;">👩‍🏫 Teacher View</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:12px;">See all your students' knowledge galaxies at once</div>
+      <button onclick="openTeacherView();" style="background:rgba(74,222,128,0.15);border:1px solid rgba(74,222,128,0.35);color:#4ade80;padding:8px 18px;border-radius:8px;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;letter-spacing:.02em;">
+        Open Class View →
+      </button>
     </div>
 
     <!-- AI Connection Test -->
