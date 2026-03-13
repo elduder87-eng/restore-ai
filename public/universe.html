@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, interactive-widget=resizes-visual"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-visual"/>
 <title>Restore — Your Learning Journey</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
 <style>
@@ -1500,38 +1500,11 @@ function resetGalaxy(e){
 
 
 // ── ZOOM LOCK ─────────────────────────────────────────────────
-// ── VIEWPORT LOCK: zoom entire page as one unit ──────────────
-(function(){
-  if(!window.visualViewport) return;
-  function lockAll(){
-    const vv = window.visualViewport;
-    if(vv.scale <= 1.01) return;
-    // If somehow zoom slipped through, reset it
-    window.scrollTo(0, 0);
-  }
-  window.visualViewport.addEventListener('resize', lockAll);
-})();
+// Viewport — native zoom handles scale, no intervention needed.
 
 
-// ── PINCH BLOCK — prevent ALL multi-touch zoom ────────────────
-// Strategy: JS preventDefault on multi-touch at document level (passive:false).
-// touch-action on child elements is NOT set (would bypass this handler).
-// stopPropagation on touch events is NOT used anywhere (would hide events from us).
-(function(){
-  function blockPinch(e){
-    if(e.touches && e.touches.length > 1){
-      e.preventDefault();
-      return false;
-    }
-  }
-  // Must be passive:false to call preventDefault()
-  document.addEventListener('touchstart', blockPinch, {passive:false,capture:true});
-  document.addEventListener('touchmove',  blockPinch, {passive:false,capture:true});
-  // Safari
-  document.addEventListener('gesturestart',  e=>{e.preventDefault();}, {passive:false,capture:true});
-  document.addEventListener('gesturechange', e=>{e.preventDefault();}, {passive:false,capture:true});
-  document.addEventListener('gestureend',    e=>{e.preventDefault();}, {passive:false,capture:true});
-})();
+// ── ZOOM: let native browser handle it — everything moves as one ──
+// No blocking needed. The old reanchoring code that caused drift is gone.
 
 // ── LOADING SCREEN ────────────────────────────────────────────
 (function(){
