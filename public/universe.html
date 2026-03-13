@@ -1410,10 +1410,10 @@ let HOV=null;
 // On mobile: scale galaxy to fit screen — outermost node (orb 345) fits in 88% of half-width
 function galaxyScale(){
   if(!isMobile) return 1.0;
-  const availW = uc.width * 0.46 * 0.88; // left half (center offset) × 88% margin
-  const availH = (uc.height - 56 - 136) * 0.50 * 0.82; // vertical half × margin
+  const availW = uc.width * 0.46 * 0.86;       // usable half-width
+  const availH = (uc.height - 56 - 136) * 0.50 * 0.88; // usable half-height
   const maxOrbW = 345;
-  const maxOrbH = 345 * 0.47; // tilt of outermost ring
+  const maxOrbH = 345 * 0.45 * 1.65; // outermost tilt × mobile multiplier ≈ 0.74
   return Math.min(availW / maxOrbW, availH / maxOrbH);
 }
 
@@ -1422,7 +1422,9 @@ function pos(n,r){
   if(n.orb===0)return{x:cx,y:cy};
   const a=n.ang+r;
   const orb=n.orb*galaxyScale();
-  return{x:cx+Math.cos(a)*orb,y:cy+Math.sin(a)*orb*n.tilt};
+  // On mobile: tall vertical orbits (tilt → 0.85) so galaxy spreads top-to-bottom
+  const tilt = isMobile ? n.tilt * 1.65 : n.tilt; // 0.52 × 1.65 ≈ 0.86
+  return{x:cx+Math.cos(a)*orb,y:cy+Math.sin(a)*orb*tilt};
 }
 
 function ha(hex,a){
@@ -1446,7 +1448,7 @@ function drawNebula(){
 
 function drawOrbits(){
   const cx=CX(),cy=CY();
-  [[105,.52],[165,.52],[215,.52],[265,.47],[335,.45]].map(([orb,tilt])=>[orb*galaxyScale(),tilt]).forEach(([orb,tilt])=>{
+  [[105,.52],[165,.52],[215,.52],[265,.47],[335,.45]].map(([orb,tilt])=>[orb*galaxyScale(),isMobile?tilt*1.65:tilt]).forEach(([orb,tilt])=>{
     ux.beginPath();ux.ellipse(cx,cy,orb,orb*tilt,0,0,Math.PI*2);
     ux.strokeStyle='rgba(255,255,255,0.045)';ux.lineWidth=.5;
     ux.setLineDash([3,10]);ux.stroke();ux.setLineDash([]);
