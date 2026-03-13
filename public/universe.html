@@ -537,13 +537,13 @@ body{position:fixed;inset:0;}
       <button class="nb" onclick="switchTab('connections',this)">Connections</button>
     </nav>
     <div class="tr">
-      <div class="av">
+      <div class="av" onclick="openProfileModal()" style="cursor:pointer;">
         <div class="av-img"></div>
         <span class="av-name">Devin's Profile</span>
       </div>
-      <div class="ib">⚙</div>
-      <div class="ib">🔔</div>
-      <div class="ib" style="background:rgba(56,189,248,0.15);border-color:rgba(56,189,248,0.3);color:var(--blue);font-weight:700;font-size:11px;">A</div>
+      <div class="ib" onclick="switchTab('dashboard',document.querySelectorAll('.nb')[1])" title="Settings" style="cursor:pointer;">⚙</div>
+      <div class="ib" onclick="showNotifToast()" title="Notifications" style="cursor:pointer;">🔔</div>
+      <div class="ib" onclick="openProfileModal()" title="Account" style="background:rgba(56,189,248,0.15);border-color:rgba(56,189,248,0.3);color:var(--blue);font-weight:700;font-size:11px;cursor:pointer;">A</div>
     </div>
   </div>
 
@@ -592,7 +592,7 @@ body{position:fixed;inset:0;}
           </div>
         </div>
         <div class="pb"><div class="pf" style="width:68%;background:var(--blue);"></div></div>
-        <button style="width:100%;margin-top:8px;padding:6px;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:11px;cursor:pointer;font-family:'Inter',sans-serif;">Continue Journey →</button>
+        <button onclick="switchTab('journey',document.querySelector('.nb'));document.getElementById('tcInput').focus();" style="width:100%;margin-top:8px;padding:6px;background:rgba(99,179,237,0.12);border:1px solid rgba(99,179,237,0.3);border-radius:8px;color:#63b3ed;font-size:11px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;">Continue Journey →</button>
       </div>
 
       <!-- Curiosity Feed -->
@@ -669,7 +669,7 @@ body{position:fixed;inset:0;}
           <div class="lmd">Apr 10</div>
         </div>
       </div>
-      <button style="width:100%;margin-top:8px;padding:7px;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:11px;cursor:pointer;font-family:'Inter',sans-serif;">View Full Timeline →</button>
+      <button onclick="openTimeline()" style="width:100%;margin-top:8px;padding:7px;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:11px;cursor:pointer;font-family:'Inter',sans-serif;">View Full Timeline →</button>
     </div>
 
   </div><!-- /main -->
@@ -714,11 +714,11 @@ body{position:fixed;inset:0;}
   <div class="sc"><div class="sn" id="bottomTopics" style="color:#38bdf8;">🔭 0</div><div class="sl">Topics Explored</div></div>
   <div class="sc"><div class="sn" id="bottomBreakthroughs" style="color:#fbbf24;">⚡ 0</div><div class="sl">Breakthroughs</div></div>
   <div class="frc">
-    <div class="frci">🌌</div>
+    <div class="frci" id="frontierIcon">🌌</div>
     <div style="flex:1;min-width:0;">
       <div class="frl">Next Frontier</div>
-      <div class="frn">The Theory of Everything</div>
-      <div class="frp"><div class="frt"><div class="frb"></div></div><div class="frpc">71% Ready</div></div>
+      <div class="frn" id="frontierName">Keep exploring...</div>
+      <div class="frp"><div class="frt"><div class="frb" id="frontierBar" style="width:0%"></div></div><div class="frpc" id="frontierPct">0% Ready</div></div>
     </div>
     <div class="frarr">→</div>
   </div>
@@ -1353,37 +1353,16 @@ function resetGalaxy(e){
 
 
 // ── ZOOM LOCK ─────────────────────────────────────────────────
-// Prevent pinch-zoom from drifting fixed-position chat elements
+// ── VIEWPORT LOCK: zoom entire page as one unit ──────────────
 (function(){
   if(!window.visualViewport) return;
-  
-  function lockFixed(){
+  function lockAll(){
     const vv = window.visualViewport;
-    const offsetX = vv.offsetLeft;
-    const offsetY = vv.offsetTop;
-    const scale  = vv.scale;
-    
-    // Only reanchor if user has zoomed (scale != 1)
-    const els = ['teacherChat','thkBar','botBar','dashPanel','curiosityPanel','connectionsPanel'];
-    els.forEach(id=>{
-      const el = document.getElementById(id);
-      if(!el) return;
-      if(scale > 1.01){
-        // Counter the viewport offset so element stays at edge
-        el.style.left   = offsetX + 'px';
-        el.style.right  = 'auto';
-        el.style.width  = vv.width + 'px';
-      } else {
-        // Back to normal
-        el.style.left  = '0';
-        el.style.right = '0';
-        el.style.width = '100%';
-      }
-    });
+    if(vv.scale <= 1.01) return;
+    // If somehow zoom slipped through, reset it
+    window.scrollTo(0, 0);
   }
-  
-  window.visualViewport.addEventListener('scroll', lockFixed);
-  window.visualViewport.addEventListener('resize', lockFixed);
+  window.visualViewport.addEventListener('resize', lockAll);
 })();
 
 
@@ -1445,6 +1424,172 @@ function resetGalaxy(e){
     }, 5000);
   });
 })();
+
+
+
+// ── PROFILE MODAL ─────────────────────────────────────────────
+function openProfileModal(){
+  let modal = document.getElementById('profileModal');
+  if(!modal){
+    modal = document.createElement('div');
+    modal.id = 'profileModal';
+    modal.style.cssText = 'position:fixed;inset:0;z-index:600;background:rgba(5,8,20,0.92);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;';
+    modal.innerHTML = `
+      <div style="background:rgba(15,20,40,0.98);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:32px;width:320px;max-width:90vw;position:relative;">
+        <button onclick="document.getElementById('profileModal').style.display='none'" style="position:absolute;top:14px;right:14px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;">×</button>
+        <div style="text-align:center;margin-bottom:24px;">
+          <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#38bdf8,#818cf8);margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:28px;">🧠</div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;letter-spacing:2px;color:#f0f4ff;">Devin</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px;">devin@mappedknowledge.ai</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.04);border-radius:12px;padding:16px;margin-bottom:16px;">
+          <div style="font-size:11px;font-weight:600;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;">Your Galaxy</div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-size:12px;color:var(--text);">Galaxy Name</span><span style="font-size:12px;color:#fde68a;cursor:pointer;" onclick="document.getElementById('profileModal').style.display='none';editGalaxyName();">${galaxyName} ✏️</span></div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-size:12px;color:var(--text);">Nodes Lit</span><span style="font-size:12px;color:#4ade80;" id="profileNodes">—</span></div>
+          <div style="display:flex;justify-content:space-between;"><span style="font-size:12px;color:var(--text);">Avg Mastery</span><span style="font-size:12px;color:#38bdf8;" id="profileMastery">—</span></div>
+        </div>
+        <button onclick="document.getElementById('profileModal').style.display='none';switchTab('dashboard',document.querySelectorAll('.nb')[1]);" style="width:100%;padding:10px;background:rgba(99,179,237,0.12);border:1px solid rgba(99,179,237,0.3);border-radius:10px;color:#63b3ed;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;">Go to Dashboard →</button>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', e=>{ if(e.target===modal) modal.style.display='none'; });
+  }
+  // Update live stats
+  const lit = N.filter(n=>!n.hidden).length;
+  const avgMas = Math.round(N.filter(n=>!n.hidden).reduce((a,n)=>a+n.mas,0)/lit);
+  const pn = document.getElementById('profileNodes');
+  const pm = document.getElementById('profileMastery');
+  if(pn) pn.textContent = lit + ' / ' + N.length;
+  if(pm) pm.textContent = avgMas + '%';
+  modal.style.display = 'flex';
+}
+
+// ── NOTIFICATIONS TOAST ───────────────────────────────────────
+function showNotifToast(){
+  let n = document.getElementById('notifPanel');
+  if(!n){
+    n = document.createElement('div');
+    n.id = 'notifPanel';
+    n.style.cssText = 'position:fixed;top:58px;right:12px;z-index:600;width:280px;background:rgba(10,14,28,0.97);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:16px;backdrop-filter:blur(12px);box-shadow:0 8px 40px rgba(0,0,0,0.5);';
+    n.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div style="font-size:12px;font-weight:600;color:var(--text);">Notifications</div>
+        <span onclick="document.getElementById('notifPanel').style.display='none'" style="cursor:pointer;color:var(--muted);font-size:18px;line-height:1;">×</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="background:rgba(74,222,128,0.08);border-radius:8px;padding:10px;border-left:2px solid #4ade80;">
+          <div style="font-size:11px;font-weight:600;color:#4ade80;">🌌 Galaxy Growing!</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px;">Keep exploring — 3 new nodes nearly unlocked</div>
+        </div>
+        <div style="background:rgba(251,191,36,0.08);border-radius:8px;padding:10px;border-left:2px solid #fbbf24;">
+          <div style="font-size:11px;font-weight:600;color:#fbbf24;">⚡ Breakthrough Streak</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px;">You've made 3 cross-domain connections today</div>
+        </div>
+        <div style="background:rgba(56,189,248,0.08);border-radius:8px;padding:10px;border-left:2px solid #38bdf8;">
+          <div style="font-size:11px;font-weight:600;color:#38bdf8;">🚀 Next Frontier</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px;">You're close to unlocking Quantum Biology</div>
+        </div>
+      </div>`;
+    document.body.appendChild(n);
+    document.addEventListener('click', e=>{
+      const np = document.getElementById('notifPanel');
+      if(np && !np.contains(e.target) && !e.target.closest('.ib')) np.style.display='none';
+    });
+  }
+  n.style.display = n.style.display === 'none' ? 'block' : 'block';
+}
+
+// ── FULL TIMELINE MODAL ───────────────────────────────────────
+function openTimeline(){
+  let tl = document.getElementById('timelineModal');
+  if(!tl){
+    tl = document.createElement('div');
+    tl.id = 'timelineModal';
+    tl.style.cssText = 'position:fixed;inset:0;top:56px;z-index:300;background:rgba(5,8,20,0.97);overflow-y:auto;padding:24px 20px;';
+    tl.innerHTML = `
+      <div style="max-width:500px;margin:0 auto;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
+          <button onclick="document.getElementById('timelineModal').style.display='none'" style="background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:8px;color:var(--muted);padding:6px 12px;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;">← Back</button>
+          <div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;letter-spacing:2px;color:#f0f4ff;">Full Timeline</div>
+            <div style="font-size:11px;color:var(--muted);">Every learning moment in your galaxy</div>
+          </div>
+        </div>
+        <div id="timelineList" style="display:flex;flex-direction:column;gap:0;"></div>
+      </div>`;
+    document.body.appendChild(tl);
+  }
+  // Build timeline from session + static moments
+  const list = document.getElementById('timelineList');
+  const staticMoments = [
+    {icon:'💡',color:'#fbbf24',title:'Breakthrough! Relativity Click',sub:'Physics → Space-Time',date:'Apr 22'},
+    {icon:'🔗',color:'#38bdf8',title:'Connected: Physics → Philosophy',sub:'Cross-domain insight',date:'Apr 18'},
+    {icon:'⚡',color:'#c084fc',title:'Curiosity Spike: Black Holes',sub:'Astronomy cluster',date:'Apr 15'},
+    {icon:'✓',color:'#4ade80',title:'Mastered: Calculus Limits',sub:'Mathematics node',date:'Apr 10'},
+    {icon:'🌌',color:'#63b3ed',title:'Galaxy Created',sub:'Your journey begins',date:'Apr 8'},
+  ];
+  // Add live session messages as moments
+  const chatMsgs = Array.from(document.querySelectorAll('.tc-bubble')).map((el,i)=>({
+    icon:'💬',color:'#818cf8',
+    title: el.textContent.slice(0,60)+(el.textContent.length>60?'…':''),
+    sub:'Session message',
+    date:'Today'
+  })).reverse().slice(0,5);
+  const all = [...chatMsgs, ...staticMoments];
+  list.innerHTML = all.map((m,i)=>`
+    <div style="display:flex;gap:12px;position:relative;padding-bottom:${i<all.length-1?'0':'0'};">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:0;">
+        <div style="width:32px;height:32px;border-radius:50%;background:${m.color}22;border:1px solid ${m.color}55;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">${m.icon}</div>
+        ${i<all.length-1?`<div style="width:1px;flex:1;background:rgba(255,255,255,0.07);margin:4px 0;min-height:20px;"></div>`:''}
+      </div>
+      <div style="padding-bottom:16px;flex:1;">
+        <div style="font-size:12px;font-weight:600;color:var(--text);">${m.title}</div>
+        <div style="font-size:10px;color:${m.color};margin-top:1px;">${m.sub}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px;">${m.date}</div>
+      </div>
+    </div>`).join('');
+  tl.style.display = 'block';
+}
+
+// ── NEXT FRONTIER — dynamic ────────────────────────────────────
+const FRONTIERS = [
+  {name:'Start Exploring!',     icon:'🌱', threshold:1,  pct:5},
+  {name:'Quantum Mechanics',    icon:'⚛️',  threshold:3,  pct:25},
+  {name:'The Theory of Everything', icon:'🌌', threshold:6,  pct:55},
+  {name:'Dark Matter & Energy', icon:'🌑', threshold:9,  pct:72},
+  {name:'Quantum Biology',      icon:'🧬', threshold:13, pct:85},
+  {name:'Consciousness',        icon:'🧠', threshold:17, pct:95},
+  {name:'The Infinite',         icon:'♾️',  threshold:21, pct:99},
+];
+
+function updateFrontier(){
+  const lit = N.filter(n=>!n.hidden).length;
+  let frontier = FRONTIERS[0];
+  for(const f of FRONTIERS){
+    if(lit >= f.threshold) frontier = f;
+  }
+  // Pick the NEXT one above current
+  const nextIdx = FRONTIERS.indexOf(frontier) + 1;
+  const next = FRONTIERS[nextIdx] || frontier;
+  const pct = Math.min(99, Math.round((lit / next.threshold) * 100));
+  const fn = document.getElementById('frontierName');
+  const fb = document.getElementById('frontierBar');
+  const fp = document.getElementById('frontierPct');
+  const fi = document.getElementById('frontierIcon');
+  if(fn) fn.textContent = next.name;
+  if(fb) fb.style.width = pct + '%';
+  if(fp) fp.textContent = pct + '% Ready';
+  if(fi) fi.textContent = next.icon;
+}
+
+// Call updateFrontier whenever nodes change
+const _origHighlight = highlightNodes;
+window.highlightNodes = function(topics){
+  _origHighlight(topics);
+  updateFrontier();
+};
+
+// Init frontier on load
+setTimeout(updateFrontier, 200);
 
 
 // ── GALAXY NAME ────────────────────────────────────────────────
@@ -1651,7 +1796,7 @@ function closeTeacherView(){
   const chat=document.getElementById('teacherChat');
 
   chat.addEventListener('touchstart',e=>e.stopPropagation(),{passive:true});
-  chat.addEventListener('touchmove',e=>e.stopPropagation(),{passive:true});
+  // touchmove propagation NOT stopped — zoom blocked globally
   chat.addEventListener('touchend',e=>e.stopPropagation(),{passive:true});
   chat.addEventListener('pointerdown',e=>e.stopPropagation());
   chat.addEventListener('wheel',e=>e.stopPropagation(),{passive:true});
