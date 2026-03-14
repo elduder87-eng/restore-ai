@@ -3651,6 +3651,300 @@ function closeTeacherView(){
   setTimeout(updateMobileChips, 300);
 
 })();
+  // ══════════════════════════════════════════════════════════════
+// PASTE THIS BLOCK INTO universe.html
+// Location: just before the closing </script> tag at the bottom
+// ══════════════════════════════════════════════════════════════
+
+// ── USER NAME — replace all "Devin" instances dynamically ─────
+(async function loadUser(){
+  try {
+    const res = await fetch('/api/user')
+    const user = await res.json()
+    if(!user.firstName || user.firstName === 'Explorer') return
+
+    const name = user.firstName
+    const galaxyDefault = name + "'s Galaxy"
+
+    // Replace all hardcoded "Devin" text in the DOM
+    document.querySelectorAll(
+      '.av-name, #galaxyNameDisplay, #mGalaxyName, .av-name'
+    ).forEach(el => {
+      if(el.textContent.includes('Devin')) el.textContent = el.textContent.replace('Devin', name)
+    })
+
+    // Update galaxy name if it's still the default
+    const stored = localStorage.getItem('galaxyName')
+    if(!stored || stored === "Devin's Galaxy"){
+      galaxyName = galaxyDefault
+      localStorage.setItem('galaxyName', galaxyName)
+      const disp = document.getElementById('galaxyNameDisplay')
+      if(disp) disp.textContent = galaxyName
+      const mGal = document.getElementById('mGalaxyName')
+      if(mGal) mGal.textContent = galaxyName + ' ✏️'
+    }
+
+    // Update AI greeting
+    const firstBubble = document.querySelector('#tcMsgs .tc-bubble')
+    if(firstBubble && firstBubble.textContent.includes('Devin')){
+      firstBubble.textContent = firstBubble.textContent.replace('Devin', name)
+    }
+    const mFirstBubble = document.querySelector('#msMsgs .tc-bubble')
+    if(mFirstBubble && mFirstBubble.textContent.includes('Devin')){
+      mFirstBubble.textContent = mFirstBubble.textContent.replace('Devin', name)
+    }
+
+    // Update mobile avatar initial
+    const mAvatar = document.querySelector('.mh-avatar')
+    if(mAvatar) mAvatar.textContent = name[0].toUpperCase()
+
+    // Store userId for KV calls
+    window._restoreUserId = user.userId
+    window._restoreUserName = name
+
+  } catch(e) {
+    console.log('User load failed (not signed in)')
+  }
+})()
+
+
+// ── GALAXY PERSISTENCE — save/load from Vercel KV ─────────────
+let galaxySaveTimer = null
+let galaxyLoaded = false
+
+function buildGalaxyState(){
+  return {
+    nodes: N.map(n => ({
+      id: n.id,
+      hidden: n.hidden || false,
+      mas: n.mas || 0,
+    })),
+    stats: {
+      moments: sessionMsgs,
+      topics: sessionTopics,
+      breakthroughs: sessionPulse,
+    },
+    pulse: window._pulseCounts || { curious: 0, confused: 0, reflecting: 0, connecting: 0, mastering: 0 },
+    galaxyName: galaxyName,
+    savedAt: new Date().toISOString(),
+  }
+}
+
+function restoreGalaxyState(state){
+  if(!state || !state.nodes) return
+
+  // Restore node states
+  state.nodes.forEach(saved => {
+    const node = N.find(n => n.id === saved.id)
+    if(node){
+      node.hidden = saved.hidden
+      node.mas = saved.mas
+    }
+  })
+
+  // Restore stats
+  if(state.stats){
+    sessionMsgs = state.stats.moments || 0
+    sessionTopics = state.stats.topics || 0
+    sessionPulse = state.stats.breakthroughs || 0
+    updateSessionStats([], [])
+  }
+
+  // Restore pulse
+  if(state.pulse){
+    window._pulseCounts = state.pulse
+    updatePulseDisplay()
+  }
+
+  // Restore galaxy name
+  if(state.galaxyName){
+    galaxyName = state.galaxyName
+    localStorage.setItem('galaxyName', galaxyName)
+    const disp = document.getElementById('galaxyNameDisplay')
+    if(disp) disp.textContent = galaxyName
+  }
+
+  // Update frontier + chips
+  setTimeout(() => {
+    updateFrontier()
+    if(window.updateMobileChips) updateMobileChips()
+  }, 100)
+
+  console.log('✅ Galaxy restored from KV')
+}
+
+async function loadGalaxyFromKV(){
+  try {
+    const res = await fetch('/api/galaxy')
+    if(!res.ok) return
+    const { galaxy } = await res.json()
+    if(galaxy && !galaxyLoaded){
+      galaxyLoaded = true
+      restoreGalaxyState(galaxy)
+    }
+  } catch(e) {
+    console.log('Galaxy load skipped (not signed in)')
+  }
+}
+
+async function saveGalaxyToKV(){
+  try {
+    const state = buildGalaxyState()
+    await fetch('/api/galaxy', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(state)
+    })
+    // Show saved indicator briefly
+    const disp = document.getElementById('galaxyNameDisplay')
+    if(disp){
+      const orig = disp.textContent
+      disp.textContent = '✓ Saved'
+      disp.style.color = '#4ade80'
+      setTimeout(() => { disp.textContent = orig; disp.style.color = ''; }, 1500)
+    }
+  } catch(e) {
+    console.log('Galaxy save skipped')
+  }
+}
+
+function scheduleSave(){
+  clearTimeout(galaxySaveTimer)
+  galaxySaveTimer = setTimeout(saveGalaxyToKV, 2000)
+}
+
+// Patch highlightNodes to trigger save after galaxy changes
+const _hlOrig = window.highlightNodes
+window.highlightNodes = function(topics){
+  _hlOrig(topics)
+  scheduleSave()
+}
+
+// Load galaxy on page load
+setTimeout(loadGalaxyFromKV, 800)
+
+
+// ── UNDERSTANDING PULSE — dynamic, driven by conversation ──────
+window._pulseCounts = {
+  curious: 0,
+  confused: 0,
+  reflecting: 0,
+  connecting: 0,
+  mastering: 0,
+}
+
+const PULSE_COLORS = {
+  curious:    '#38bdf8',
+  confused:   '#f87171',
+  reflecting: '#4ade80',
+  connecting: '#818cf8',
+  mastering:  '#fde68a',
+}
+
+const PULSE_EMOJIS = {
+  curious:    '💙',
+  confused:   '❤️',
+  reflecting: '💚',
+  connecting: '💛',
+  mastering:  '🤍',
+}
+
+function recordEmotion(emotion){
+  if(!window._pulseCounts[emotion]) window._pulseCounts[emotion] = 0
+  window._pulseCounts[emotion]++
+  updatePulseDisplay()
+  updateThinkingBar(emotion)
+  scheduleSave()
+}
+
+function updatePulseDisplay(){
+  const counts = window._pulseCounts
+  const total = Object.values(counts).reduce((a, b) => a + b, 0) || 1
+
+  // Calculate percentages
+  const pcts = {}
+  for(const [k, v] of Object.entries(counts)){
+    pcts[k] = Math.round((v / total) * 100)
+  }
+
+  // Dominant state = largest count
+  const dominant = Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] || 'curious'
+  const dominantPct = pcts[dominant] || 0
+
+  // Update donut
+  const donutArc = document.querySelector('.pulse-donut circle:last-child')
+  if(donutArc){
+    const circumference = 175.9
+    const offset = circumference - (dominantPct / 100) * circumference
+    donutArc.setAttribute('stroke-dasharray', circumference.toString())
+    donutArc.setAttribute('stroke-dashoffset', offset.toString())
+  }
+
+  // Update percentage + label
+  const pulseN = document.querySelector('.pulse-n')
+  const pulseLbl = document.querySelector('.pulse-lbl')
+  if(pulseN) pulseN.textContent = dominantPct + '%'
+  if(pulseLbl) pulseLbl.textContent = dominant.charAt(0).toUpperCase() + dominant.slice(1)
+
+  // Update legend
+  const legendOrder = ['connecting', 'reflecting', 'curious', 'confused', 'mastering']
+  const legendItems = document.querySelectorAll('.pli')
+  legendOrder.forEach((state, i) => {
+    const item = legendItems[i]
+    if(!item) return
+    const pctEl = item.querySelector('.plip')
+    if(pctEl) pctEl.textContent = (pcts[state] || 0) + '%'
+  })
+}
+
+function updateThinkingBar(activeEmotion){
+  // Highlight the active thinking state in the bar
+  const stateMap = { curious: 0, confused: 1, reflecting: 2, connecting: 3, mastering: 4 }
+  const idx = stateMap[activeEmotion]
+  const tis = document.querySelectorAll('.ti')
+  tis.forEach((ti, i) => {
+    if(i === idx){
+      ti.style.transform = 'scale(1.3)'
+      ti.style.boxShadow = `0 0 12px ${PULSE_COLORS[activeEmotion]}`
+      setTimeout(() => { ti.style.transform = ''; ti.style.boxShadow = ''; }, 1500)
+    }
+  })
+
+  // Same for mobile thinking row
+  const msThkIcons = document.querySelectorAll('.ms-thk-icon')
+  msThkIcons.forEach((icon, i) => {
+    if(i === idx){
+      icon.style.transform = 'scale(1.3)'
+      icon.style.boxShadow = `0 0 12px ${PULSE_COLORS[activeEmotion]}`
+      setTimeout(() => { icon.style.transform = ''; icon.style.boxShadow = ''; }, 1500)
+    }
+  })
+}
+
+// Patch the send functions to capture emotion from API response
+// Desktop send already calls updateSessionStats — we hook into the fetch response
+const _origSend = document.getElementById('tcSend')
+if(_origSend){
+  // We patch by wrapping the fetch call result handler
+  // The emotion comes back in data.emotion from /api/chat
+  // This is already wired below via a MutationObserver on tcMsgs
+}
+
+// Intercept fetch to capture emotion from /api/chat responses
+const _origFetch = window.fetch
+window.fetch = async function(...args){
+  const res = await _origFetch(...args)
+  const url = args[0]
+  if(typeof url === 'string' && url.includes('/api/chat') && args[1]?.method === 'POST'){
+    // Clone to read body without consuming it
+    const clone = res.clone()
+    clone.json().then(data => {
+      if(data.emotion) recordEmotion(data.emotion)
+    }).catch(() => {})
+  }
+  return res
+}
+
 
 </script>
 </body>
