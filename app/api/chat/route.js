@@ -4,7 +4,6 @@ import { extractTopics, connectTopics } from "@/lib/curiosity"
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
-// Detect emotional state from message + reply
 function detectEmotion(userMessage, reply) {
   const u = userMessage.toLowerCase()
   const r = reply.toLowerCase()
@@ -41,7 +40,7 @@ function detectEmotion(userMessage, reply) {
     u.includes("what is") || u.includes("tell me") || u.includes("curious")
   ) return "curious"
 
-  return "curious" // default
+  return "curious"
 }
 
 export async function POST(req) {
@@ -63,11 +62,11 @@ export async function POST(req) {
     // Memory questions
     if (lower.includes("what do you remember") || lower.includes("what do you know about me")) {
       if (interests.length === 0) {
-        return Response.json({ reply: "We haven't explored many ideas together yet, but as we talk I'll start remembering what topics spark your curiosity.", topics: [], suggest: [], emotion: "curious" })
+        return Response.json({ reply: "We haven't explored many ideas together yet.\n\nAs we talk I'll start remembering what sparks your curiosity.\n\nWhat would you like to explore first?", topics: [], suggest: [], emotion: "curious" })
       }
-      const formatted = interests.map(i => `• You enjoy ${i}`).join("\n")
+      const formatted = interests.map(i => `• ${i}`).join("\n")
       return Response.json({
-        reply: `From our conversations I remember:\n\n${formatted}\n\nThose interests might connect in interesting ways. What direction would you like to explore next?`,
+        reply: `Here's what I remember about you:\n\n${formatted}\n\nWhich of these would you like to go deeper on?`,
         topics: interests, suggest: interests.slice(0, 3), emotion: "reflecting"
       })
     }
@@ -149,20 +148,27 @@ export async function POST(req) {
     suggest = [...new Set(suggest)].filter(s => !topics.includes(s)).slice(0, 3)
 
     // System prompt
-    const systemPrompt = `You are Restore — a curiosity guide that helps users explore ideas and connect knowledge across subjects.
+    const systemPrompt = `You are Restore — a curiosity guide that helps people explore ideas and connect knowledge across subjects.
 
-Your style: thoughtful, curious, conversational, reflective, encouraging.
+Your personality: thoughtful, warm, genuinely curious, encouraging.
 
-Rules:
-• Keep responses concise (2-4 sentences max unless explaining something complex)
-• Ask one follow-up question per response
-• Connect ideas across subjects when possible
-• Celebrate breakthroughs and connections warmly
-• Adapt your tone: simpler for beginners, deeper for advanced learners
+RESPONSE RULES — follow these strictly:
+• 2-3 short sentences maximum per response. Never more.
+• Each sentence on its own line.
+• Never use bullet points, numbered lists, or headers.
+• Never start with "Certainly!", "Great question!", "Of course!", or any filler phrase — jump straight into the answer.
+• Always end with exactly one short curious question to keep the conversation going.
+• When you spot a connection between two different subjects, call it out explicitly — these cross-domain moments are the most valuable.
+• Adapt your language to the user's level — simpler for beginners, deeper for advanced learners.
 
 User's known interests: ${interests.join(", ") || "just getting started"}
 
-When you spot a cross-domain connection, explicitly call it out — these are the most valuable moments.`
+Example of a perfect response:
+"A black hole forms when a massive star collapses under its own gravity.
+
+The collapse becomes so intense that not even light can escape — that boundary is called the event horizon.
+
+What do you think happens to time near a black hole?"`
 
     const messages = [
       { role: "system", content: systemPrompt },
@@ -172,10 +178,11 @@ When you spot a cross-domain connection, explicitly call it out — these are th
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages,
-      temperature: 0.8,
+      temperature: 0.75,
+      max_tokens: 180,
     })
 
-    const reply = completion.choices?.[0]?.message?.content?.trim() || "I had a thought but lost the thread. Ask that again."
+    const reply = completion.choices?.[0]?.message?.content?.trim() || "That's a fascinating thread. Ask me that again?"
 
     await addMessage(userId, "restore", reply)
 
@@ -185,6 +192,6 @@ When you spot a cross-domain connection, explicitly call it out — these are th
 
   } catch (err) {
     console.error(err)
-    return Response.json({ reply: "Hmm… something interrupted my thinking. Could you try asking that again?", topics: [], suggest: [], emotion: "curious" })
+    return Response.json({ reply: "Something interrupted my thinking.\n\nCould you ask that again?", topics: [], suggest: [], emotion: "curious" })
   }
 }
