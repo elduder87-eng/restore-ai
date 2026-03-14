@@ -1391,33 +1391,33 @@ function refreshGrowth(){
   const el = document.querySelectorAll('.grwt')[0];
   if(el) el.textContent = '↑ '+avg+'%';
 }
-
 // ── NODE DATA ─────────────────────────────────────────────────
 const N=[
   {id:'you',   label:'YOU',           sub:'Your Understanding', ang:0,    orb:0,   tilt:1,   r:34, col:'#c8860a', glow:'rgba(200,134,10,0.6)',  mas:100},
-  {id:'phys',  label:'Physics',       sub:'Gravity · Motion',   ang:.2,   orb:162, tilt:.52, r:27, col:'#fb923c', glow:'rgba(251,146,60,0.5)',  mas:78},
-  {id:'math',  label:'Mathematics',   sub:'Calculus · Limits',  ang:2.45, orb:148, tilt:.52, r:26, col:'#38bdf8', glow:'rgba(56,189,248,0.5)',  mas:65},
-  {id:'bio',   label:'Biology',       sub:'Evolution · Cells',  ang:3.85, orb:162, tilt:.52, r:25, col:'#4ade80', glow:'rgba(74,222,128,0.5)',  mas:55},
-  {id:'hist',  label:'History',       sub:'Civilizations',      ang:5.35, orb:155, tilt:.52, r:24, col:'#fb923c', glow:'rgba(251,146,60,0.45)', mas:48},
-  {id:'astro', label:'Astronomy',     sub:'Black Holes · Stars', ang:1.1, orb:265, tilt:.47, r:26, col:'#c084fc', glow:'rgba(192,132,252,0.5)', mas:42},
-  {id:'grav',  label:'Gravity',       sub:'Newton · Einstein',  ang:-.45, orb:112, tilt:.52, r:11, col:'#fb923c', glow:'rgba(251,146,60,0.4)',  mas:72},
-  {id:'newt',  label:"Newton's Laws", sub:'Motion Laws',        ang:-.7,  orb:228, tilt:.52, r:10, col:'#fb923c', glow:'rgba(251,146,60,0.35)', mas:68},
-  {id:'rel',   label:'Relativity',    sub:'Einstein',           ang:.05,  orb:288, tilt:.50, r:11, col:'#fb923c', glow:'rgba(251,146,60,0.4)',  mas:35},
-  {id:'calc',  label:'Calculus',      sub:'Limits · Integrals', ang:2.05, orb:118, tilt:.52, r:11, col:'#38bdf8', glow:'rgba(56,189,248,0.4)',  mas:65},
-  {id:'func',  label:'Functions',     sub:'Algebra',            ang:3.05, orb:210, tilt:.52, r:10, col:'#38bdf8', glow:'rgba(56,189,248,0.35)', mas:50},
-  {id:'lim',   label:'Limits',        sub:'Convergence',        ang:2.75, orb:188, tilt:.52, r:10, col:'#38bdf8', glow:'rgba(56,189,248,0.35)', mas:55},
-  {id:'evol',  label:'Evolution',     sub:'Darwin',             ang:4.25, orb:118, tilt:.52, r:10, col:'#4ade80', glow:'rgba(74,222,128,0.35)', mas:50},
-  {id:'eco',   label:'Ecosystems',    sub:'Food Webs',          ang:4.75, orb:205, tilt:.52, r:10, col:'#4ade80', glow:'rgba(74,222,128,0.35)', mas:38},
-  {id:'gen',   label:'Genetics',      sub:'DNA',                ang:5.1,  orb:215, tilt:.52, r:10, col:'#4ade80', glow:'rgba(74,222,128,0.35)', mas:30},
-  {id:'ren',   label:'Renaissance',   sub:'Art & Science',      ang:5.55, orb:198, tilt:.52, r:10, col:'#fb923c', glow:'rgba(251,146,60,0.35)', mas:35},
-  {id:'rev',   label:'Revolutions',   sub:'Political Change',   ang:6.05, orb:212, tilt:.52, r:10, col:'#fb923c', glow:'rgba(251,146,60,0.35)', mas:28},
-  {id:'ind',   label:'Industrial Rev.',sub:'1800s',             ang:5.8,  orb:258, tilt:.52, r:9,  col:'#fbbf24', glow:'rgba(251,191,36,0.3)',  mas:25},
-  {id:'bh',    label:'Black Holes',   sub:'Singularity',        ang:.62,  orb:345, tilt:.45, r:13, col:'#c084fc', glow:'rgba(192,132,252,0.45)',mas:38},
-  {id:'st',    label:'Space-Time',    sub:'Relativity',         ang:1.55, orb:318, tilt:.45, r:12, col:'#c084fc', glow:'rgba(192,132,252,0.4)', mas:35},
-  {id:'cosmo', label:'Cosmology',     sub:'Big Bang',           ang:2.0,  orb:342, tilt:.45, r:11, col:'#c084fc', glow:'rgba(192,132,252,0.4)', mas:28},
-  {id:'eth',   label:'Ethics',        sub:'Philosophy',         ang:2.2,  orb:298, tilt:.47, r:12, col:'#2dd4bf', glow:'rgba(45,212,191,0.4)',  mas:28},
-  {id:'know',  label:'Knowledge',     sub:'Epistemology',       ang:2.65, orb:338, tilt:.47, r:11, col:'#2dd4bf', glow:'rgba(45,212,191,0.35)', mas:22},
+  {id:'phys',  label:'Physics',       sub:'Gravity · Motion',   ang:.2,   orb:162, tilt:.52, r:27, col:'#fb923c', glow:'rgba(251,146,60,0.5)',  mas:0, hidden:true},
+  {id:'math',  label:'Mathematics',   sub:'Calculus · Limits',  ang:2.45, orb:148, tilt:.52, r:26, col:'#38bdf8', glow:'rgba(56,189,248,0.5)',  mas:0, hidden:true},
+  {id:'bio',   label:'Biology',       sub:'Evolution · Cells',  ang:3.85, orb:162, tilt:.52, r:25, col:'#4ade80', glow:'rgba(74,222,128,0.5)',  mas:0, hidden:true},
+  {id:'hist',  label:'History',       sub:'Civilizations',      ang:5.35, orb:155, tilt:.52, r:24, col:'#fb923c', glow:'rgba(251,146,60,0.45)', mas:0, hidden:true},
+  {id:'astro', label:'Astronomy',     sub:'Black Holes · Stars', ang:1.1, orb:265, tilt:.47, r:26, col:'#c084fc', glow:'rgba(192,132,252,0.5)', mas:0, hidden:true},
+  {id:'grav',  label:'Gravity',       sub:'Newton · Einstein',  ang:-.45, orb:112, tilt:.52, r:11, col:'#fb923c', glow:'rgba(251,146,60,0.4)',  mas:0, hidden:true},
+  {id:'newt',  label:"Newton's Laws", sub:'Motion Laws',        ang:-.7,  orb:228, tilt:.52, r:10, col:'#fb923c', glow:'rgba(251,146,60,0.35)', mas:0, hidden:true},
+  {id:'rel',   label:'Relativity',    sub:'Einstein',           ang:.05,  orb:288, tilt:.50, r:11, col:'#fb923c', glow:'rgba(251,146,60,0.4)',  mas:0, hidden:true},
+  {id:'calc',  label:'Calculus',      sub:'Limits · Integrals', ang:2.05, orb:118, tilt:.52, r:11, col:'#38bdf8', glow:'rgba(56,189,248,0.4)',  mas:0, hidden:true},
+  {id:'func',  label:'Functions',     sub:'Algebra',            ang:3.05, orb:210, tilt:.52, r:10, col:'#38bdf8', glow:'rgba(56,189,248,0.35)', mas:0, hidden:true},
+  {id:'lim',   label:'Limits',        sub:'Convergence',        ang:2.75, orb:188, tilt:.52, r:10, col:'#38bdf8', glow:'rgba(56,189,248,0.35)', mas:0, hidden:true},
+  {id:'evol',  label:'Evolution',     sub:'Darwin',             ang:4.25, orb:118, tilt:.52, r:10, col:'#4ade80', glow:'rgba(74,222,128,0.35)', mas:0, hidden:true},
+  {id:'eco',   label:'Ecosystems',    sub:'Food Webs',          ang:4.75, orb:205, tilt:.52, r:10, col:'#4ade80', glow:'rgba(74,222,128,0.35)', mas:0, hidden:true},
+  {id:'gen',   label:'Genetics',      sub:'DNA',                ang:5.1,  orb:215, tilt:.52, r:10, col:'#4ade80', glow:'rgba(74,222,128,0.35)', mas:0, hidden:true},
+  {id:'ren',   label:'Renaissance',   sub:'Art & Science',      ang:5.55, orb:198, tilt:.52, r:10, col:'#fb923c', glow:'rgba(251,146,60,0.35)', mas:0, hidden:true},
+  {id:'rev',   label:'Revolutions',   sub:'Political Change',   ang:6.05, orb:212, tilt:.52, r:10, col:'#fb923c', glow:'rgba(251,146,60,0.35)', mas:0, hidden:true},
+  {id:'ind',   label:'Industrial Rev.',sub:'1800s',             ang:5.8,  orb:258, tilt:.52, r:9,  col:'#fbbf24', glow:'rgba(251,191,36,0.3)',  mas:0, hidden:true},
+  {id:'bh',    label:'Black Holes',   sub:'Singularity',        ang:.62,  orb:345, tilt:.45, r:13, col:'#c084fc', glow:'rgba(192,132,252,0.45)',mas:0, hidden:true},
+  {id:'st',    label:'Space-Time',    sub:'Relativity',         ang:1.55, orb:318, tilt:.45, r:12, col:'#c084fc', glow:'rgba(192,132,252,0.4)', mas:0, hidden:true},
+  {id:'cosmo', label:'Cosmology',     sub:'Big Bang',           ang:2.0,  orb:342, tilt:.45, r:11, col:'#c084fc', glow:'rgba(192,132,252,0.4)', mas:0, hidden:true},
+  {id:'eth',   label:'Ethics',        sub:'Philosophy',         ang:2.2,  orb:298, tilt:.47, r:12, col:'#2dd4bf', glow:'rgba(45,212,191,0.4)',  mas:0, hidden:true},
+  {id:'know',  label:'Knowledge',     sub:'Epistemology',       ang:2.65, orb:338, tilt:.47, r:11, col:'#2dd4bf', glow:'rgba(45,212,191,0.35)', mas:0, hidden:true},
 ];
+
 
 const CONNS=[
   ['you','phys'],['you','math'],['you','bio'],['you','hist'],['you','astro'],
