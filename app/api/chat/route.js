@@ -179,7 +179,7 @@ What do you think happens to time near a black hole?"`
       model: "gpt-4o-mini",
       messages,
       temperature: 0.75,
-      max_tokens: 180,
+      max_tokens: 120,
     })
 
     const reply = completion.choices?.[0]?.message?.content?.trim() || "That's a fascinating thread. Ask me that again?"
