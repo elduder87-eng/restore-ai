@@ -2602,7 +2602,39 @@ function closeTeacherView(){
   }
 })();
 
-// ── FORCE MOBILE LAYOUT ───────────────────────────────────────
+// ── VISUAL VIEWPORT LOCK — keeps chat pinned during zoom ──────
+if(window.visualViewport){
+  function repositionChat(){
+    const vv = window.visualViewport;
+    const chat  = document.getElementById('teacherChat');
+    const thk   = document.getElementById('thkBar');
+    const bot   = document.getElementById('botBar');
+    const sheet = document.getElementById('mobileSheet');
+    const nav   = document.getElementById('mobileNav');
+
+    const offsetY = window.innerHeight - vv.height - vv.offsetTop;
+    const offsetX = vv.offsetLeft;
+
+    [chat, thk, bot, sheet, nav].forEach(el => {
+      if(!el) return;
+      el.style.position = 'fixed';
+      el.style.left = offsetX + 'px';
+      el.style.right = 'auto';
+      el.style.width = vv.width + 'px';
+    });
+
+    if(chat)  chat.style.bottom  = (offsetY + 118) + 'px';
+    if(thk)   thk.style.bottom   = (offsetY + 58)  + 'px';
+    if(bot)   bot.style.bottom   = (offsetY)        + 'px';
+    if(sheet) sheet.style.bottom = (offsetY + 64)   + 'px';
+    if(nav)   nav.style.bottom   = (offsetY)        + 'px';
+  }
+
+  window.visualViewport.addEventListener('resize', repositionChat);
+  window.visualViewport.addEventListener('scroll', repositionChat);
+  repositionChat();
+}
+  // ── FORCE MOBILE LAYOUT ───────────────────────────────────────
 (function(){
   if(window.innerWidth > 1100) return;
   
