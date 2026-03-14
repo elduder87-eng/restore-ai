@@ -50,7 +50,7 @@ export async function POST(req) {
     const userId = body.userId || "demo-user"
 
     if (!userMessage || !userMessage.trim()) {
-      return Response.json({ reply: "I didn't catch a question there. Try asking me something.", topics: [], suggest: [], emotion: "curious" })
+      return Response.json({ reply: "What are you curious about?", topics: [], suggest: [], emotion: "curious" })
     }
 
     await addMessage(userId, "user", userMessage)
@@ -62,11 +62,14 @@ export async function POST(req) {
     // Memory questions
     if (lower.includes("what do you remember") || lower.includes("what do you know about me")) {
       if (interests.length === 0) {
-        return Response.json({ reply: "We haven't explored many ideas together yet.\n\nAs we talk I'll start remembering what sparks your curiosity.\n\nWhat would you like to explore first?", topics: [], suggest: [], emotion: "curious" })
+        return Response.json({
+          reply: "We're just getting started.\n\nWhat are you curious about?",
+          topics: [], suggest: [], emotion: "curious"
+        })
       }
-      const formatted = interests.map(i => `• ${i}`).join("\n")
+      const formatted = interests.slice(0, 5).join(", ")
       return Response.json({
-        reply: `Here's what I remember about you:\n\n${formatted}\n\nWhich of these would you like to go deeper on?`,
+        reply: `You've explored ${formatted}.\n\nWhich one should we go deeper on?`,
         topics: interests, suggest: interests.slice(0, 3), emotion: "reflecting"
       })
     }
@@ -148,27 +151,22 @@ export async function POST(req) {
     suggest = [...new Set(suggest)].filter(s => !topics.includes(s)).slice(0, 3)
 
     // System prompt
-    const systemPrompt = `You are Restore — a curiosity guide that helps people explore ideas and connect knowledge across subjects.
+    const systemPrompt = `You are Restore — a curiosity guide.
 
-Your personality: thoughtful, warm, genuinely curious, encouraging.
-
-RESPONSE RULES — follow these strictly:
-• 2-3 short sentences maximum per response. Never more.
+RULES — never break these:
+• 2 sentences maximum. Short. Punchy. Never more.
 • Each sentence on its own line.
-• Never use bullet points, numbered lists, or headers.
-• Never start with "Certainly!", "Great question!", "Of course!", or any filler phrase — jump straight into the answer.
-• Always end with exactly one short curious question to keep the conversation going.
-• When you spot a connection between two different subjects, call it out explicitly — these cross-domain moments are the most valuable.
-• Adapt your language to the user's level — simpler for beginners, deeper for advanced learners.
+• No bullet points. No lists. No headers.
+• Never open with "Certainly!", "Great!", "Of course!" or any filler — start with the idea.
+• End with one short question. Always.
+• When two subjects connect unexpectedly, call it out in one sentence.
 
-User's known interests: ${interests.join(", ") || "just getting started"}
+User interests: ${interests.join(", ") || "just starting out"}
 
-Example of a perfect response:
-"A black hole forms when a massive star collapses under its own gravity.
+Perfect response example:
+"A black hole is where gravity wins completely — not even light escapes.
 
-The collapse becomes so intense that not even light can escape — that boundary is called the event horizon.
-
-What do you think happens to time near a black hole?"`
+What do you think happens to time at the edge of one?"`
 
     const messages = [
       { role: "system", content: systemPrompt },
@@ -182,7 +180,7 @@ What do you think happens to time near a black hole?"`
       max_tokens: 120,
     })
 
-    const reply = completion.choices?.[0]?.message?.content?.trim() || "That's a fascinating thread. Ask me that again?"
+    const reply = completion.choices?.[0]?.message?.content?.trim() || "Ask me that again?"
 
     await addMessage(userId, "restore", reply)
 
@@ -192,6 +190,9 @@ What do you think happens to time near a black hole?"`
 
   } catch (err) {
     console.error(err)
-    return Response.json({ reply: "Something interrupted my thinking.\n\nCould you ask that again?", topics: [], suggest: [], emotion: "curious" })
+    return Response.json({
+      reply: "Something interrupted my thinking.\n\nAsk me that again?",
+      topics: [], suggest: [], emotion: "curious"
+    })
   }
 }
