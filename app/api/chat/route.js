@@ -10,35 +10,26 @@ function detectEmotion(userMessage, reply) {
 
   if (
     r.includes("you've mastered") || r.includes("you understand") ||
-    r.includes("excellent") || r.includes("you've got it") ||
-    u.includes("i understand now") || u.includes("i get it") ||
-    u.includes("that makes sense") || u.includes("now i see")
+    r.includes("excellent") || u.includes("i understand now") ||
+    u.includes("i get it") || u.includes("that makes sense")
   ) return "mastering"
 
   if (
     r.includes("connect") || r.includes("link") || r.includes("bridge") ||
-    r.includes("relates to") || r.includes("similar to") ||
-    u.includes("so that means") || u.includes("that's like") ||
-    u.includes("connection") || u.includes("related")
+    r.includes("relates to") || u.includes("so that means") ||
+    u.includes("that's like") || u.includes("connection")
   ) return "connecting"
 
   if (
     u.includes("hmm") || u.includes("interesting") || u.includes("i see") ||
-    u.includes("let me think") || u.includes("so") ||
-    r.includes("reflect") || r.includes("consider") || r.includes("think about")
+    u.includes("let me think") || r.includes("reflect") || r.includes("consider")
   ) return "reflecting"
 
   if (
     u.includes("confused") || u.includes("don't understand") ||
     u.includes("doesn't make sense") || u.includes("lost") ||
-    u.includes("what do you mean") || u.includes("i'm not sure") ||
     r.includes("let me clarify") || r.includes("let me explain")
   ) return "confused"
-
-  if (
-    u.includes("?") || u.includes("why") || u.includes("how") ||
-    u.includes("what is") || u.includes("tell me") || u.includes("curious")
-  ) return "curious"
 
   return "curious"
 }
@@ -62,10 +53,7 @@ export async function POST(req) {
     // Memory questions
     if (lower.includes("what do you remember") || lower.includes("what do you know about me")) {
       if (interests.length === 0) {
-        return Response.json({
-          reply: "We're just getting started.\n\nWhat are you curious about?",
-          topics: [], suggest: [], emotion: "curious"
-        })
+        return Response.json({ reply: "We're just getting started.\n\nWhat are you curious about?", topics: [], suggest: [], emotion: "curious" })
       }
       const formatted = interests.slice(0, 5).join(", ")
       return Response.json({
@@ -75,41 +63,77 @@ export async function POST(req) {
     }
 
     // Topic extraction
-    let rawTopics = extractTopics(userMessage) || []
+    let rawTopics = []
     const text = userMessage.toLowerCase()
 
     const topicKeywords = {
-      gravity: ["gravity", "physics"],
-      "black hole": ["blackholes", "astronomy", "physics"],
-      "black holes": ["blackholes", "astronomy", "physics"],
-      astronomy: ["astronomy"],
-      physics: ["physics"],
-      history: ["history"],
-      biology: ["biology"],
-      genetics: ["genetics", "biology"],
-      evolution: ["evolution", "biology"],
-      philosophy: ["philosophy", "ethics", "knowledge"],
-      ethics: ["ethics", "philosophy"],
-      knowledge: ["knowledge", "philosophy"],
-      ai: ["ai", "technology", "knowledge"],
-      technology: ["technology", "ai", "history"],
-      math: ["mathematics"],
-      mathematics: ["mathematics"],
-      calculus: ["calculus", "mathematics"],
-      function: ["functions", "mathematics"],
-      limit: ["limits", "calculus"],
-      "time travel": ["timetravel", "physics", "spacetime"],
-      spacetime: ["spacetime", "relativity"],
-      "space-time": ["spacetime", "relativity"],
-      relativity: ["relativity", "physics"],
-      cosmology: ["cosmology", "astronomy"],
-      renaissance: ["renaissance", "history"],
-      revolution: ["revolutions", "history"],
+      // Physics
+      gravity: ["gravity","phys"], gravitation: ["gravity","phys"],
+      "black hole": ["bh","astro","phys"], "black holes": ["bh","astro","phys"],
+      astronomy: ["astro"], astrophysics: ["astro"],
+      physics: ["phys"], quantum: ["phys"],
+      relativity: ["rel","phys"], einstein: ["rel","phys"],
+      chemistry: ["chem"], chemical: ["chem"], atoms: ["chem"], molecules: ["chem"],
+      engineering: ["eng"], engineer: ["eng"],
+      geology: ["geo"], rocks: ["geo"], fossils: ["geo"],
+      // Astronomy
+      spacetime: ["st","astro"], "space-time": ["st","astro"],
+      cosmology: ["cosmo","astro"], "big bang": ["cosmo","astro"],
+      universe: ["cosmo","astro"],
+      // Math
+      math: ["math"], mathematics: ["math"], algebra: ["math"],
+      calculus: ["calc","math"], derivatives: ["calc"], integrals: ["calc"],
+      geometry: ["math"], statistics: ["math"],
+      // Biology
+      biology: ["bio"], cells: ["bio"], organisms: ["bio"],
+      genetics: ["gen","bio"], dna: ["gen","bio"], genes: ["gen"],
+      evolution: ["evol","bio"], darwin: ["evol"], "natural selection": ["evol"],
+      ecosystems: ["eco","bio"], ecology: ["eco"],
+      medicine: ["med","bio"], health: ["med"], disease: ["med"],
+      neuroscience: ["neuro","bio"], brain: ["neuro"], neurons: ["neuro"],
+      environment: ["env","bio"], climate: ["env"], nature: ["env"],
+      // Psychology
+      psychology: ["psych"], behavior: ["psych"], mental: ["psych"],
+      criminology: ["crim"], crime: ["crim"], criminal: ["crim"],
+      forensic: ["crim"], "criminal justice": ["crim","law"],
+      // History
+      history: ["hist"], civilization: ["hist"], civilizations: ["hist"],
+      revolution: ["rev","hist"], revolutions: ["rev","hist"],
+      renaissance: ["ren","hist"],
+      "industrial revolution": ["ind","hist"],
+      anthropology: ["anth","hist"], culture: ["anth"],
+      // Philosophy & Social
+      philosophy: ["eth"], ethics: ["eth"], moral: ["eth"], morality: ["eth"],
+      knowledge: ["know"], epistemology: ["know"], wisdom: ["know"],
+      sociology: ["soc"], society: ["soc"], social: ["soc"],
+      politics: ["pol"], political: ["pol"], government: ["pol"], democracy: ["pol"],
+      law: ["law"], legal: ["law"], rights: ["law"], justice: ["law"],
+      linguistics: ["ling"], language: ["ling"], grammar: ["ling"],
+      // Technology
+      technology: ["tech"], innovation: ["tech"], internet: ["tech"], digital: ["tech"],
+      ai: ["ai","tech"], "artificial intelligence": ["ai","tech"],
+      "machine learning": ["ai","tech"], robots: ["ai","tech"], algorithms: ["ai"],
+      // Economics & Business
+      economics: ["econ"], economy: ["econ"], markets: ["econ"], money: ["econ"],
+      finance: ["econ"], trade: ["econ"], capitalism: ["econ"],
+      business: ["biz","econ"], strategy: ["biz"], entrepreneurship: ["biz"],
+      // Arts & Culture
+      literature: ["lit"], writing: ["lit"], stories: ["lit"], novels: ["lit"], poetry: ["lit"],
+      music: ["music"], harmony: ["music"], rhythm: ["music"], melody: ["music"],
+      art: ["art"], painting: ["art"], sculpture: ["art"],
+      film: ["film"], cinema: ["film"], movies: ["film"],
+      architecture: ["arch"], buildings: ["arch"],
+      cooking: ["cul"], food: ["cul"], culinary: ["cul"], cuisine: ["cul"], chef: ["cul"],
+      "game theory": ["econ","math"],
     }
 
     for (const [keyword, tags] of Object.entries(topicKeywords)) {
       if (text.includes(keyword)) rawTopics.push(...tags)
     }
+
+    // Also use extractTopics if available
+    const extracted = extractTopics ? extractTopics(userMessage) : []
+    if (extracted) rawTopics.push(...extracted)
 
     const topics = [...new Set(rawTopics.map(t => String(t).toLowerCase().trim()))]
 
@@ -118,30 +142,51 @@ export async function POST(req) {
 
     // Suggestion engine
     const suggestionMap = {
-      physics: ["relativity", "astronomy", "gravity"],
-      gravity: ["relativity", "astronomy", "blackholes"],
-      astronomy: ["blackholes", "cosmology", "spacetime"],
-      blackholes: ["astronomy", "relativity", "gravity"],
-      mathematics: ["calculus", "limits", "functions"],
-      calculus: ["limits", "functions", "physics"],
-      biology: ["genetics", "evolution", "ecosystems"],
-      genetics: ["biology", "evolution"],
-      evolution: ["biology", "genetics", "history"],
-      history: ["revolutions", "renaissance", "technology"],
-      revolutions: ["history", "politics"],
-      philosophy: ["ethics", "knowledge", "history"],
-      ethics: ["philosophy", "knowledge"],
-      knowledge: ["philosophy", "ethics"],
-      ai: ["technology", "ethics", "knowledge"],
-      technology: ["ai", "history", "ethics"],
-      timetravel: ["relativity", "spacetime", "astronomy"],
-      spacetime: ["relativity", "astronomy"],
-      relativity: ["gravity", "spacetime", "astronomy"],
-      cosmology: ["astronomy", "blackholes"],
-      renaissance: ["history", "revolutions"],
-      functions: ["calculus", "mathematics"],
-      limits: ["calculus", "mathematics"],
-      ecosystems: ["biology", "evolution"],
+      phys:  ["rel","astro","chem","math","eng"],
+      grav:  ["rel","astro","bh"],
+      newt:  ["phys","grav","calc"],
+      rel:   ["grav","st","bh","cosmo"],
+      chem:  ["bio","phys","med","cul"],
+      eng:   ["phys","math","tech","arch"],
+      geo:   ["hist","chem","env"],
+      astro: ["bh","cosmo","st","phys"],
+      bh:    ["astro","rel","cosmo"],
+      st:    ["rel","astro","cosmo"],
+      cosmo: ["astro","bh","hist"],
+      math:  ["calc","phys","econ","music","ai"],
+      calc:  ["lim","func","phys","math"],
+      func:  ["calc","math"],
+      lim:   ["calc","math"],
+      bio:   ["gen","evol","eco","chem","med","neuro"],
+      evol:  ["bio","gen","hist","anth"],
+      eco:   ["bio","evol","env"],
+      gen:   ["bio","med","evol"],
+      med:   ["bio","chem","psych","neuro"],
+      neuro: ["bio","psych","med","ai"],
+      env:   ["bio","eco","econ","pol"],
+      psych: ["bio","eth","know","lit","neuro","crim"],
+      crim:  ["psych","law","soc","hist"],
+      hist:  ["ren","rev","econ","lit","anth","pol"],
+      ren:   ["hist","arch","lit","art"],
+      rev:   ["hist","econ","ind","pol"],
+      ind:   ["hist","tech","econ"],
+      anth:  ["hist","soc","bio","ling"],
+      eth:   ["know","lit","ai","psych","law"],
+      know:  ["eth","psych","ai","ling"],
+      soc:   ["psych","econ","pol","anth"],
+      pol:   ["hist","law","econ","soc"],
+      law:   ["eth","hist","pol","crim"],
+      ling:  ["lit","ai","anth","psych"],
+      tech:  ["ai","econ","eng","math"],
+      ai:    ["tech","eth","know","psych","ling","math"],
+      econ:  ["hist","math","eth","pol","biz"],
+      biz:   ["econ","tech","psych","eth"],
+      lit:   ["hist","eth","psych","film","ling"],
+      music: ["math","hist","psych","art"],
+      art:   ["hist","psych","arch","music"],
+      film:  ["lit","psych","hist","tech"],
+      arch:  ["hist","math","art","eng"],
+      cul:   ["chem","hist","anth","bio"],
     }
 
     let suggest = []
@@ -157,9 +202,10 @@ RULES — never break these:
 • 2 sentences maximum. Short. Punchy. Never more.
 • Each sentence on its own line.
 • No bullet points. No lists. No headers.
-• Never open with "Certainly!", "Great!", "Of course!" or any filler — start with the idea.
+• Never open with "Certainly!", "Great!", "Of course!" — start with the idea.
 • End with one short question. Always.
 • When two subjects connect unexpectedly, call it out in one sentence.
+• Cover all domains: science, history, arts, technology, economics, culture, law, psychology.
 
 User interests: ${interests.join(", ") || "just starting out"}
 
@@ -183,7 +229,6 @@ What do you think happens to time at the edge of one?"`
     const reply = completion.choices?.[0]?.message?.content?.trim() || "Ask me that again?"
 
     await addMessage(userId, "restore", reply)
-
     const emotion = detectEmotion(userMessage, reply)
 
     return Response.json({ reply, topics, suggest, emotion })
