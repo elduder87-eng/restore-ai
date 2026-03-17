@@ -4280,7 +4280,7 @@ window.onRestoreResponse = function(data) {
 
   // Check for breakthrough
   const isCrossdomain = checkBreakthrough(topics, suggest);
-  if (isCrossomain || newNodes > 1) {
+  if (isCrossdomain || newNodes > 1) {
     s.breakthroughs++;
     triggerBreakthroughUI(topics);
   } else if (newNodes > 0) {
