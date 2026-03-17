@@ -2648,11 +2648,11 @@ function closeTeacherView(){
       const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history,userId:'demo-user'})});
       if(!res.ok)throw new Error();
       const data=await res.json();
-      document.title = '🔥 data received';
+      
     typing.remove();addMsg(data.reply,'ai');
-document.title = '🔥 addMsg done';
+
       if(window.onRestoreResponse) window.onRestoreResponse(data);
-      document.title = '🔥 after onRestore
+      
       highlightNodes(data.topics || []);
       
     
@@ -4259,7 +4259,7 @@ function checkBreakthrough(topics, suggest) {
 
 // ── MAIN EVENT HANDLER — called after every AI response ───────
 window.onRestoreResponse = function(data) {
-  document.title = '✅ ' + (data.emotion || 'fired');
+  
   try {
   console.log('🌌 onRestoreResponse fired', data);
   const { topics = [], suggest = [], emotion = 'curious' } = data;
