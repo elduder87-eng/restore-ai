@@ -4246,6 +4246,7 @@ function checkBreakthrough(topics, suggest) {
 
 // ── MAIN EVENT HANDLER — called after every AI response ───────
 window.onRestoreResponse = function(data) {
+  console.log('🌌 onRestoreResponse fired', data);
   const { topics = [], suggest = [], emotion = 'curious' } = data;
   const s = window._pulseState;
 
