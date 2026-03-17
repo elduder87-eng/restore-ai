@@ -147,7 +147,7 @@ export async function POST(req) {
 
     const topics = [...new Set(rawTopics.map(t => String(t).toLowerCase().trim()))]
 
-    try { await connectTopics(userId, topics) } catch {}
+    try { await connectTopics(userId, topics) } catch(e) { console.error('CONNECT ERROR:', e) }
     try {
       for (const topic of topics) await saveInterest(userId, topic)
     } catch {}
