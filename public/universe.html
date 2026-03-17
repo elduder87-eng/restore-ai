@@ -2652,7 +2652,10 @@ function closeTeacherView(){
     typing.remove();addMsg(data.reply,'ai');
 document.title = '🔥 addMsg done';
       if(window.onRestoreResponse) window.onRestoreResponse(data);
+      document.title = '🔥 after onRestore
       highlightNodes(data.topics || []);
+      
+    
       pulseNodes(data.suggest || []);
       updateMastery(data.topics || []);
       refreshGrowth();
