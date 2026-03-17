@@ -4256,55 +4256,18 @@ function checkBreakthrough(topics, suggest) {
 
   return hitClusters.size >= 2; // cross-domain = spans 2+ clusters
 }
-
-// ── MAIN EVENT HANDLER — called after every AI response ───────
+/ ── MAIN EVENT HANDLER — called after every AI response ───────
 window.onRestoreResponse = function(data) {
-  
-  try {
-  console.log('🌌 onRestoreResponse fired', data);
-  const { topics = [], suggest = [], emotion = 'curious' } = data;
   const s = window._pulseState;
-
-  // Increment emotion counter
+  if (!s) return;
+  
+  const emotion = data.emotion || 'curious';
   if (s[emotion] !== undefined) s[emotion]++;
   s.moments++;
 
-  // Count new nodes unlocked
-  const beforeLit = N.filter(n => !n.hidden).length;
-  highlightNodes(topics);
-  pulseNodes(suggest);
-  updateMastery(topics);
-  const afterLit = N.filter(n => !n.hidden).length;
-  const newNodes = afterLit - beforeLit;
-
-  // Count connections
-  s.totalConns += Math.max(0, topics.length - 1);
-  s.totalNodes = afterLit;
-
-  // Check for breakthrough
-  const isCrossdomain = checkBreakthrough(topics, suggest);
-  if (isCrossdomain || newNodes > 1) {
-    s.breakthroughs++;
-    triggerBreakthroughUI(topics);
-  } else if (newNodes > 0) {
-    showGrowToast(N.find(n => topics.includes(n.id) && !n.hidden)?.label || 'New node');
-  }
-
-  // Flash thinking bar
-  flashThinkingState(emotion);
-
-  // Update all UI
   updatePulseUI();
   updateGrowthUI();
   updateBottomStats();
-  updateFrontier();
-  if (window.updateMobileChips) updateMobileChips();
-
-  // Save to KV
-  scheduleSave();
-  } catch(e) {
-    document.title = '❌ ERROR: ' + e.message;
-  }
 };
 
 // ── BREAKTHROUGH UI ───────────────────────────────────────────
