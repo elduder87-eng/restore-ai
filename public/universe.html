@@ -4290,6 +4290,9 @@ window.onRestoreResponse = function(data) {
 
   // Save to KV
   scheduleSave();
+  } catch(e) {
+    document.title = '❌ ERROR: ' + e.message;
+  }
 };
 
 // ── BREAKTHROUGH UI ───────────────────────────────────────────
