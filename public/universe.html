@@ -2049,7 +2049,7 @@ function resetChat(e){
     wrap.className = 'tc-msg ai';
     const bubble = document.createElement('div');
     bubble.className = 'tc-bubble';
-    bubble.textContent = 'Hey! What are you curious about today? 🌌';
+    bubble.textContent = 'Hey Devin! Ready to explore something new? What are you curious about today? 🌌';
     wrap.appendChild(bubble);
     msgs.appendChild(wrap);
     msgs.style.setProperty('height','420px','important');
@@ -2648,11 +2648,11 @@ function closeTeacherView(){
       const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history,userId:'demo-user'})});
       if(!res.ok)throw new Error();
       const data=await res.json();
-      
+      document.title = '🔥 data received';
     typing.remove();addMsg(data.reply,'ai');
-
+document.title = '🔥 addMsg done';
       if(window.onRestoreResponse) window.onRestoreResponse(data);
-      
+      document.title = '🔥 after onRestore
       highlightNodes(data.topics || []);
       
     
@@ -4255,125 +4255,117 @@ function checkBreakthrough(topics, suggest) {
   });
 
   return hitClusters.size >= 2; // cross-domain = spans 2+ clusters
-// ══════════════════════════════════════════════════════════════
-// RESTORE UI FEEDBACK SYSTEM v2
-// Paste this just before the closing </script> tag
-// ══════════════════════════════════════════════════════════════
-
-const PULSE_COLORS = {
-  curious:    '#38bdf8',
-  confused:   '#f87171',
-  reflecting: '#4ade80',
-  connecting: '#fbbf24',
-  mastering:  '#e2e8f0',
-};
-
-window._pulseState = {
-  curious:    0,
-  confused:   0,
-  reflecting: 0,
-  connecting: 0,
-  mastering:  0,
-  moments:    0,
-  breakthroughs: 0,
-  totalConns: 0,
-};
-
-function updatePulseUI() {
-  try {
-    const s = window._pulseState;
-    const total = s.curious + s.confused + s.reflecting + s.connecting + s.mastering || 1;
-    const pcts = {
-      connecting: Math.round((s.connecting / total) * 100),
-      reflecting: Math.round((s.reflecting / total) * 100),
-      curious:    Math.round((s.curious    / total) * 100),
-      confused:   Math.round((s.confused   / total) * 100),
-      mastering:  Math.round((s.mastering  / total) * 100),
-    };
-    const dominant = Object.entries({
-      connecting: s.connecting, reflecting: s.reflecting,
-      curious: s.curious, confused: s.confused, mastering: s.mastering
-    }).sort((a,b) => b[1]-a[1])[0][0];
-    const dominantPct = pcts[dominant] || 0;
-    const pulseN = document.querySelector('.pulse-n');
-    const pulseLbl = document.querySelector('.pulse-lbl');
-    if (pulseN) pulseN.textContent = dominantPct + '%';
-    if (pulseLbl) pulseLbl.textContent = dominant.charAt(0).toUpperCase() + dominant.slice(1);
-    const legendOrder = ['connecting','reflecting','curious','confused','mastering'];
-    const legendItems = document.querySelectorAll('.pli');
-    legendOrder.forEach((state, i) => {
-      const item = legendItems[i];
-      if (!item) return;
-      const pctEl = item.querySelector('.plip');
-      if (pctEl) pctEl.textContent = (pcts[state] || 0) + '%';
-    });
-  } catch(e) {}
 }
 
-function updateGrowthUI() {
-  try {
-    const s = window._pulseState;
-    const litNodes = N.filter(n => !n.hidden).length;
-    const totalNodes = N.length;
-    const understanding = Math.round((litNodes / totalNodes) * 100);
-    const curiosity = Math.min(99, s.moments * 5 + 5);
-    const connections = Math.min(99, s.totalConns * 8);
-    const confusion = Math.max(0, 20 - s.mastering * 4);
-    const bars = document.querySelectorAll('.grwt');
-    const fills = document.querySelectorAll('.grw .pf');
-    if (bars[0]) bars[0].textContent = '↑ ' + understanding + '%';
-    if (bars[1]) bars[1].textContent = '↑ ' + curiosity + '%';
-    if (bars[2]) bars[2].textContent = '↑ ' + connections + '%';
-    if (bars[3]) bars[3].textContent = '↓ ' + confusion + '%';
-    if (fills[0]) fills[0].style.width = understanding + '%';
-    if (fills[1]) fills[1].style.width = curiosity + '%';
-    if (fills[2]) fills[2].style.width = connections + '%';
-    if (fills[3]) fills[3].style.width = confusion + '%';
-  } catch(e) {}
-}
-
-function updateBottomStats() {
-  try {
-    const s = window._pulseState;
-    const litNodes = N.filter(n => !n.hidden).length;
-    const bm = document.getElementById('bottomMoments');
-    const bt = document.getElementById('bottomTopics');
-    const bb = document.getElementById('bottomBreakthroughs');
-    if (bm) bm.textContent = '🧩 ' + s.moments;
-    if (bt) bt.textContent = '🔭 ' + litNodes;
-    if (bb) bb.textContent = '⚡ ' + s.breakthroughs;
-    const mChipNodes = document.getElementById('mChipNodes');
-    const mChipBreak = document.getElementById('mChipBreak');
-    if (mChipNodes) mChipNodes.textContent = litNodes;
-    if (mChipBreak) mChipBreak.textContent = s.breakthroughs;
-  } catch(e) {}
-}
-
+// ── MAIN EVENT HANDLER — called after every AI response ───────
 window.onRestoreResponse = function(data) {
+  document.title = '✅ ' + (data.emotion || 'fired');
   try {
-    const s = window._pulseState;
-    const emotion = data.emotion || 'curious';
-    if (s[emotion] !== undefined) s[emotion]++;
-    s.moments++;
-    s.totalConns += Math.max(0, (data.topics || []).length - 1);
-    updatePulseUI();
-    updateGrowthUI();
-    updateBottomStats();
-    if (window.updateFrontier) updateFrontier();
-    if (window.scheduleSave) scheduleSave();
-  } catch(e) {
-    console.log('onRestoreResponse error:', e.message);
-  }
-};
+  console.log('🌌 onRestoreResponse fired', data);
+  const { topics = [], suggest = [], emotion = 'curious' } = data;
+  const s = window._pulseState;
 
-setTimeout(function() {
+  // Increment emotion counter
+  if (s[emotion] !== undefined) s[emotion]++;
+  s.moments++;
+
+  // Count new nodes unlocked
+  const beforeLit = N.filter(n => !n.hidden).length;
+  highlightNodes(topics);
+  pulseNodes(suggest);
+  updateMastery(topics);
+  const afterLit = N.filter(n => !n.hidden).length;
+  const newNodes = afterLit - beforeLit;
+
+  // Count connections
+  s.totalConns += Math.max(0, topics.length - 1);
+  s.totalNodes = afterLit;
+
+  // Check for breakthrough
+  const isCrossdomain = checkBreakthrough(topics, suggest);
+  if (isCrossdomain || newNodes > 1) {
+    s.breakthroughs++;
+    triggerBreakthroughUI(topics);
+  } else if (newNodes > 0) {
+    showGrowToast(N.find(n => topics.includes(n.id) && !n.hidden)?.label || 'New node');
+  }
+
+  // Flash thinking bar
+  flashThinkingState(emotion);
+
+  // Update all UI
   updatePulseUI();
   updateGrowthUI();
   updateBottomStats();
-}, 600);
+  updateFrontier();
+  if (window.updateMobileChips) updateMobileChips();
 
+  // Save to KV
+  scheduleSave();
+  } catch(e) {
+    document.title = '❌ ERROR: ' + e.message;
+  }
+};
+
+// ── BREAKTHROUGH UI ───────────────────────────────────────────
+function triggerBreakthroughUI(topics) {
+  // Show grow toast with breakthrough messaging
+  const toast = document.getElementById('growToast');
+  const txt = document.getElementById('growToastText');
+  const sub = document.getElementById('growToastSub');
+  if (toast && txt && sub) {
+    txt.textContent = '⚡ Cross-Domain Breakthrough!';
+    txt.style.color = '#fbbf24';
+    sub.textContent = 'Rare connection discovered 🌌';
+    toast.classList.add('show');
+    clearTimeout(window._toastTimer);
+    window._toastTimer = setTimeout(() => {
+      toast.classList.remove('show');
+      txt.style.color = '';
+    }, 4000);
+  }
+
+  // Mobile toast
+  const mt = document.getElementById('mobileGrowToast');
+  const mg = document.getElementById('mGrowText');
+  const ms = document.getElementById('mGrowSub');
+  if (mt && mg && ms) {
+    mg.textContent = '⚡ Cross-Domain Breakthrough!';
+    mg.style.color = '#fbbf24';
+    ms.textContent = 'Rare connection discovered 🌌';
+    mt.classList.add('show');
+    setTimeout(() => {
+      mt.classList.remove('show');
+      mg.style.color = '';
+    }, 4000);
+  }
+}
+
+// ── PATCH DESKTOP SEND ────────────────────────────────────────
+// Override the fetch interceptor to use the new system
+const __origFetch = window.fetch;
+window.fetch = async function(...args) {
+  const res = await __origFetch(...args);
+  const url = args[0];
+  if (typeof url === 'string' && url.includes('/api/chat') && args[1]?.method === 'POST') {
+    const clone = res.clone();
+    clone.json().then(data => {
+      if (data && (data.topics || data.emotion)) {
+        window.onRestoreResponse(data);
+      }
+    }).catch(() => {});
+  }
+  return res;
+};
+
+// ── INIT ON LOAD ──────────────────────────────────────────────
+setTimeout(() => {
+  updatePulseUI();
+  updateGrowthUI();
+  updateBottomStats();
+}, 500);
 
 
 </script>
 </body>
-</html>
+        </html>
