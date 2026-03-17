@@ -2,8 +2,11 @@ import OpenAI from "openai"
 import { addMessage, getRecentMessages, getUserProfile, saveInterest } from "@/lib/memory"
 import { extractTopics, connectTopics } from "@/lib/curiosity"
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+})
 
+// ---------------- EMOTION DETECTION ----------------
 function detectEmotion(userMessage, reply) {
   const u = userMessage.toLowerCase()
   const r = reply.toLowerCase()
@@ -34,6 +37,7 @@ function detectEmotion(userMessage, reply) {
   return "curious"
 }
 
+// ---------------- MAIN ROUTE ----------------
 export async function POST(req) {
   try {
     const body = await req.json()
@@ -41,19 +45,34 @@ export async function POST(req) {
     const userId = body.userId || "demo-user"
 
     if (!userMessage || !userMessage.trim()) {
-      return Response.json({ reply: "What are you curious about?", topics: [], suggest: [], emotion: "curious" })
+      return Response.json({
+        reply: "What are you curious about?",
+        topics: [],
+        suggest: [],
+        emotion: "curious"
+      })
     }
 
-    await addMessage(userId, "user", userMessage)
-    const history = await getRecentMessages(userId)
-    const profile = await getUserProfile(userId)
-    const interests = profile?.interests || []
+    try { await addMessage(userId, "user", userMessage) } catch {}
+
+    let history = []
+    let interests = []
+
+    try {
+      history = await getRecentMessages(userId)
+      const profile = await getUserProfile(userId)
+      interests = profile?.interests || []
+    } catch {}
+
     const lower = userMessage.toLowerCase()
 
-    // Memory questions
+    // ---------------- MEMORY QUESTION ----------------
     if (lower.includes("what do you remember") || lower.includes("what do you know about me")) {
       if (interests.length === 0) {
-        return Response.json({ reply: "We're just getting started.\n\nWhat are you curious about?", topics: [], suggest: [], emotion: "curious" })
+        return Response.json({
+          reply: "We're just getting started.\n\nWhat are you curious about?",
+          topics: [], suggest: [], emotion: "curious"
+        })
       }
       const formatted = interests.slice(0, 5).join(", ")
       return Response.json({
@@ -62,12 +81,12 @@ export async function POST(req) {
       })
     }
 
-    // Topic extraction
+    // ---------------- TOPIC EXTRACTION ----------------
     let rawTopics = []
     const text = userMessage.toLowerCase()
 
     const topicKeywords = {
-      gravity: ["gravity","phys"], gravitation: ["gravity","phys"],
+      gravity: ["grav","phys"], gravitation: ["grav","phys"],
       "black hole": ["bh","astro","phys"], "black holes": ["bh","astro","phys"],
       astronomy: ["astro"], astrophysics: ["astro"],
       physics: ["phys"], quantum: ["phys"],
@@ -121,14 +140,19 @@ export async function POST(req) {
       if (text.includes(keyword)) rawTopics.push(...tags)
     }
 
-    const extracted = extractTopics ? extractTopics(userMessage) : []
-    if (extracted) rawTopics.push(...extracted)
+    try {
+      const extracted = extractTopics ? extractTopics(userMessage) : []
+      if (extracted) rawTopics.push(...extracted)
+    } catch {}
 
     const topics = [...new Set(rawTopics.map(t => String(t).toLowerCase().trim()))]
 
-    await connectTopics(userId, topics)
-    for (const topic of topics) await saveInterest(userId, topic)
+    try { await connectTopics(userId, topics) } catch {}
+    try {
+      for (const topic of topics) await saveInterest(userId, topic)
+    } catch {}
 
+    // ---------------- SUGGESTIONS ----------------
     const suggestionMap = {
       phys:  ["rel","astro","chem","math","eng"],
       grav:  ["rel","astro","bh"],
@@ -183,15 +207,34 @@ export async function POST(req) {
     }
     suggest = [...new Set(suggest)].filter(s => !topics.includes(s)).slice(0, 3)
 
-    const systemPrompt = `You are Restore — a curiosity guide.
+    // ---------------- OPENAI CALL ----------------
+    if (!process.env.OPENAI_API_KEY) {
+      return Response.json({
+        reply: "I'm here — what would you like to explore?",
+        topics, suggest, emotion: "curious"
+      })
+    }
 
-RULES — never break these:
-• 2 sentences maximum. Short. Punchy. Never more.
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 8000)
+
+    let reply = "Ask me that again?"
+
+    try {
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: `You are Restore — a curiosity guide.
+
+RULES:
+• 2 sentences maximum. Short. Punchy.
 • Each sentence on its own line.
-• No bullet points. No lists. No headers.
+• No bullet points, lists, or headers.
 • Never open with "Certainly!", "Great!", "Of course!" — start with the idea.
 • End with one short question. Always.
-• When two subjects connect unexpectedly, call it out in one sentence.
+• When two subjects connect unexpectedly, call it out.
 • Cover all domains: science, history, arts, technology, economics, culture, law, psychology.
 
 User interests: ${interests.join(", ") || "just starting out"}
@@ -200,28 +243,32 @@ Perfect response example:
 "A black hole is where gravity wins completely — not even light escapes.
 
 What do you think happens to time at the edge of one?"`
+          },
+          ...history.map(m => ({
+            role: m.role === "restore" ? "assistant" : "user",
+            content: m.content
+          }))
+        ],
+        temperature: 0.75,
+        max_tokens: 120,
+        signal: controller.signal
+      })
 
-    const messages = [
-      { role: "system", content: systemPrompt },
-      ...history.map(m => ({ role: m.role === "restore" ? "assistant" : "user", content: m.content }))
-    ]
+      reply = completion.choices?.[0]?.message?.content?.trim() || reply
+    } catch (e) {
+      reply = "Something interrupted the flow — ask that again."
+    }
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages,
-      temperature: 0.75,
-      max_tokens: 120,
-    })
+    clearTimeout(timeout)
 
-    const reply = completion.choices?.[0]?.message?.content?.trim() || "Ask me that again?"
+    try { await addMessage(userId, "restore", reply) } catch {}
 
-    await addMessage(userId, "restore", reply)
     const emotion = detectEmotion(userMessage, reply)
 
     return Response.json({ reply, topics, suggest, emotion })
 
   } catch (err) {
-    console.error(err)
+    console.error("API ERROR:", err)
     return Response.json({
       reply: "Something interrupted my thinking.\n\nAsk me that again?",
       topics: [], suggest: [], emotion: "curious"
