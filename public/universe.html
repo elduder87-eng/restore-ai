@@ -3630,6 +3630,7 @@ if(window.visualViewport){
       ab.className = 'tc-bubble';
       ab.style.cssText = 'font-size:15px;line-height:1.6;padding:10px 14px;';
       ab.textContent = data.reply;
+      if(window.onRestoreResponse) window.onRestoreResponse(data);
       am.appendChild(ab);
       // speak button
       const msb = document.createElement('button');
