@@ -2648,6 +2648,7 @@ function closeTeacherView(){
       const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history,userId:'demo-user'})});
       if(!res.ok)throw new Error();
       const data=await res.json();
+      document.title = '🔥 data received';
     
       typing.remove();addMsg(data.reply,'ai');
       if(window.onRestoreResponse) window.onRestoreResponse(data);
