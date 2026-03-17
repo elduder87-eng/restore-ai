@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import OpenAI from "openai"
 import { addMessage, getRecentMessages, getUserProfile, saveInterest } from "@/lib/memory"
 import { extractTopics, connectTopics } from "@/lib/curiosity"
