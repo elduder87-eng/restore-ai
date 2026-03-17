@@ -2661,6 +2661,7 @@ function closeTeacherView(){
       const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history,userId:'demo-user'})});
       if(!res.ok)throw new Error();
       const data=await res.json();
+      if(window.onRestoreResponse) window.onRestoreResponse(data);
       typing.remove();addMsg(data.reply,'ai');
       highlightNodes(data.topics || []);
       pulseNodes(data.suggest || []);
