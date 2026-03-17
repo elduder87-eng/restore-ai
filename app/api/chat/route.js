@@ -1,4 +1,5 @@
 export const dynamic = "force-dynamic";
+import { currentUser } from '@clerk/nextjs/server'
 import OpenAI from "openai"
 import { addMessage, getRecentMessages, getUserProfile, saveInterest } from "@/lib/memory"
 import { extractTopics, connectTopics } from "@/lib/curiosity"
