@@ -2649,8 +2649,8 @@ function closeTeacherView(){
       if(!res.ok)throw new Error();
       const data=await res.json();
       document.title = '🔥 data received';
-    
-      typing.remove();addMsg(data.reply,'ai');
+    typing.remove();addMsg(data.reply,'ai');
+document.title = '🔥 addMsg done';
       if(window.onRestoreResponse) window.onRestoreResponse(data);
       highlightNodes(data.topics || []);
       pulseNodes(data.suggest || []);
