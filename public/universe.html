@@ -472,8 +472,8 @@ resize();
 window.addEventListener('resize',resize);
 
 // ── BACKGROUND ────────────────────────────────────────────────
-function drawBg(){
-  const W=bgC.width,H=bgC.height;
+function nodePos(n){
+  const cx=uC.width/2,cy=uC.height/2-60;
   const g=bx.createRadialGradient(W/2,H/2,0,W/2,H/2,Math.max(W,H)*.7);
   g.addColorStop(0,'#070b14');g.addColorStop(1,'#05080f');
   bx.fillStyle=g;bx.fillRect(0,0,W,H);
