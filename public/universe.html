@@ -4836,24 +4836,38 @@ function buildPanelHTML(node) {
 }
 
 // ── OPEN PANEL ────────────────────────────────────────────────
+// ── OPEN PANEL ────────────────────────────────────────────────
 function openNodePanel(node) {
+  if (!_panelEl) _panelEl = createNodePanel();
+  const backdrop = document.getElementById('nodePanelBackdrop');
+
   // Push chat below panel
   const sheet = document.getElementById('mobileSheet');
   const nav = document.getElementById('mobileNav');
   const header = document.getElementById('mobileHeader');
+  const tc = document.getElementById('teacherChat');
   if(sheet) sheet.style.zIndex = '10';
   if(nav) nav.style.zIndex = '10';
   if(header) header.style.zIndex = '10';
+  if(tc) tc.style.zIndex = '10';
 
   _expandedNode = node;
   _panelEl.innerHTML = buildPanelHTML(node);
   _panelEl.style.borderColor = (node.col || '#38bdf8') + '40';
   _panelEl.style.boxShadow = `0 32px 80px rgba(0,0,0,0.7), 0 0 60px ${node.col || '#38bdf8'}12`;
 
-  // Dim other nodes
-  N.forEach(n => {
-    if (n.id !== node.id) n._dimmed = true;
+  N.forEach(n => { if(n.id !== node.id) n._dimmed = true; });
+
+  requestAnimationFrame(() => {
+    _panelEl.style.opacity = '1';
+    _panelEl.style.transform = 'translate(-50%,-50%) scale(1)';
+    _panelEl.style.pointerEvents = 'all';
+    if(backdrop) {
+      backdrop.style.background = 'rgba(0,0,0,0.4)';
+      backdrop.style.pointerEvents = 'all';
+    }
   });
+}
 
   // Show
   requestAnimationFrame(() => {
