@@ -4835,7 +4835,7 @@ function buildPanelHTML(node) {
   `;
 }
 
-// ── OPEN PANEL ────────────────────────────────────────────────
+
 // ── OPEN PANEL ────────────────────────────────────────────────
 function openNodePanel(node) {
   if (!_panelEl) _panelEl = createNodePanel();
@@ -4850,6 +4850,7 @@ function openNodePanel(node) {
   if(nav) nav.style.zIndex = '10';
   if(header) header.style.zIndex = '10';
   if(tc) tc.style.zIndex = '10';
+  if(tc) tc.style.setProperty('z-index', '200', 'important');    
 
   _expandedNode = node;
   _panelEl.innerHTML = buildPanelHTML(node);
@@ -4898,6 +4899,7 @@ function closeNodePanel() {
   if(sheet) sheet.style.zIndex = '190';
   if(nav) nav.style.zIndex = '200';
   if(header) header.style.zIndex = '200';
+  if(tc) tc.style.setProperty('z-index', '200', 'important');
 
   // Un-dim nodes
   N.forEach(n => { n._dimmed = false; });
