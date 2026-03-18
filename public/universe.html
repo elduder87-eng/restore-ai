@@ -488,7 +488,7 @@ function drawBg(){
 
 // ── NODE SCREEN POS ───────────────────────────────────────────
 function nodePos(n){
-  const cx=uC.width/2,cy=uC.height/2;
+  const cx=uC.width/2,cy=uC.height/2-30;
   return{
     x:cx+Math.cos(n.ang+ROT)*n.orb,
     y:cy+Math.sin(n.ang+ROT)*n.orb*(n.tilt||.52)
@@ -661,7 +661,7 @@ function getCurrentPulse(){
 
 // ── SPARKS ────────────────────────────────────────────────────
 function drawSparks(){
-  const cx=uC.width/2,cy=uC.height/2;
+const cx=uC.width/2,cy=uC.height/2-30;
   const isDimmed=bloomNode!==null;
   SPARKS.forEach(s=>{
     s.ang+=s.spd;
