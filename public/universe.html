@@ -4483,19 +4483,23 @@ window.restoreState = {
   suggest: [],
   breakthroughs: 0,
   moments: 0,
+// ══════════════════════════════════════════════════════════════
+// RESTORE LIVE UI SYSTEM v4 — paste just before </script>
+// ══════════════════════════════════════════════════════════════
+
+window.restoreState = {
+  emotion: 'curious',
+  topics: [],
+  suggest: [],
+  breakthroughs: 0,
+  moments: 0,
 };
 
-// ── UPDATE ALL BOXES ──────────────────────────────────────────
-function updateMobileChips() {
+function updateTopBoxes() {
   try {
     const state = window.restoreState;
-    const pulseNum = document.querySelector('.pulse-n');
-    const pulseLbl = document.querySelector('.pulse-lbl');
-    const legendPercents = document.querySelectorAll('.plip');
-    const growthStats = document.querySelectorAll('.grwt');
-    const growthBars = document.querySelectorAll('.grw .pf');
 
-    const emotionMap = {
+    const emotionProfiles = {
       curious:    { label: 'Curious',    vals: [5,  10, 60, 5,  20] },
       reflecting: { label: 'Reflecting', vals: [15, 45, 20, 5,  15] },
       connecting: { label: 'Connecting', vals: [45, 20, 15, 5,  15] },
@@ -4503,31 +4507,55 @@ function updateMobileChips() {
       mastering:  { label: 'Mastering',  vals: [25, 25, 10, 5,  35] },
     };
 
-    const current = emotionMap[state.emotion] || emotionMap.curious;
-    const totalActive = Math.min(100, Math.max(5, state.topics.length * 8 + state.suggest.length * 5));
+    const current = emotionProfiles[state.emotion] || emotionProfiles.curious;
+    const litNodes = N ? N.filter(n => !n.hidden).length : 0;
 
-    if (pulseNum) pulseNum.textContent = totalActive + '%';
-    if (pulseLbl) pulseLbl.textContent = current.label;
+    const understanding = Math.min(100, litNodes * 3);
+    const curiosity     = Math.min(100, 5 + state.moments * 6);
+    const connections   = Math.min(100, state.suggest.length * 15 + state.topics.length * 4);
+    const confusion     = state.emotion === 'confused' ? 20 : 0;
+    const total         = Math.min(100, Math.max(5, understanding + Math.floor(connections / 3)));
 
-    legendPercents.forEach((el, i) => {
-      if (current.vals[i] != null) el.textContent = current.vals[i] + '%';
+    // Pulse donut text
+    const pp = document.getElementById('pulsePercent');
+    const pl = document.getElementById('pulseLabel');
+    if (pp) pp.textContent = total + '%';
+    if (pl) pl.textContent = current.label;
+
+    // Pulse donut arc
+    const arc = document.getElementById('pulseArc');
+    if (arc) {
+      const circumference = 175.9;
+      arc.setAttribute('stroke-dasharray', circumference);
+      arc.setAttribute('stroke-dashoffset', circumference * (1 - total / 100));
+    }
+
+    // Pulse legend
+    const ids = ['pulseConnecting','pulseReflecting','pulseCurious','pulseConfused','pulseExploring'];
+    ids.forEach((id, i) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = current.vals[i] + '%';
     });
 
-    const litNodes = N ? N.filter(n => !n.hidden).length : 0;
-    const understanding = Math.min(100, litNodes * 3);
-    const curiosity     = Math.min(100, state.moments * 6 + 5);
-    const connections   = Math.min(100, state.suggest.length * 15 + state.topics.length * 5);
-    const confusion     = state.emotion === 'confused' ? 20 : 0;
+    // Growth text
+    const gu = document.getElementById('growthUnderstandingText');
+    const gc = document.getElementById('growthCuriosityText');
+    const gn = document.getElementById('growthConnectionsText');
+    const gf = document.getElementById('growthConfusionText');
+    if (gu) gu.textContent = '↑ ' + understanding + '%';
+    if (gc) gc.textContent = '↑ ' + curiosity + '%';
+    if (gn) gn.textContent = '↑ ' + connections + '%';
+    if (gf) gf.textContent = '↓ ' + confusion + '%';
 
-    if (growthStats[0]) growthStats[0].textContent = '↑ ' + understanding + '%';
-    if (growthStats[1]) growthStats[1].textContent = '↑ ' + curiosity + '%';
-    if (growthStats[2]) growthStats[2].textContent = '↑ ' + connections + '%';
-    if (growthStats[3]) growthStats[3].textContent = '↓ ' + confusion + '%';
-
-    if (growthBars[0]) growthBars[0].style.width = understanding + '%';
-    if (growthBars[1]) growthBars[1].style.width = curiosity + '%';
-    if (growthBars[2]) growthBars[2].style.width = connections + '%';
-    if (growthBars[3]) growthBars[3].style.width = confusion + '%';
+    // Growth bars
+    const bu = document.getElementById('growthUnderstandingBar');
+    const bc = document.getElementById('growthCuriosityBar');
+    const bn = document.getElementById('growthConnectionsBar');
+    const bf = document.getElementById('growthConfusionBar');
+    if (bu) bu.style.width = understanding + '%';
+    if (bc) bc.style.width = curiosity + '%';
+    if (bn) bn.style.width = connections + '%';
+    if (bf) bf.style.width = confusion + '%';
 
     // Mobile chips
     const mChipNodes = document.getElementById('mChipNodes');
@@ -4544,11 +4572,10 @@ function updateMobileChips() {
     if (bm) bm.textContent = '🧩 ' + state.moments;
 
   } catch(e) {
-    console.log('updateMobileChips error:', e.message);
+    console.log('updateTopBoxes error:', e.message);
   }
 }
 
-// ── WIRE TO CHAT RESPONSE ─────────────────────────────────────
 window.onRestoreResponse = function(data) {
   try {
     window.restoreState.emotion  = data.emotion  || 'curious';
@@ -4556,7 +4583,7 @@ window.onRestoreResponse = function(data) {
     window.restoreState.suggest  = data.suggest  || [];
     window.restoreState.moments  = (window.restoreState.moments || 0) + 1;
 
-    // Check cross-domain breakthrough
+    // Cross-domain breakthrough detection
     const clusters = {
       science:    ['phys','chem','bio','math','geo','env','neuro','eng'],
       space:      ['astro','bh','st','cosmo','rel','grav'],
@@ -4571,11 +4598,9 @@ window.onRestoreResponse = function(data) {
         if (ids.includes(t)) hitClusters.add(cluster);
       }
     });
-    if (hitClusters.size >= 2) {
-      window.restoreState.breakthroughs++;
-    }
+    if (hitClusters.size >= 2) window.restoreState.breakthroughs++;
 
-    updateMobileChips();
+    updateTopBoxes();
     if (typeof updateFrontier === 'function') updateFrontier();
     if (typeof scheduleSave === 'function') scheduleSave();
   } catch(e) {
@@ -4583,9 +4608,9 @@ window.onRestoreResponse = function(data) {
   }
 };
 
-// ── INIT ON LOAD ──────────────────────────────────────────────
+// Init on load
 setTimeout(function() {
-  try { updateMobileChips(); } catch(e) {}
+  try { updateTopBoxes(); } catch(e) {}
 }, 800);
 
 </script>
