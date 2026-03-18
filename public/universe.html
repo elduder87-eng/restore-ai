@@ -62,7 +62,8 @@ body{position:fixed;inset:0;}
 #chatPanel{
   position:fixed;left:0;right:0;bottom:56px;
   height:28vh;
-  z-index:180;
+  z-index:150;
+  pointer-events:none;
   background:rgba(5,8,18,0.82);
   border-top:1px solid rgba(255,255,255,0.07);
   backdrop-filter:blur(24px);
@@ -70,6 +71,10 @@ body{position:fixed;inset:0;}
   transition:height 0.3s cubic-bezier(0.4,0,0.2,1);
 }
 #chatPanel.collapsed{height:52px;}
+.cp-topbar{pointer-events:all;}
+.cp-input-row{pointer-events:all;}
+#chatMsgs{pointer-events:all;}
+.thk-row{pointer-events:none;}
 .cp-topbar{
   display:flex;align-items:center;gap:10px;
   padding:8px 14px;flex-shrink:0;
