@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- v2.0 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -6,7 +7,7 @@
 <meta name="theme-color" content="#05080f">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Restore">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-visual"/>
 <title>Restore — Your Learning Journey</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
@@ -25,20 +26,21 @@
   --orange:#fb923c;
 }
 html,body{
-  width:100%;height:100dvh;
+  width:100%;height:100%;
+  overflow:hidden;
+  overscroll-behavior:none;
   background:var(--bg);
   font-family:'Inter',sans-serif;
   color:var(--text);
-  overflow:hidden;
 }
+body{position:fixed;inset:0;}
 
-/* CANVAS LAYERS */
-#bg,#uni,#hit{position:fixed;inset:0;}
-#bg{z-index:0;}
-#uni{z-index:1;pointer-events:none;}
-#hit{z-index:5;pointer-events:all;touch-action:none;background:transparent;}
+/* ── CANVAS LAYERS ── */
+#bg{position:fixed;inset:0;z-index:0;}
+#uni{position:fixed;inset:0;z-index:1;pointer-events:none;}
+#hit{position:fixed;inset:0;z-index:5;pointer-events:all;touch-action:pan-x pan-y;background:transparent;}
 
-/* LOADING */
+/* ── LOADING SCREEN ── */
 #loadingScreen{
   position:fixed;inset:0;z-index:99999;
   background:#05080f;
@@ -62,7 +64,7 @@ html,body{
 }
 @keyframes lsPulse{0%,100%{opacity:0.3;transform:scale(0.8);}50%{opacity:1;transform:scale(1.2);}}
 
-/* HEADER */
+/* ── MOBILE HEADER ── */
 #mHeader{
   position:fixed;top:0;left:0;right:0;height:56px;
   z-index:200;
@@ -71,7 +73,6 @@ html,body{
   backdrop-filter:blur(16px);
   display:flex;align-items:center;justify-content:space-between;
   padding:0 16px;
-  padding-top:env(safe-area-inset-top);
 }
 .mh-brand{display:flex;align-items:center;gap:10px;}
 .mh-logo{
@@ -84,9 +85,6 @@ html,body{
 @keyframes brandGlow{
   0%,100%{box-shadow:0 0 8px rgba(99,179,237,0.15);}
   50%{box-shadow:0 0 20px rgba(99,179,237,0.4);}
-}
-@media (prefers-reduced-motion: reduce){
-  .mh-logo{animation:none;}
 }
 .mh-title{
   font-family:'Cormorant Garamond',serif;
@@ -110,7 +108,7 @@ html,body{
   font-size:14px;font-weight:700;color:#fff;
 }
 
-/* CHIPS */
+/* ── CHIPS ── */
 #mChips{
   position:fixed;top:64px;left:12px;right:12px;
   z-index:150;display:flex;gap:8px;
@@ -126,7 +124,7 @@ html,body{
 }
 .chip-frontier{color:var(--blue);}
 
-/* CHAT SHEET */
+/* ── CHAT SHEET ── */
 #chatSheet{
   position:fixed;left:0;right:0;bottom:64px;
   z-index:180;
@@ -135,14 +133,23 @@ html,body{
   border-radius:22px 22px 0 0;
   backdrop-filter:blur(20px);
   box-shadow:0 -8px 40px rgba(0,0,0,0.6);
-  transition:max-height 0.32s cubic-bezier(0.4,0,0.2,1);
-  max-height:72px;overflow:hidden;
+  transition:height 0.32s cubic-bezier(0.4,0,0.2,1);
+  height:72px;overflow:hidden;
   display:flex;flex-direction:column;
 }
-#chatSheet.expanded{max-height:72vh;}
-.cs-handle{display:flex;justify-content:center;padding:10px 0 6px;flex-shrink:0;cursor:pointer;}
-.cs-handle-bar{width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,0.15);}
-.cs-collapsed-row{display:flex;align-items:center;gap:10px;padding:0 14px 10px;flex-shrink:0;}
+#chatSheet.expanded{height:72vh;}
+.cs-handle{
+  display:flex;justify-content:center;
+  padding:10px 0 6px;flex-shrink:0;cursor:pointer;
+}
+.cs-handle-bar{
+  width:36px;height:4px;border-radius:2px;
+  background:rgba(255,255,255,0.15);
+}
+.cs-collapsed-row{
+  display:flex;align-items:center;gap:10px;
+  padding:0 14px 10px;flex-shrink:0;
+}
 .cs-avatar{
   width:32px;height:32px;border-radius:50%;flex-shrink:0;
   background:conic-gradient(from 180deg,#38bdf8,#818cf8,#c084fc,#38bdf8);
@@ -165,7 +172,11 @@ html,body{
   font-size:16px;color:#fff;
 }
 #chatSend:disabled{opacity:0.4;}
-.cs-head{display:flex;align-items:center;gap:10px;padding:6px 14px 10px;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,0.07);}
+.cs-head{
+  display:flex;align-items:center;gap:10px;
+  padding:6px 14px 10px;flex-shrink:0;
+  border-bottom:1px solid rgba(255,255,255,0.07);
+}
 .cs-head-title{font-size:15px;font-weight:700;color:#fff;}
 .cs-head-sub{font-size:11px;color:var(--green);display:flex;align-items:center;gap:4px;}
 .cs-head-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);}
@@ -183,9 +194,20 @@ html,body{
   border-radius:14px;font-size:14px;line-height:1.6;
   white-space:pre-wrap;
 }
-.msg.ai .bubble{background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.2);color:var(--text);border-radius:4px 14px 14px 14px;}
-.msg.user .bubble{background:rgba(129,140,248,0.2);border:1px solid rgba(129,140,248,0.25);color:#fff;border-radius:14px 14px 4px 14px;}
-.cs-thinking{padding:8px 14px;border-top:1px solid rgba(255,255,255,0.06);flex-shrink:0;}
+.msg.ai .bubble{
+  background:rgba(56,189,248,0.1);
+  border:1px solid rgba(56,189,248,0.2);
+  color:var(--text);border-radius:4px 14px 14px 14px;
+}
+.msg.user .bubble{
+  background:rgba(129,140,248,0.2);
+  border:1px solid rgba(129,140,248,0.25);
+  color:#fff;border-radius:14px 14px 4px 14px;
+}
+.cs-thinking{
+  padding:8px 14px;border-top:1px solid rgba(255,255,255,0.06);
+  flex-shrink:0;
+}
 .cs-thk-row{display:flex;align-items:center;justify-content:space-around;}
 .cs-thk-item{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;}
 .cs-thk-icon{
@@ -196,7 +218,7 @@ html,body{
 .cs-thk-label{font-size:10px;font-weight:600;text-align:center;}
 .cs-thk-arrow{color:var(--muted);font-size:11px;}
 
-/* BOTTOM NAV */
+/* ── BOTTOM NAV ── */
 #mNav{
   position:fixed;bottom:0;left:0;right:0;height:64px;
   z-index:200;
@@ -204,7 +226,6 @@ html,body{
   border-top:1px solid rgba(255,255,255,0.08);
   backdrop-filter:blur(16px);
   display:flex;
-  padding-bottom:env(safe-area-inset-bottom);
 }
 .nav-tab{
   flex:1;display:flex;flex-direction:column;
@@ -218,7 +239,7 @@ html,body{
 .nav-icon{font-size:20px;line-height:1;}
 .nav-label{font-size:10px;font-weight:600;letter-spacing:.02em;}
 
-/* NODE PANEL */
+/* ── NODE PANEL ── */
 #nodePanel{
   position:fixed;left:0;right:0;bottom:64px;
   z-index:500;
@@ -233,7 +254,6 @@ html,body{
   scrollbar-width:none;
   max-height:80vh;
   padding:0 20px 20px;
-  padding-bottom:calc(20px + env(safe-area-inset-bottom));
 }
 #nodePanel.open{transform:translateY(0);}
 #nodePanel::-webkit-scrollbar{display:none;}
@@ -251,7 +271,7 @@ html,body{
 .np-handle{display:flex;justify-content:center;padding:12px 0 8px;}
 .np-handle-bar{width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,0.12);}
 
-/* OVERLAYS */
+/* ── OVERLAYS ── */
 .overlay{
   position:fixed;inset:0;
   background:rgba(5,8,20,0.99);
@@ -259,7 +279,6 @@ html,body{
   transform:translateY(100%);
   transition:transform 0.32s cubic-bezier(0.4,0,0.2,1);
   overflow-y:auto;padding:0 0 80px;
-  padding-bottom:calc(80px + env(safe-area-inset-bottom));
 }
 .overlay.open{transform:translateY(0);}
 .ov-head{
@@ -306,7 +325,7 @@ html,body{
 }
 .stat-l{font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:4px;}
 
-/* GROW TOAST */
+/* ── GROW TOAST ── */
 #growToast{
   position:fixed;top:68px;left:16px;right:16px;z-index:700;
   background:rgba(5,8,20,0.97);
@@ -323,7 +342,7 @@ html,body{
 .gt-text{font-size:13px;font-weight:700;color:#f0f4ff;}
 .gt-sub{font-size:11px;color:var(--muted);margin-top:1px;}
 
-/* TOOLTIP */
+/* ── TOOLTIP ── */
 #tip{
   position:fixed;z-index:9999;
   background:rgba(5,8,20,0.96);
@@ -336,19 +355,22 @@ html,body{
 </head>
 <body>
 
+<!-- Loading Screen -->
 <div id="loadingScreen">
   <div class="ls-logo">Restore</div>
   <div class="ls-sub">Where Understanding Grows</div>
   <div class="ls-dot"></div>
 </div>
 
+<!-- Canvas layers -->
 <canvas id="bg"></canvas>
 <canvas id="uni"></canvas>
 <canvas id="hit"></canvas>
 
+<!-- Header -->
 <div id="mHeader">
   <div class="mh-brand">
-    <div class="mh-logo" aria-hidden="true">
+    <div class="mh-logo">
       <svg width="22" height="22" viewBox="0 0 100 100" fill="none">
         <rect x="18" y="8" width="18" height="62" rx="2" fill="#0a0d14" stroke="#63b3ed" stroke-width="2"/>
         <circle cx="33" cy="40" r="2.5" fill="#fde68a" opacity="0.9"/>
@@ -363,25 +385,29 @@ html,body{
     <div class="mh-title">Restore</div>
   </div>
   <div class="mh-right">
-    <button class="mh-btn" onclick="openOverlay('explore')" aria-label="Explore">🔭</button>
-    <button class="mh-btn" onclick="openOverlay('connect')" aria-label="Connect">🔗</button>
-    <button class="mh-avatar" id="mAvatar" onclick="openOverlay('me')" aria-label="Your profile">D</button>
+    <div class="mh-btn" onclick="openOverlay('explore')">🔭</div>
+    <div class="mh-btn" onclick="openOverlay('connect')">🔗</div>
+    <div class="mh-avatar" id="mAvatar" onclick="openOverlay('me')">D</div>
   </div>
 </div>
 
+<!-- Chips -->
 <div id="mChips">
   <div class="m-chip">✨ <span id="chipNodes">1</span> nodes</div>
   <div class="m-chip">⚡ <span id="chipBreaks">0</span> breakthroughs</div>
   <div class="m-chip chip-frontier" id="chipFrontier">⚛ Quantum Mechanics →</div>
 </div>
 
+<!-- Chat Sheet -->
 <div id="chatSheet">
-  <div class="cs-handle" onclick="toggleChat()" aria-label="Toggle chat"></div>
-  <form class="cs-collapsed-row" onsubmit="event.preventDefault();sendChat(document.getElementById('chatInput').value)">
+  <div class="cs-handle" onclick="toggleChat()">
+    <div class="cs-handle-bar"></div>
+  </div>
+  <div class="cs-collapsed-row">
     <div class="cs-avatar">🎓</div>
     <input id="chatInput" placeholder="Ask your Restore Guide…" autocomplete="off"/>
-    <button id="chatSend" type="submit" aria-label="Send">➤</button>
-  </form>
+    <button id="chatSend">➤</button>
+  </div>
   <div class="cs-head">
     <div class="cs-avatar">🎓</div>
     <div>
@@ -394,31 +420,67 @@ html,body{
   </div>
   <div class="cs-thinking">
     <div class="cs-thk-row">
-      <div class="cs-thk-item"><div class="cs-thk-icon" style="border-color:#38bdf8;color:#38bdf8;" id="thk0">💙</div><div class="cs-thk-label" style="color:#38bdf8;">Curious</div></div>
+      <div class="cs-thk-item">
+        <div class="cs-thk-icon" style="border-color:#38bdf8;color:#38bdf8;" id="thk0">💙</div>
+        <div class="cs-thk-label" style="color:#38bdf8;">Curious</div>
+      </div>
       <div class="cs-thk-arrow">→</div>
-      <div class="cs-thk-item"><div class="cs-thk-icon" style="border-color:#f87171;color:#f87171;" id="thk1">❤️</div><div class="cs-thk-label" style="color:#f87171;">Confused</div></div>
+      <div class="cs-thk-item">
+        <div class="cs-thk-icon" style="border-color:#f87171;color:#f87171;" id="thk1">❤️</div>
+        <div class="cs-thk-label" style="color:#f87171;">Confused</div>
+      </div>
       <div class="cs-thk-arrow">→</div>
-      <div class="cs-thk-item"><div class="cs-thk-icon" style="border-color:#4ade80;color:#4ade80;" id="thk2">💚</div><div class="cs-thk-label" style="color:#4ade80;">Reflecting</div></div>
+      <div class="cs-thk-item">
+        <div class="cs-thk-icon" style="border-color:#4ade80;color:#4ade80;" id="thk2">💚</div>
+        <div class="cs-thk-label" style="color:#4ade80;">Reflecting</div>
+      </div>
       <div class="cs-thk-arrow">→</div>
-      <div class="cs-thk-item"><div class="cs-thk-icon" style="border-color:#fbbf24;color:#fbbf24;" id="thk3">💛</div><div class="cs-thk-label" style="color:#fbbf24;">Connecting</div></div>
+      <div class="cs-thk-item">
+        <div class="cs-thk-icon" style="border-color:#fbbf24;color:#fbbf24;" id="thk3">💛</div>
+        <div class="cs-thk-label" style="color:#fbbf24;">Connecting</div>
+      </div>
       <div class="cs-thk-arrow">→</div>
-      <div class="cs-thk-item"><div class="cs-thk-icon" style="border-color:#e2e8f0;color:#e2e8f0;" id="thk4">🤍</div><div class="cs-thk-label" style="color:#e2e8f0;">Mastering</div></div>
+      <div class="cs-thk-item">
+        <div class="cs-thk-icon" style="border-color:#e2e8f0;color:#e2e8f0;" id="thk4">🤍</div>
+        <div class="cs-thk-label" style="color:#e2e8f0;">Mastering</div>
+      </div>
     </div>
   </div>
 </div>
 
+<!-- Node Panel -->
 <div id="nodePanelBackdrop" onclick="closeNodePanel()"></div>
-<div id="nodePanel"><div class="np-handle"><div class="np-handle-bar"></div></div><div id="nodePanelContent"></div></div>
-
-<div id="mNav">
-  <button class="nav-tab active" onclick="setTab(this,'journey')"><div class="nav-icon">🌌</div><div class="nav-label">Journey</div></button>
-  <button class="nav-tab" onclick="setTab(this,'explore')"><div class="nav-icon">🔭</div><div class="nav-label">Explore</div></button>
-  <button class="nav-tab" onclick="setTab(this,'connect')"><div class="nav-icon">🔗</div><div class="nav-label">Connect</div></button>
-  <button class="nav-tab" onclick="setTab(this,'me')"><div class="nav-icon">👤</div><div class="nav-label">Me</div></button>
+<div id="nodePanel">
+  <div class="np-handle"><div class="np-handle-bar"></div></div>
+  <div id="nodePanelContent"></div>
 </div>
 
+<!-- Bottom Nav -->
+<div id="mNav">
+  <button class="nav-tab active" onclick="setTab(this,'journey')">
+    <div class="nav-icon">🌌</div>
+    <div class="nav-label">Journey</div>
+  </button>
+  <button class="nav-tab" onclick="setTab(this,'explore')">
+    <div class="nav-icon">🔭</div>
+    <div class="nav-label">Explore</div>
+  </button>
+  <button class="nav-tab" onclick="setTab(this,'connect')">
+    <div class="nav-icon">🔗</div>
+    <div class="nav-label">Connect</div>
+  </button>
+  <button class="nav-tab" onclick="setTab(this,'me')">
+    <div class="nav-icon">👤</div>
+    <div class="nav-label">Me</div>
+  </button>
+</div>
+
+<!-- Explore Overlay -->
 <div class="overlay" id="overlayExplore">
-  <div class="ov-head"><div class="ov-back" onclick="closeOverlay('explore')">←</div><div><div class="ov-title">Explore</div><div class="ov-sub">Curiosity · Connections · Frontiers</div></div></div>
+  <div class="ov-head">
+    <div class="ov-back" onclick="closeOverlay('explore')">←</div>
+    <div><div class="ov-title">Explore</div><div class="ov-sub">Curiosity · Connections · Frontiers</div></div>
+  </div>
   <div class="ov-body">
     <div class="stat-row">
       <div class="stat-card"><div class="stat-n" id="expTopics" style="color:var(--blue);">0</div><div class="stat-l">Topics</div></div>
@@ -439,8 +501,12 @@ html,body{
   </div>
 </div>
 
+<!-- Connect Overlay -->
 <div class="overlay" id="overlayConnect">
-  <div class="ov-head"><div class="ov-back" onclick="closeOverlay('connect')">←</div><div><div class="ov-title">Connect</div><div class="ov-sub">How your knowledge links together</div></div></div>
+  <div class="ov-head">
+    <div class="ov-back" onclick="closeOverlay('connect')">←</div>
+    <div><div class="ov-title">Connect</div><div class="ov-sub">How your knowledge links together</div></div>
+  </div>
   <div class="ov-body">
     <div class="stat-row">
       <div class="stat-card"><div class="stat-n" id="conNodes" style="color:var(--purple);">1</div><div class="stat-l">Nodes Lit</div></div>
@@ -453,8 +519,12 @@ html,body{
   </div>
 </div>
 
+<!-- Me Overlay -->
 <div class="overlay" id="overlayMe">
-  <div class="ov-head"><div class="ov-back" onclick="closeOverlay('me')">←</div><div><div class="ov-title" id="meTitle">Your Galaxy</div><div class="ov-sub">Your journey · Your understanding</div></div></div>
+  <div class="ov-head">
+    <div class="ov-back" onclick="closeOverlay('me')">←</div>
+    <div><div class="ov-title" id="meTitle">Your Galaxy</div><div class="ov-sub">Your journey · Your understanding</div></div>
+  </div>
   <div class="ov-body">
     <div class="stat-row">
       <div class="stat-card"><div class="stat-n" id="meNodes" style="color:var(--blue);">1</div><div class="stat-l">Nodes Lit</div></div>
@@ -517,22 +587,750 @@ html,body{
   </div>
 </div>
 
-<div id="growToast"><div class="gt-icon">🌟</div><div><div class="gt-text" id="toastText">New node unlocked!</div><div class="gt-sub" id="toastSub">Your galaxy grew</div></div></div>
+<!-- Grow Toast -->
+<div id="growToast">
+  <div class="gt-icon">🌟</div>
+  <div><div class="gt-text" id="toastText">New node unlocked!</div><div class="gt-sub" id="toastSub">Your galaxy grew</div></div>
+</div>
+
+<!-- Tooltip -->
 <div id="tip"></div>
 
 <script>
-const N=[/* same node array as yours */];
-const CONNS=[/* same connections */];
-const FRONTIERS=[/* same frontiers */];
-const topicMap={/* same map */};
+// ══════════════════════════════════════════════════════════════
+// NODE DATA
+// ══════════════════════════════════════════════════════════════
+const N=[
+  {id:'you',   label:'YOU',           sub:'Your Understanding',  ang:0,    orb:0,   tilt:1,   r:34, col:'#c8860a', glow:'rgba(200,134,10,0.6)',  mas:100},
+  {id:'phys',  label:'Physics',       sub:'Gravity · Motion',    ang:.2,   orb:162, tilt:.52, r:27, col:'#fb923c', glow:'rgba(251,146,60,0.5)',  mas:0, hidden:true},
+  {id:'grav',  label:'Gravity',       sub:'Newton · Einstein',   ang:-.45, orb:112, tilt:.52, r:11, col:'#fb923c', glow:'rgba(251,146,60,0.4)',  mas:0, hidden:true},
+  {id:'newt',  label:"Newton's Laws", sub:'Motion Laws',         ang:-.7,  orb:228, tilt:.52, r:10, col:'#fb923c', glow:'rgba(251,146,60,0.35)', mas:0, hidden:true},
+  {id:'rel',   label:'Relativity',    sub:'Einstein',            ang:.05,  orb:288, tilt:.50, r:11, col:'#fb923c', glow:'rgba(251,146,60,0.4)',  mas:0, hidden:true},
+  {id:'chem',  label:'Chemistry',     sub:'Elements · Bonds',    ang:.35,  orb:245, tilt:.52, r:12, col:'#f59e0b', glow:'rgba(245,158,11,0.4)',  mas:0, hidden:true},
+  {id:'eng',   label:'Engineering',   sub:'Build · Solve',       ang:.55,  orb:310, tilt:.50, r:11, col:'#fb923c', glow:'rgba(251,146,60,0.35)', mas:0, hidden:true},
+  {id:'astro', label:'Astronomy',     sub:'Black Holes · Stars', ang:1.1,  orb:265, tilt:.47, r:26, col:'#c084fc', glow:'rgba(192,132,252,0.5)', mas:0, hidden:true},
+  {id:'bh',    label:'Black Holes',   sub:'Singularity',         ang:.62,  orb:345, tilt:.45, r:13, col:'#c084fc', glow:'rgba(192,132,252,0.45)',mas:0, hidden:true},
+  {id:'st',    label:'Space-Time',    sub:'Relativity',          ang:1.55, orb:318, tilt:.45, r:12, col:'#c084fc', glow:'rgba(192,132,252,0.4)', mas:0, hidden:true},
+  {id:'cosmo', label:'Cosmology',     sub:'Big Bang',            ang:2.0,  orb:342, tilt:.45, r:11, col:'#c084fc', glow:'rgba(192,132,252,0.4)', mas:0, hidden:true},
+  {id:'geo',   label:'Geology',       sub:'Earth · Time',        ang:1.3,  orb:215, tilt:.50, r:10, col:'#a78bfa', glow:'rgba(167,139,250,0.35)',mas:0, hidden:true},
+  {id:'math',  label:'Mathematics',   sub:'Calculus · Limits',   ang:2.45, orb:148, tilt:.52, r:26, col:'#38bdf8', glow:'rgba(56,189,248,0.5)',  mas:0, hidden:true},
+  {id:'calc',  label:'Calculus',      sub:'Limits · Integrals',  ang:2.05, orb:118, tilt:.52, r:11, col:'#38bdf8', glow:'rgba(56,189,248,0.4)',  mas:0, hidden:true},
+  {id:'func',  label:'Functions',     sub:'Algebra',             ang:3.05, orb:210, tilt:.52, r:10, col:'#38bdf8', glow:'rgba(56,189,248,0.35)', mas:0, hidden:true},
+  {id:'lim',   label:'Limits',        sub:'Convergence',         ang:2.75, orb:188, tilt:.52, r:10, col:'#38bdf8', glow:'rgba(56,189,248,0.35)', mas:0, hidden:true},
+  {id:'bio',   label:'Biology',       sub:'Evolution · Cells',   ang:3.85, orb:162, tilt:.52, r:25, col:'#4ade80', glow:'rgba(74,222,128,0.5)',  mas:0, hidden:true},
+  {id:'evol',  label:'Evolution',     sub:'Darwin',              ang:4.25, orb:118, tilt:.52, r:10, col:'#4ade80', glow:'rgba(74,222,128,0.35)', mas:0, hidden:true},
+  {id:'eco',   label:'Ecosystems',    sub:'Food Webs',           ang:4.75, orb:205, tilt:.52, r:10, col:'#4ade80', glow:'rgba(74,222,128,0.35)', mas:0, hidden:true},
+  {id:'gen',   label:'Genetics',      sub:'DNA',                 ang:5.1,  orb:215, tilt:.52, r:10, col:'#4ade80', glow:'rgba(74,222,128,0.35)', mas:0, hidden:true},
+  {id:'med',   label:'Medicine',      sub:'Health · Healing',    ang:4.5,  orb:275, tilt:.52, r:11, col:'#4ade80', glow:'rgba(74,222,128,0.4)',  mas:0, hidden:true},
+  {id:'neuro', label:'Neuroscience',  sub:'Brain · Mind',        ang:4.1,  orb:305, tilt:.50, r:11, col:'#4ade80', glow:'rgba(74,222,128,0.4)',  mas:0, hidden:true},
+  {id:'env',   label:'Environment',   sub:'Climate · Nature',    ang:4.9,  orb:340, tilt:.48, r:11, col:'#4ade80', glow:'rgba(74,222,128,0.35)', mas:0, hidden:true},
+  {id:'psych', label:'Psychology',    sub:'Mind · Behavior',     ang:3.6,  orb:245, tilt:.52, r:12, col:'#2dd4bf', glow:'rgba(45,212,191,0.4)',  mas:0, hidden:true},
+  {id:'crim',  label:'Criminology',   sub:'Crime · Justice',     ang:3.4,  orb:310, tilt:.50, r:11, col:'#2dd4bf', glow:'rgba(45,212,191,0.35)', mas:0, hidden:true},
+  {id:'hist',  label:'History',       sub:'Civilizations',       ang:5.35, orb:155, tilt:.52, r:24, col:'#fb923c', glow:'rgba(251,146,60,0.45)', mas:0, hidden:true},
+  {id:'ren',   label:'Renaissance',   sub:'Art & Science',       ang:5.55, orb:198, tilt:.52, r:10, col:'#fb923c', glow:'rgba(251,146,60,0.35)', mas:0, hidden:true},
+  {id:'rev',   label:'Revolutions',   sub:'Political Change',    ang:6.05, orb:212, tilt:.52, r:10, col:'#fb923c', glow:'rgba(251,146,60,0.35)', mas:0, hidden:true},
+  {id:'ind',   label:'Industrial Rev.',sub:'1800s',              ang:5.8,  orb:258, tilt:.52, r:9,  col:'#fbbf24', glow:'rgba(251,191,36,0.3)',  mas:0, hidden:true},
+  {id:'anth',  label:'Anthropology',  sub:'Culture · Origins',   ang:5.2,  orb:310, tilt:.50, r:11, col:'#fb923c', glow:'rgba(251,146,60,0.35)', mas:0, hidden:true},
+  {id:'eth',   label:'Ethics',        sub:'Philosophy',          ang:2.2,  orb:298, tilt:.47, r:12, col:'#2dd4bf', glow:'rgba(45,212,191,0.4)',  mas:0, hidden:true},
+  {id:'know',  label:'Knowledge',     sub:'Epistemology',        ang:2.65, orb:338, tilt:.47, r:11, col:'#2dd4bf', glow:'rgba(45,212,191,0.35)', mas:0, hidden:true},
+  {id:'soc',   label:'Sociology',     sub:'Society · Groups',    ang:3.15, orb:368, tilt:.47, r:11, col:'#2dd4bf', glow:'rgba(45,212,191,0.35)', mas:0, hidden:true},
+  {id:'pol',   label:'Politics',      sub:'Power · Governance',  ang:5.65, orb:325, tilt:.48, r:12, col:'#f87171', glow:'rgba(248,113,113,0.4)', mas:0, hidden:true},
+  {id:'law',   label:'Law',           sub:'Justice · Rights',    ang:5.45, orb:375, tilt:.47, r:11, col:'#f87171', glow:'rgba(248,113,113,0.35)',mas:0, hidden:true},
+  {id:'ling',  label:'Linguistics',   sub:'Language · Meaning',  ang:2.4,  orb:378, tilt:.47, r:10, col:'#2dd4bf', glow:'rgba(45,212,191,0.35)', mas:0, hidden:true},
+  {id:'tech',  label:'Technology',    sub:'Innovation · Tools',  ang:1.4,  orb:185, tilt:.52, r:14, col:'#60a5fa', glow:'rgba(96,165,250,0.45)', mas:0, hidden:true},
+  {id:'ai',    label:'AI',            sub:'Machine Learning',    ang:1.7,  orb:245, tilt:.52, r:12, col:'#60a5fa', glow:'rgba(96,165,250,0.4)',  mas:0, hidden:true},
+  {id:'econ',  label:'Economics',     sub:'Markets · Systems',   ang:5.0,  orb:285, tilt:.52, r:13, col:'#34d399', glow:'rgba(52,211,153,0.45)', mas:0, hidden:true},
+  {id:'biz',   label:'Business',      sub:'Strategy · Value',    ang:4.8,  orb:375, tilt:.50, r:11, col:'#34d399', glow:'rgba(52,211,153,0.35)', mas:0, hidden:true},
+  {id:'lit',   label:'Literature',    sub:'Stories · Language',  ang:3.3,  orb:315, tilt:.47, r:12, col:'#f472b6', glow:'rgba(244,114,182,0.4)', mas:0, hidden:true},
+  {id:'music', label:'Music',         sub:'Sound · Harmony',     ang:2.9,  orb:275, tilt:.47, r:11, col:'#f472b6', glow:'rgba(244,114,182,0.35)',mas:0, hidden:true},
+  {id:'art',   label:'Art',           sub:'Vision · Expression', ang:3.5,  orb:390, tilt:.47, r:11, col:'#f472b6', glow:'rgba(244,114,182,0.35)',mas:0, hidden:true},
+  {id:'film',  label:'Film',          sub:'Story · Cinema',      ang:3.0,  orb:345, tilt:.47, r:10, col:'#f472b6', glow:'rgba(244,114,182,0.3)', mas:0, hidden:true},
+  {id:'arch',  label:'Architecture',  sub:'Space · Structure',   ang:6.2,  orb:295, tilt:.47, r:11, col:'#fbbf24', glow:'rgba(251,191,36,0.35)', mas:0, hidden:true},
+  {id:'cul',   label:'Culinary Arts', sub:'Food · Culture',      ang:6.4,  orb:355, tilt:.47, r:10, col:'#f59e0b', glow:'rgba(245,158,11,0.35)', mas:0, hidden:true},
+];
 
+const CONNS=[
+  ['you','phys'],['you','math'],['you','bio'],['you','hist'],['you','astro'],
+  ['you','eth'],['you','tech'],['you','econ'],['you','lit'],['you','psych'],
+  ['you','music'],['you','art'],['you','pol'],
+  ['phys','grav'],['phys','newt'],['phys','rel'],['phys','astro'],
+  ['phys','chem'],['phys','eng'],['grav','rel'],['chem','bio'],
+  ['eng','math'],['eng','tech'],['eng','arch'],
+  ['astro','bh'],['astro','st'],['astro','cosmo'],['bh','st'],
+  ['bh','rel'],['cosmo','hist'],['geo','hist'],['geo','chem'],
+  ['math','calc'],['math','func'],['math','lim'],['calc','lim'],
+  ['math','phys'],['math','econ'],['math','music'],['math','ai'],
+  ['bio','evol'],['bio','eco'],['bio','gen'],['bio','med'],
+  ['bio','chem'],['bio','neuro'],['bio','env'],['evol','hist'],
+  ['gen','med'],['neuro','psych'],['neuro','med'],['env','econ'],
+  ['psych','bio'],['psych','eth'],['psych','soc'],['psych','lit'],
+  ['psych','neuro'],['crim','psych'],['crim','law'],['crim','soc'],
+  ['hist','ren'],['hist','rev'],['rev','ind'],['hist','econ'],
+  ['hist','lit'],['hist','arch'],['ind','tech'],['hist','anth'],
+  ['hist','pol'],['anth','soc'],['anth','ling'],
+  ['eth','know'],['eth','lit'],['know','psych'],['know','tech'],
+  ['know','ai'],['soc','econ'],['soc','pol'],['pol','law'],
+  ['pol','hist'],['law','eth'],['ling','lit'],['ling','ai'],
+  ['tech','ai'],['tech','econ'],['tech','eng'],['ai','eth'],
+  ['ai','psych'],['ai','ling'],
+  ['econ','hist'],['econ','eth'],['econ','pol'],['econ','biz'],
+  ['biz','tech'],['biz','psych'],
+  ['lit','hist'],['lit','eth'],['lit','film'],['music','math'],
+  ['music','hist'],['music','psych'],['art','hist'],['art','psych'],
+  ['film','lit'],['film','psych'],['arch','hist'],['arch','math'],
+  ['arch','art'],['cul','chem'],['cul','hist'],['cul','anth'],
+  ['geo','env'],['neuro','ai'],['med','psych'],['law','hist'],
+];
+
+const FRONTIERS=[
+  {name:'Quantum Mechanics', icon:'⚛', threshold:3},
+  {name:'Theory of Everything', icon:'🌌', threshold:6},
+  {name:'Consciousness', icon:'🧠', threshold:10},
+  {name:'The Infinite', icon:'♾️', threshold:15},
+  {name:'Universal Truth', icon:'✨', threshold:20},
+  {name:'Omniscience', icon:'🔮', threshold:30},
+];
+
+const topicMap = {
+  gravity:['grav','phys'],'black hole':['bh','astro'],'black holes':['bh','astro'],
+  astronomy:['astro'],astrophysics:['astro'],physics:['phys'],quantum:['phys'],
+  relativity:['rel','phys'],einstein:['rel'],chemistry:['chem'],chemical:['chem'],
+  atoms:['chem'],molecules:['chem'],engineering:['eng'],geology:['geo'],
+  spacetime:['st','astro'],'space-time':['st','astro'],cosmology:['cosmo'],
+  'big bang':['cosmo'],universe:['cosmo'],math:['math'],mathematics:['math'],
+  calculus:['calc'],biology:['bio'],cells:['bio'],evolution:['evol'],
+  darwin:['evol'],ecosystems:['eco'],genetics:['gen'],dna:['gen'],
+  medicine:['med'],health:['med'],neuroscience:['neuro'],brain:['neuro'],
+  environment:['env'],climate:['env'],psychology:['psych'],behavior:['psych'],
+  criminology:['crim'],crime:['crim'],history:['hist'],civilization:['hist'],
+  revolution:['rev','hist'],renaissance:['ren'],industrial:['ind'],
+  anthropology:['anth'],philosophy:['eth'],ethics:['eth'],moral:['eth'],
+  knowledge:['know'],epistemology:['know'],sociology:['soc'],society:['soc'],
+  politics:['pol'],government:['pol'],law:['law'],legal:['law'],
+  linguistics:['ling'],language:['ling'],technology:['tech'],innovation:['tech'],
+  ai:['ai','tech'],'artificial intelligence':['ai'],'machine learning':['ai'],
+  economics:['econ'],economy:['econ'],markets:['econ'],money:['econ'],
+  business:['biz'],literature:['lit'],writing:['lit'],music:['music'],
+  art:['art'],painting:['art'],film:['film'],cinema:['film'],movies:['film'],
+  architecture:['arch'],cooking:['cul'],food:['cul'],culinary:['cul'],
+};
+
+// ══════════════════════════════════════════════════════════════
+// CANVAS & RENDERING
+// ══════════════════════════════════════════════════════════════
 const bgCanvas=document.getElementById('bg'), bx=bgCanvas.getContext('2d');
 const uc=document.getElementById('uni'), ux=uc.getContext('2d');
 const hitCanvas=document.getElementById('hit');
 
-let ROT=0,T=0,expandedNode=null;
+let ROT=0, T=0;
+let FOCUSED=null;
+let expandedNode=null;
+
 const SPARKS=Array.from({length:45},()=>({
   ang:Math.random()*Math.PI*2,
   orb:55+Math.random()*300,
   tilt:.44+Math.random()*.12,
-  spd:(Math.random()-.5)*.0009
+  spd:(Math.random()-.5)*.0009,
+  r:.5+Math.random()*1.4,
+  a:.15+Math.random()*.5,
+  col:['#fbbf24','#fb923c','#4ade80','#38bdf8','#c084fc','#f472b6'][Math.floor(Math.random()*6)]
+}));
+
+function resize(){
+  const w=window.innerWidth, h=window.innerHeight;
+  bgCanvas.width=uc.width=hitCanvas.width=w;
+  bgCanvas.height=uc.height=hitCanvas.height=h;
+}
+resize();
+window.addEventListener('resize',resize);
+
+function drawBg(){
+  const W=bgCanvas.width,H=bgCanvas.height;
+  const g=bx.createRadialGradient(W/2,H/2,0,W/2,H/2,Math.max(W,H)*.7);
+  g.addColorStop(0,'#070b14');g.addColorStop(1,'#05080f');
+  bx.fillStyle=g;bx.fillRect(0,0,W,H);
+  for(let i=0;i<180;i++){
+    const x=(Math.sin(i*127.1+1.3)*.5+.5)*W;
+    const y=(Math.sin(i*311.7+2.1)*.5+.5)*H;
+    const r=Math.random()<.02?1.5:Math.random()<.1?1:.5;
+    const a=.2+Math.random()*.7;
+    bx.beginPath();bx.arc(x,y,r,0,Math.PI*2);
+    bx.fillStyle=`rgba(190,210,255,${a})`;bx.fill();
+  }
+}
+
+function drawNode(n){
+  const W=uc.width,H=uc.height;
+  const cx=W/2,cy=H/2;
+  const nx=cx+Math.cos(n.ang+ROT)*n.orb;
+  const ny=cy+Math.sin(n.ang+ROT)*n.orb*(n.tilt||.52);
+  const isExp=expandedNode&&expandedNode.id===n.id;
+  const isDimmed=expandedNode&&!isExp;
+  const dimA=isDimmed?.2:1;
+
+  if(n.id==='you'){
+    // Glow
+    const g=ux.createRadialGradient(nx,ny,0,nx,ny,n.r*3.5);
+    g.addColorStop(0,`rgba(200,134,10,${.45*dimA})`);
+    g.addColorStop(1,'rgba(200,134,10,0)');
+    ux.beginPath();ux.arc(nx,ny,n.r*3.5,0,Math.PI*2);
+    ux.fillStyle=g;ux.fill();
+    // Sphere
+    const sg=ux.createRadialGradient(nx-n.r*.3,ny-n.r*.3,0,nx,ny,n.r);
+    sg.addColorStop(0,'#fde68a');sg.addColorStop(.6,'#c8860a');sg.addColorStop(1,'#92400e');
+    ux.beginPath();ux.arc(nx,ny,n.r,0,Math.PI*2);ux.fillStyle=sg;ux.fill();
+    // Highlight
+    ux.globalAlpha=.35*dimA;
+    ux.beginPath();ux.arc(nx-n.r*.3,ny-n.r*.35,n.r*.45,0,Math.PI*2);
+    ux.fillStyle='#fff';ux.fill();ux.globalAlpha=1;
+    // Label
+    ux.fillStyle=`rgba(255,255,255,${.8*dimA})`;
+    ux.font='bold 11px Inter';ux.textAlign='center';ux.textBaseline='middle';
+    ux.fillText('YOU',nx,ny);
+    ux.fillStyle=`rgba(200,134,10,${.6*dimA})`;
+    ux.font='10px Inter';ux.textBaseline='top';
+    ux.fillText('Your Understanding',nx,ny+n.r+6);
+  } else {
+    if(n.hidden)return;
+    // Glow
+    const gr=isExp?n.r*4.5:n.r*3.2;
+    const ga=isExp?.5:.28;
+    const g=ux.createRadialGradient(nx,ny,0,nx,ny,gr);
+    const col=n.col||'#38bdf8';
+    g.addColorStop(0,col+Math.round(ga*dimA*255).toString(16).padStart(2,'0'));
+    g.addColorStop(1,col+'00');
+    ux.beginPath();ux.arc(nx,ny,gr,0,Math.PI*2);ux.fillStyle=g;ux.fill();
+    // Pulse ring if expanded
+    if(isExp){
+      const pulse=.5+.5*Math.sin(T*.08);
+      ux.beginPath();ux.arc(nx,ny,n.r+8+pulse*4,0,Math.PI*2);
+      ux.strokeStyle=col+'50';ux.lineWidth=1.5;ux.stroke();
+    }
+    // Sphere
+    ux.globalAlpha=dimA;
+    const sg=ux.createRadialGradient(nx-n.r*.35,ny-n.r*.35,0,nx,ny,n.r);
+    sg.addColorStop(0,col+'ff');sg.addColorStop(.6,col+'cc');sg.addColorStop(1,col+'88');
+    ux.beginPath();ux.arc(nx,ny,n.r,0,Math.PI*2);ux.fillStyle=sg;ux.fill();
+    // Highlight
+    ux.globalAlpha=.35*dimA;
+    ux.beginPath();ux.arc(nx-n.r*.3,ny-n.r*.35,n.r*.45,0,Math.PI*2);
+    ux.fillStyle='#fff';ux.fill();ux.globalAlpha=1;
+    // Label
+    ux.globalAlpha=dimA;
+    ux.fillStyle=isExp?'#fff':'rgba(226,232,240,.85)';
+    ux.font=`${isExp?'600 ':''}11px Inter`;
+    ux.textAlign='center';ux.textBaseline='top';
+    ux.fillText(n.label,nx,ny+n.r+6);
+    ux.globalAlpha=1;
+  }
+}
+
+function drawConns(){
+  const W=uc.width,H=uc.height;
+  const cx=W/2,cy=H/2;
+  CONNS.forEach(([a,b])=>{
+    const na=N.find(n=>n.id===a),nb=N.find(n=>n.id===b);
+    if(!na||!nb||na.hidden||nb.hidden)return;
+    const ax=cx+Math.cos(na.ang+ROT)*na.orb;
+    const ay=cy+Math.sin(na.ang+ROT)*na.orb*(na.tilt||.52);
+    const bx2=cx+Math.cos(nb.ang+ROT)*nb.orb;
+    const by=cy+Math.sin(nb.ang+ROT)*nb.orb*(nb.tilt||.52);
+    const isActive=expandedNode&&(a===expandedNode.id||b===expandedNode.id);
+    const isDimmed=expandedNode&&!isActive;
+    ux.beginPath();ux.moveTo(ax,ay);ux.lineTo(bx2,by);
+    ux.strokeStyle=isActive?`rgba(255,255,255,0.3)`:isDimmed?'rgba(255,255,255,0.03)':'rgba(255,255,255,0.1)';
+    ux.lineWidth=isActive?1.2:.7;ux.stroke();
+  });
+}
+
+function drawSparks(){
+  const W=uc.width,H=uc.height;
+  const cx=W/2,cy=H/2;
+  const isDimmed=expandedNode!==null;
+  SPARKS.forEach(s=>{
+    s.ang+=s.spd;
+    const sx=cx+Math.cos(s.ang+ROT)*s.orb;
+    const sy=cy+Math.sin(s.ang+ROT)*s.orb*s.tilt;
+    ux.beginPath();ux.arc(sx,sy,s.r,0,Math.PI*2);
+    const a=isDimmed?s.a*.15:s.a;
+    ux.fillStyle=s.col+Math.round(a*255).toString(16).padStart(2,'0');
+    ux.fill();
+  });
+}
+
+function loop(){
+  T++;
+  ROT+=.00028;
+  ux.clearRect(0,0,uc.width,uc.height);
+  drawSparks();
+  drawConns();
+  N.forEach(drawNode);
+  requestAnimationFrame(loop);
+}
+
+// ══════════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════════
+const state = {
+  emotion: 'curious',
+  topics: [],
+  suggest: [],
+  moments: 0,
+  breakthroughs: 0,
+  pulseState: {curious:0,confused:0,reflecting:0,connecting:0,mastering:0},
+};
+
+// ══════════════════════════════════════════════════════════════
+// UI UPDATES
+// ══════════════════════════════════════════════════════════════
+function updateAllUI(){
+  const lit=N.filter(n=>!n.hidden).length;
+  // Chips
+  document.getElementById('chipNodes').textContent=lit;
+  document.getElementById('chipBreaks').textContent=state.breakthroughs;
+  // Frontier
+  let frontier=FRONTIERS[0];
+  for(const f of FRONTIERS){if(lit>=f.threshold)frontier=f;}
+  const nextIdx=FRONTIERS.indexOf(frontier)+1;
+  const next=FRONTIERS[nextIdx]||frontier;
+  const pct=Math.min(99,Math.round((lit/next.threshold)*100));
+  document.getElementById('chipFrontier').textContent=next.icon+' '+next.name+' →';
+  // Explore overlay
+  document.getElementById('expTopics').textContent=lit;
+  document.getElementById('expBreaks').textContent=state.breakthroughs;
+  document.getElementById('expFrontier').textContent=next.name;
+  document.getElementById('expFrontierBar').style.width=pct+'%';
+  document.getElementById('expFrontierPct').textContent=pct+'% Ready';
+  // Connect overlay
+  document.getElementById('conNodes').textContent=lit;
+  const links=CONNS.filter(([a,b])=>!N.find(n=>n.id===a)?.hidden&&!N.find(n=>n.id===b)?.hidden).length;
+  document.getElementById('conLinks').textContent=links;
+  // Me overlay
+  document.getElementById('meNodes').textContent=lit;
+  document.getElementById('meMoments').textContent=state.moments;
+  // Pulse
+  const ps=state.pulseState;
+  const total=Object.values(ps).reduce((a,b)=>a+b,0)||1;
+  const pcts={};
+  for(const[k,v]of Object.entries(ps))pcts[k]=Math.round(v/total*100);
+  const dominant=Object.entries(ps).sort((a,b)=>b[1]-a[1])[0]?.[0]||'curious';
+  const domPct=pcts[dominant]||0;
+  document.getElementById('mePulsePct').textContent=domPct+'%';
+  document.getElementById('mePulseLabel').textContent=dominant.charAt(0).toUpperCase()+dominant.slice(1);
+  document.getElementById('mePulseArc').setAttribute('stroke-dashoffset',175.9*(1-domPct/100));
+  document.getElementById('mePctConnect').textContent=(pcts.connecting||0)+'%';
+  document.getElementById('mePctReflect').textContent=(pcts.reflecting||0)+'%';
+  document.getElementById('mePctCurious').textContent=(pcts.curious||0)+'%';
+  document.getElementById('mePctConfused').textContent=(pcts.confused||0)+'%';
+  document.getElementById('mePctMaster').textContent=(pcts.mastering||0)+'%';
+  // Growth
+  const understand=Math.min(99,Math.round(lit/N.length*100));
+  const curiosity=Math.min(99,state.moments*5+2);
+  const connections=Math.min(99,links*3);
+  document.getElementById('growUnderstand').textContent='↑ '+understand+'%';
+  document.getElementById('growCuriosity').textContent='↑ '+curiosity+'%';
+  document.getElementById('growConnections').textContent='↑ '+connections+'%';
+  document.getElementById('growUnderstandBar').style.width=understand+'%';
+  document.getElementById('growCuriosityBar').style.width=curiosity+'%';
+  document.getElementById('growConnectionsBar').style.width=connections+'%';
+}
+
+function flashThinkingState(emotion){
+  const map={curious:0,confused:1,reflecting:2,connecting:3,mastering:4};
+  const cols={curious:'#38bdf8',confused:'#f87171',reflecting:'#4ade80',connecting:'#fbbf24',mastering:'#e2e8f0'};
+  const idx=map[emotion];
+  if(idx===undefined)return;
+  const el=document.getElementById('thk'+idx);
+  if(!el)return;
+  el.style.transform='scale(1.35)';
+  el.style.boxShadow=`0 0 14px ${cols[emotion]}`;
+  setTimeout(()=>{el.style.transform='';el.style.boxShadow='';},1800);
+}
+
+function showToast(text,sub,col){
+  const t=document.getElementById('growToast');
+  const tx=document.getElementById('toastText');
+  const ts=document.getElementById('toastSub');
+  tx.textContent=text;
+  ts.textContent=sub||'';
+  if(col)tx.style.color=col;
+  t.classList.add('show');
+  clearTimeout(window._toastTimer);
+  window._toastTimer=setTimeout(()=>{t.classList.remove('show');tx.style.color='';},3500);
+}
+
+// ══════════════════════════════════════════════════════════════
+// NODE UNLOCKING
+// ══════════════════════════════════════════════════════════════
+function highlightNodes(topics){
+  let newNodes=[];
+  topics.forEach(topic=>{
+    const node=N.find(n=>n.id===topic);
+    if(node&&node.hidden){
+      node.hidden=false;
+      node.mas=Math.min(100,(node.mas||0)+5);
+      newNodes.push(node);
+    } else if(node){
+      node.mas=Math.min(100,(node.mas||0)+2);
+    }
+  });
+  if(newNodes.length>0){
+    const n=newNodes[0];
+    showToast('🌟 '+n.label+' unlocked!','Your galaxy grew',n.col);
+    // Check cross-domain breakthrough
+    const clusters={
+      science:['phys','chem','bio','math','geo','env','neuro','eng'],
+      space:['astro','bh','st','cosmo','rel','grav'],
+      humanities:['hist','lit','art','music','film','ren','rev','anth','arch','cul'],
+      social:['psych','soc','pol','law','eth','know','ling','crim'],
+      tech:['tech','ai'],economics:['econ','biz','ind'],
+    };
+    const hit=new Set();
+    topics.forEach(t=>{for(const[c,ids]of Object.entries(clusters)){if(ids.includes(t))hit.add(c);}});
+    if(hit.size>=2){
+      state.breakthroughs++;
+      setTimeout(()=>showToast('⚡ Cross-Domain Breakthrough!','Rare connection discovered','#fbbf24'),1000);
+    }
+  }
+}
+
+function extractTopics(text){
+  const lower=text.toLowerCase();
+  const found=[];
+  for(const[kw,ids]of Object.entries(topicMap)){
+    if(lower.includes(kw))found.push(...ids);
+  }
+  return [...new Set(found)];
+}
+
+// ══════════════════════════════════════════════════════════════
+// CHAT
+// ══════════════════════════════════════════════════════════════
+let chatExpanded=false;
+const chatSheet=document.getElementById('chatSheet');
+
+function toggleChat(){
+  chatExpanded=!chatExpanded;
+  chatSheet.classList.toggle('expanded',chatExpanded);
+  if(chatExpanded)document.getElementById('chatInput').focus();
+}
+
+function addMsg(text,role){
+  const msgs=document.getElementById('chatMsgs');
+  const d=document.createElement('div');d.className='msg '+role;
+  const b=document.createElement('div');b.className='bubble';
+  b.textContent=text;d.appendChild(b);msgs.appendChild(d);
+  msgs.scrollTop=msgs.scrollHeight;
+  return b;
+}
+
+async function sendChat(text){
+  if(!text.trim())return;
+  document.getElementById('chatInput').value='';
+  document.getElementById('chatSend').disabled=true;
+  addMsg(text,'user');
+  // Expand if not already
+  if(!chatExpanded)toggleChat();
+  // Typing indicator
+  const typing=addMsg('...','ai');
+  typing.style.opacity='.5';
+
+  try{
+    const res=await fetch('/api/chat',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({message:text,userId:window._userId||'demo-user'})
+    });
+    const data=await res.json();
+    typing.textContent=data.reply||'Ask me that again?';
+    typing.style.opacity='1';
+
+    // Process response
+    state.emotion=data.emotion||'curious';
+    state.topics=data.topics||[];
+    state.suggest=data.suggest||[];
+    state.moments++;
+    if(state.pulseState[state.emotion]!==undefined)state.pulseState[state.emotion]++;
+
+    // Unlock nodes
+    highlightNodes(state.topics);
+    flashThinkingState(state.emotion);
+    updateAllUI();
+    scheduleSave();
+  }catch(e){
+    typing.textContent='Something interrupted my thinking.\n\nAsk me that again?';
+    typing.style.opacity='1';
+  }
+  document.getElementById('chatSend').disabled=false;
+}
+
+document.getElementById('chatSend').addEventListener('click',()=>{
+  sendChat(document.getElementById('chatInput').value);
+});
+document.getElementById('chatInput').addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat(e.target.value);}
+});
+
+// ══════════════════════════════════════════════════════════════
+// NODE PANEL
+// ══════════════════════════════════════════════════════════════
+function openNodePanel(node){
+  expandedNode=node;
+  const col=node.col||'#38bdf8';
+  const mas=node.mas||0;
+  const masLabel=mas>=80?'Mastering':mas>=50?'Connecting':mas>=25?'Exploring':'Starting';
+  const circ=138.2;
+  const offset=circ-(mas/100)*circ;
+
+  // Connections
+  const conns=CONNS
+    .filter(c=>c[0]===node.id||c[1]===node.id)
+    .map(c=>c[0]===node.id?c[1]:c[0])
+    .map(id=>N.find(n=>n.id===id))
+    .filter(n=>n&&!n.hidden)
+    .slice(0,6);
+
+  const connHTML=conns.map(n=>`
+    <span style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;
+      border:1px solid ${n.col}50;background:${n.col}15;color:${n.col};">
+      ${n.label}
+    </span>`).join('');
+
+  // Questions from chat
+  const bubbles=[...document.querySelectorAll('#chatMsgs .msg.user .bubble')];
+  const questions=bubbles.map(b=>b.textContent.trim()).filter(q=>q.length>8&&q.length<80).slice(-3);
+  const qHTML=questions.length>0
+    ?questions.map(q=>`<div style="font-size:12px;color:rgba(255,255,255,.5);padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);display:flex;gap:8px;"><span style="color:${col};opacity:.6;font-size:10px;margin-top:2px;">?</span>${q}</div>`).join('')
+    :`<div style="font-size:12px;color:rgba(255,255,255,.3);padding:6px 0;">Ask me about ${node.label} to build your curiosity trail.</div>`;
+
+  document.getElementById('nodePanelContent').innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="width:38px;height:38px;border-radius:50%;
+          background:radial-gradient(circle at 35% 35%,${col}ff,${col}cc);
+          box-shadow:0 0 18px ${col}60;flex-shrink:0;"></div>
+        <div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;color:#f0f4ff;line-height:1;">${node.label}</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:3px;letter-spacing:1px;text-transform:uppercase;">${node.sub||''}</div>
+        </div>
+      </div>
+      <button onclick="closeNodePanel()" style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.4);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;">✕</button>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,.06);">
+      <div style="position:relative;width:64px;height:64px;flex-shrink:0;">
+        <svg width="64" height="64" viewBox="0 0 56 56" style="transform:rotate(-90deg);">
+          <circle cx="28" cy="28" r="22" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="5"/>
+          <circle cx="28" cy="28" r="22" fill="none" stroke="${col}" stroke-width="5"
+            stroke-dasharray="${circ}" stroke-dashoffset="${offset}" stroke-linecap="round"/>
+        </svg>
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+          <div style="font-size:14px;font-weight:800;color:${col};">${mas}%</div>
+          <div style="font-size:7px;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:.05em;">depth</div>
+        </div>
+      </div>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:600;color:#fff;margin-bottom:3px;">${masLabel}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.3);margin-bottom:8px;">${conns.length} connection${conns.length!==1?'s':''} discovered</div>
+        <div style="height:2px;background:rgba(255,255,255,.06);border-radius:1px;overflow:hidden;">
+          <div style="width:${mas}%;height:100%;background:linear-gradient(90deg,${col},${col}aa);border-radius:1px;"></div>
+        </div>
+      </div>
+    </div>
+
+    ${conns.length>0?`
+    <div style="margin-bottom:14px;">
+      <div style="font-size:9px;font-weight:600;color:rgba(255,255,255,.2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:7px;">Connected to</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;">${connHTML}</div>
+    </div>`:''}
+
+    <div style="margin-bottom:14px;">
+      <div style="font-size:9px;font-weight:600;color:rgba(255,255,255,.2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;">Curiosity trail</div>
+      ${qHTML}
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+      <div style="padding:10px 12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;">
+        <div style="font-size:9px;color:rgba(255,255,255,.2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">Pulse</div>
+        <div style="font-size:13px;font-weight:600;color:${col};">${state.emotion.charAt(0).toUpperCase()+state.emotion.slice(1)}</div>
+      </div>
+      <div style="padding:10px 12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;">
+        <div style="font-size:9px;color:rgba(255,255,255,.2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">Growth</div>
+        <div style="font-size:13px;font-weight:600;color:#4ade80;">↑ ${Math.max(1,Math.round(mas/8))}%</div>
+      </div>
+    </div>
+
+    <button onclick="closeNodePanel();setTimeout(()=>{document.getElementById('chatInput').value='Tell me more about ${node.label}';document.getElementById('chatInput').focus();if(!chatExpanded)toggleChat();},300);" 
+      style="width:100%;padding:11px;background:${col}18;border:1px solid ${col}35;border-radius:12px;color:${col};font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:.02em;">
+      Explore ${node.label} →
+    </button>
+  `;
+
+  document.getElementById('nodePanel').classList.add('open');
+  document.getElementById('nodePanelBackdrop').classList.add('open');
+}
+
+function closeNodePanel(){
+  expandedNode=null;
+  document.getElementById('nodePanel').classList.remove('open');
+  document.getElementById('nodePanelBackdrop').classList.remove('open');
+}
+
+// ══════════════════════════════════════════════════════════════
+// HIT DETECTION
+// ══════════════════════════════════════════════════════════════
+function getNodeAt(mx,my){
+  const cx=hitCanvas.width/2,cy=hitCanvas.height/2;
+  let best=null,bestDist=Infinity;
+  N.forEach(n=>{
+    if(n.hidden&&n.id!=='you')return;
+    const nx=cx+Math.cos(n.ang+ROT)*n.orb;
+    const ny=cy+Math.sin(n.ang+ROT)*n.orb*(n.tilt||.52);
+    const dist=Math.hypot(mx-nx,my-ny);
+    if(dist<n.r+24&&dist<bestDist){bestDist=dist;best=n;}
+  });
+  return best;
+}
+
+hitCanvas.addEventListener('click',e=>{
+  const rect=hitCanvas.getBoundingClientRect();
+  const n=getNodeAt(e.clientX-rect.left,e.clientY-rect.top);
+  if(n&&n.id!=='you'){
+    if(expandedNode&&expandedNode.id===n.id)closeNodePanel();
+    else openNodePanel(n);
+  } else if(!n){
+    closeNodePanel();
+  }
+});
+
+// Touch support
+let touchStart={x:0,y:0,t:0};
+hitCanvas.addEventListener('touchstart',e=>{
+  touchStart={x:e.touches[0].clientX,y:e.touches[0].clientY,t:Date.now()};
+},{passive:true});
+hitCanvas.addEventListener('touchend',e=>{
+  const dx=Math.abs(e.changedTouches[0].clientX-touchStart.x);
+  const dy=Math.abs(e.changedTouches[0].clientY-touchStart.y);
+  const dt=Date.now()-touchStart.t;
+  if(dx<10&&dy<10&&dt<300){
+    const rect=hitCanvas.getBoundingClientRect();
+    const n=getNodeAt(e.changedTouches[0].clientX-rect.left,e.changedTouches[0].clientY-rect.top);
+    if(n&&n.id!=='you'){
+      if(expandedNode&&expandedNode.id===n.id)closeNodePanel();
+      else openNodePanel(n);
+    } else if(!n){
+      closeNodePanel();
+    }
+  }
+},{passive:true});
+
+// ══════════════════════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════════════════════
+function setTab(el,tab){
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  if(tab!=='journey')openOverlay(tab);
+}
+
+function openOverlay(name){
+  document.getElementById('overlay'+name.charAt(0).toUpperCase()+name.slice(1))?.classList.add('open');
+}
+
+function closeOverlay(name){
+  document.getElementById('overlay'+name.charAt(0).toUpperCase()+name.slice(1))?.classList.remove('open');
+  // Reset nav to journey
+  document.querySelectorAll('.nav-tab').forEach((t,i)=>{t.classList.toggle('active',i===0);});
+}
+
+// ══════════════════════════════════════════════════════════════
+// PERSISTENCE
+// ══════════════════════════════════════════════════════════════
+let saveTimer=null;
+function scheduleSave(){
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(saveToKV,2000);
+}
+
+async function saveToKV(){
+  try{
+    await fetch('/api/galaxy',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        nodes:N.map(n=>({id:n.id,hidden:n.hidden||false,mas:n.mas||0})),
+        state:{moments:state.moments,breakthroughs:state.breakthroughs,pulseState:state.pulseState},
+      })
+    });
+  }catch(e){}
+}
+
+async function loadFromKV(){
+  try{
+    const res=await fetch('/api/galaxy');
+    if(!res.ok)return;
+    const{galaxy}=await res.json();
+    if(!galaxy||!galaxy.nodes)return;
+    galaxy.nodes.forEach(s=>{
+      const n=N.find(n=>n.id===s.id);
+      if(n){n.hidden=s.hidden;n.mas=s.mas||0;}
+    });
+    if(galaxy.state){
+      state.moments=galaxy.state.moments||0;
+      state.breakthroughs=galaxy.state.breakthroughs||0;
+      if(galaxy.state.pulseState)Object.assign(state.pulseState,galaxy.state.pulseState);
+    }
+    updateAllUI();
+  }catch(e){}
+}
+
+function resetChat(){
+  const msgs=document.getElementById('chatMsgs');
+  msgs.innerHTML='<div class="msg ai"><div class="bubble">Hey! What are you curious about today? 🌌</div></div>';
+  closeOverlay('me');
+}
+
+function resetGalaxy(){
+  N.forEach(n=>{if(n.id!=='you'){n.hidden=true;n.mas=0;}});
+  state.moments=0;state.breakthroughs=0;
+  Object.keys(state.pulseState).forEach(k=>state.pulseState[k]=0);
+  state.emotion='curious';
+  resetChat();
+  updateAllUI();
+  scheduleSave();
+}
+
+// ══════════════════════════════════════════════════════════════
+// USER
+// ══════════════════════════════════════════════════════════════
+async function loadUser(){
+  try{
+    const res=await fetch('/api/user');
+    const user=await res.json();
+    if(user.firstName&&user.firstName!=='Explorer'){
+      document.getElementById('mAvatar').textContent=user.firstName[0].toUpperCase();
+      document.getElementById('meTitle').textContent=user.firstName+"'s Galaxy";
+    }
+    if(user.userId)window._userId=user.userId;
+  }catch(e){}
+}
+
+// ══════════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════════
+drawBg();
+loop();
+updateAllUI();
+
+// Hide loading screen
+setTimeout(()=>{
+  document.getElementById('loadingScreen').classList.add('hide');
+  setTimeout(()=>{document.getElementById('loadingScreen').style.display='none';},800);
+},1200);
+
+// Load data
+setTimeout(loadUser,500);
+setTimeout(loadFromKV,800);
+</script>
+</body>
+</html>
