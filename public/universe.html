@@ -4256,13 +4256,6 @@ function checkBreakthrough(topics, suggest) {
   return hitClusters.size >= 2; // cross-domain = spans 2+ clusters
 }
 
-// ── MAIN EVENT HANDLER — called after every AI response ───────
-window.onRestoreResponse = function(data) {
-  document.title = '✅ ' + (data.emotion || 'fired');
-  try {
-  console.log('🌌 onRestoreResponse fired', data);
-  const { topics = [], suggest = [], emotion = 'curious' } = data;
-  const s = window._pulseState;
 
   // Increment emotion counter
   if (s[emotion] !== undefined) s[emotion]++;
@@ -4457,21 +4450,7 @@ function updateBottomStats() {
   } catch(e) {}
 }
 
-window.onRestoreResponse = function(data) {
-  try {
-    const s = window._pulseState;
-    const emotion = data.emotion || 'curious';
-    if (s[emotion] !== undefined) s[emotion]++;
-    s.moments++;
-    s.totalConns += Math.max(0, (data.topics || []).length - 1);
-    updatePulseUI();
-    updateGrowthUI();
-    updateBottomStats();
-    if (typeof updateFrontier === 'function') updateFrontier();
-    if (typeof scheduleSave === 'function') scheduleSave();
-  } catch(e) {
-    console.log('onRestoreResponse error:', e.message);
-  }
+
 // ══════════════════════════════════════════════════════════════
 // RESTORE LIVE UI SYSTEM — paste just before </script>
 // ══════════════════════════════════════════════════════════════
