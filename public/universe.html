@@ -416,6 +416,152 @@ function addMsg(text, role) {
 async function sendChat(text) {
   if (!text.trim()) return;
   document.getElementById('chatInput').value = '';
+<!-- ══════════════════════════════════════════════════════════
+     FLOATING CHAT HTML
+     Replace the entire #chatPanel div with this
+     ══════════════════════════════════════════════════════════ -->
+
+<!-- Chat backdrop -->
+<div id="chatBackdrop" onclick="closeChat()"></div>
+
+<!-- Floating chat button -->
+<div id="chatBtn" onclick="toggleChatSheet()">🎓
+  <div id="chatBtnBadge">1</div>
+</div>
+
+<!-- Chat sheet -->
+<div id="chatSheet">
+  <div class="cs-handle" onclick="closeChat()"><div class="cs-handle-bar"></div></div>
+  <div class="cs-head">
+    <div class="cs-avatar">🎓</div>
+    <div style="flex:1;">
+      <div class="cs-title">Restore Guide</div>
+      <div class="cs-status"><div class="cs-dot"></div> Online</div>
+    </div>
+    <button class="cs-close" onclick="closeChat()">✕</button>
+  </div>
+  <div id="chatMsgs">
+    <div class="msg ai"><div class="bubble">Hey! What are you curious about today? 🌌</div></div>
+  </div>
+  <div class="thk-row">
+    <div class="thk-item">
+      <div class="thk-icon" style="border-color:#38bdf8;color:#38bdf8;" id="thk0">💙</div>
+      <div class="thk-label" style="color:#38bdf8;">Curious</div>
+    </div>
+    <div class="thk-arrow">→</div>
+    <div class="thk-item">
+      <div class="thk-icon" style="border-color:#f87171;color:#f87171;" id="thk1">❤️</div>
+      <div class="thk-label" style="color:#f87171;">Confused</div>
+    </div>
+    <div class="thk-arrow">→</div>
+    <div class="thk-item">
+      <div class="thk-icon" style="border-color:#4ade80;color:#4ade80;" id="thk2">💚</div>
+      <div class="thk-label" style="color:#4ade80;">Reflecting</div>
+    </div>
+    <div class="thk-arrow">→</div>
+    <div class="thk-item">
+      <div class="thk-icon" style="border-color:#fbbf24;color:#fbbf24;" id="thk3">💛</div>
+      <div class="thk-label" style="color:#fbbf24;">Connecting</div>
+    </div>
+    <div class="thk-arrow">→</div>
+    <div class="thk-item">
+      <div class="thk-icon" style="border-color:#e2e8f0;color:#e2e8f0;" id="thk4">🤍</div>
+      <div class="thk-label" style="color:#e2e8f0;">Mastering</div>
+    </div>
+  </div>
+  <div class="cs-input-row">
+    <input id="chatInput" placeholder="Ask anything…" autocomplete="off"/>
+    <button id="chatSend">➤</button>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     FLOATING CHAT JS
+     Replace the existing chat JS section with this
+     Find: // ══ CHAT ══ and replace down to scheduleSave
+     ══════════════════════════════════════════════════════════ -->
+<script>
+// ── CHAT SHEET ────────────────────────────────────────────────
+let chatOpen = false;
+
+function toggleChatSheet() {
+  chatOpen ? closeChat() : openChat();
+}
+
+function openChat() {
+  chatOpen = true;
+  document.getElementById('chatSheet').classList.add('open');
+  document.getElementById('chatBackdrop').classList.add('open');
+  document.getElementById('chatBtn').classList.add('active');
+  document.getElementById('chatBtnBadge').classList.remove('show');
+  setTimeout(() => document.getElementById('chatInput').focus(), 350);
+}
+
+function closeChat() {
+  chatOpen = false;
+  document.getElementById('chatSheet').classList.remove('open');
+  document.getElementById('chatBackdrop').classList.remove('open');
+  document.getElementById('chatBtn').classList.remove('active');
+}
+
+// ── DRAGGABLE CHAT BUTTON ─────────────────────────────────────
+(function() {
+  const btn = document.getElementById('chatBtn');
+  let dragging = false;
+  let startX, startY, startBX, startBY;
+  let moved = false;
+
+  function getPos() {
+    const rect = btn.getBoundingClientRect();
+    return { x: rect.left, y: rect.top };
+  }
+
+  btn.addEventListener('touchstart', e => {
+    const t = e.touches[0];
+    startX = t.clientX; startY = t.clientY;
+    const pos = getPos();
+    startBX = pos.x; startBY = pos.y;
+    dragging = true; moved = false;
+  }, { passive: true });
+
+  window.addEventListener('touchmove', e => {
+    if (!dragging) return;
+    const t = e.touches[0];
+    const dx = t.clientX - startX;
+    const dy = t.clientY - startY;
+    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) moved = true;
+    if (!moved) return;
+    const newX = startBX + dx;
+    const newY = startBY + dy;
+    const W = window.innerWidth, H = window.innerHeight;
+    const clamped = {
+      x: Math.max(8, Math.min(W - 60, newX)),
+      y: Math.max(60, Math.min(H - 130, newY))
+    };
+    btn.style.left = clamped.x + 'px';
+    btn.style.top = clamped.y + 'px';
+    btn.style.right = 'auto';
+    btn.style.bottom = 'auto';
+  }, { passive: true });
+
+  window.addEventListener('touchend', () => { dragging = false; });
+})();
+
+// ── MESSAGES ──────────────────────────────────────────────────
+function addMsg(text, role) {
+  const msgs = document.getElementById('chatMsgs');
+  const d = document.createElement('div'); d.className = 'msg ' + role;
+  const b = document.createElement('div'); b.className = 'bubble';
+  b.textContent = text; d.appendChild(b); msgs.appendChild(d);
+  msgs.scrollTop = msgs.scrollHeight;
+  return b;
+}
+
+// ── SEND ──────────────────────────────────────────────────────
+async function sendChat(text) {
+  if (!text.trim()) return;
+  document.getElementById('chatInput').value = '';
   document.getElementById('chatSend').disabled = true;
   if (!chatOpen) openChat();
   addMsg(text, 'user');
@@ -452,6 +598,8 @@ document.getElementById('chatSend').addEventListener('click', () => sendChat(doc
 document.getElementById('chatInput').addEventListener('keydown', e => {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(e.target.value); }
 });
+</script>
+
 </script>
 
 
