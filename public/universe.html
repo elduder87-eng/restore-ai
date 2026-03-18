@@ -4556,6 +4556,8 @@ function updateTopBoxes() {
 }
 
 window.onRestoreResponse = function(data) {
+  document.getElementById('pulsePercent').textContent = '99%';
+  document.getElementById('pulseLabel').textContent = 'WORKING';
   try {
     window.restoreState.emotion  = data.emotion  || 'curious';
     window.restoreState.topics   = data.topics   || [];
