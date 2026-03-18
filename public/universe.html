@@ -1138,45 +1138,372 @@ function openNodePanel(node){
           <div style="width:${mas}%;height:100%;background:linear-gradient(90deg,${col},${col}aa);border-radius:1px;"></div>
         </div>
       </div>
+// ══════════════════════════════════════════════════════════════
+// HYBRID NODE INTERACTION SYSTEM
+// Replace everything from openNodePanel to the end of hit detection
+// ══════════════════════════════════════════════════════════════
+
+// ── STATE ─────────────────────────────────────────────────────
+let expandedNode = null;
+let galaxyPaused = false;
+let pausedROT = 0;
+
+// ── CREATE CARD ELEMENT ───────────────────────────────────────
+const nodeCard = document.createElement('div');
+nodeCard.id = 'nodeCard';
+nodeCard.style.cssText = `
+  position:fixed;
+  z-index:500;
+  width:min(280px, calc(100vw - 40px));
+  background:rgba(5,8,18,0.97);
+  border-radius:20px;
+  padding:18px;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.25s ease, transform 0.25s cubic-bezier(0.175,0.885,0.32,1.275);
+  transform:scale(0.88);
+  backdrop-filter:blur(24px);
+  box-shadow:0 20px 60px rgba(0,0,0,0.8);
+  max-height:70vh;
+  overflow-y:auto;
+  scrollbar-width:none;
+`;
+nodeCard.addEventListener('scroll', e => e.stopPropagation());
+document.body.appendChild(nodeCard);
+
+// ── SVG CONNECTOR LINE ────────────────────────────────────────
+const connSVG = document.createElement('canvas');
+connSVG.id = 'nodeConnLine';
+connSVG.style.cssText = `
+  position:fixed;inset:0;
+  z-index:499;
+  pointer-events:none;
+  opacity:0;
+  transition:opacity 0.25s;
+`;
+document.body.appendChild(connSVG);
+
+// ── BACKDROP ──────────────────────────────────────────────────
+const cardBackdrop = document.createElement('div');
+cardBackdrop.id = 'cardBackdrop';
+cardBackdrop.style.cssText = `
+  position:fixed;inset:0;
+  z-index:498;
+  pointer-events:none;
+`;
+cardBackdrop.addEventListener('click', closeNodePanel);
+document.body.appendChild(cardBackdrop);
+
+// ── DRAW CONNECTOR LINE ───────────────────────────────────────
+function drawConnectorLine(nx, ny, cardRect, col) {
+  const c = connSVG;
+  c.width = window.innerWidth;
+  c.height = window.innerHeight;
+  const ctx = c.getContext('2d');
+  ctx.clearRect(0, 0, c.width, c.height);
+
+  // Card attachment point
+  const cardCX = cardRect.left + cardRect.width / 2;
+  const cardCY = cardRect.top + cardRect.height / 2;
+
+  // Find closest edge of card to node
+  let cx = cardRect.left + cardRect.width / 2;
+  let cy = cardRect.top + cardRect.height / 2;
+  if (nx < cardRect.left) cx = cardRect.left;
+  else if (nx > cardRect.right) cx = cardRect.right;
+  if (ny < cardRect.top) cy = cardRect.top;
+  else if (ny > cardRect.bottom) cy = cardRect.bottom;
+
+  // Draw glowing line
+  const grad = ctx.createLinearGradient(nx, ny, cx, cy);
+  grad.addColorStop(0, col + 'cc');
+  grad.addColorStop(1, col + '22');
+  ctx.beginPath();
+  ctx.moveTo(nx, ny);
+  ctx.lineTo(cx, cy);
+  ctx.strokeStyle = grad;
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // Dot at node
+  ctx.beginPath();
+  ctx.arc(nx, ny, 4, 0, Math.PI * 2);
+  ctx.fillStyle = col;
+  ctx.fill();
+}
+
+// ── SMART CARD POSITIONING ────────────────────────────────────
+function getCardPosition(nx, ny, cardW, cardH) {
+  const W = window.innerWidth, H = window.innerHeight;
+  const margin = 20;
+  const headerH = 56, navH = 64;
+
+  let left, top;
+
+  // Prefer right side, fallback to left
+  if (nx + cardW / 2 + margin + cardW < W) {
+    left = nx + 30;
+  } else {
+    left = nx - cardW - 30;
+  }
+
+  // Prefer centered vertically on node
+  top = ny - cardH / 2;
+
+  // Clamp to screen
+  left = Math.max(margin, Math.min(W - cardW - margin, left));
+  top = Math.max(headerH + margin, Math.min(H - navH - cardH - margin, top));
+
+  return { left, top };
+}
+
+// ── BUILD CARD HTML ───────────────────────────────────────────
+function buildCardHTML(node) {
+  const col = node.col || '#38bdf8';
+  const mas = node.mas || 0;
+  const masLabel = mas >= 80 ? 'Mastering' : mas >= 50 ? 'Connecting' : mas >= 25 ? 'Exploring' : 'Starting';
+  const circ = 138.2;
+  const offset = circ - (mas / 100) * circ;
+
+  // Get connections (only unlocked nodes)
+  const conns = CONNS
+    .filter(c => c[0] === node.id || c[1] === node.id)
+    .map(c => c[0] === node.id ? c[1] : c[0])
+    .map(id => N.find(n => n.id === id))
+    .filter(n => n && !n.hidden)
+    .slice(0, 8);
+
+  const connHTML = conns.length > 0 ? conns.map(n => `
+    <span onclick="navigateToNode('${n.id}')" style="
+      padding:3px 10px;border-radius:20px;font-size:10px;font-weight:600;
+      border:1px solid ${n.col}50;background:${n.col}15;color:${n.col};
+      cursor:pointer;white-space:nowrap;
+      transition:background 0.15s;display:inline-block;
+    " onmouseover="this.style.background='${n.col}30'"
+       onmouseout="this.style.background='${n.col}15'">
+      ${n.label} →
+    </span>`).join('') : `<span style="font-size:11px;color:rgba(255,255,255,.3);">Explore more to discover connections.</span>`;
+
+  // Questions from chat
+  const bubbles = [...document.querySelectorAll('#chatMsgs .msg.user .bubble')];
+  const questions = bubbles.map(b => b.textContent.trim()).filter(q => q.length > 8 && q.length < 80).slice(-3);
+  const qHTML = questions.length > 0
+    ? questions.map(q => `
+      <div style="font-size:11px;color:rgba(255,255,255,.45);padding:5px 0;
+        border-bottom:1px solid rgba(255,255,255,.04);display:flex;gap:7px;line-height:1.5;">
+        <span style="color:${col};opacity:.5;font-size:9px;margin-top:2px;flex-shrink:0;">?</span>${q}
+      </div>`).join('')
+    : `<div style="font-size:11px;color:rgba(255,255,255,.25);padding:5px 0;">Ask me about ${node.label} to build your trail.</div>`;
+
+  return `
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:34px;height:34px;border-radius:50%;flex-shrink:0;
+          background:radial-gradient(circle at 35% 35%,${col}ff,${col}cc);
+          box-shadow:0 0 14px ${col}60;"></div>
+        <div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;color:#f0f4ff;line-height:1;">${node.label}</div>
+          <div style="font-size:9px;color:rgba(255,255,255,.25);margin-top:2px;letter-spacing:1px;text-transform:uppercase;">${node.sub || ''}</div>
+        </div>
+      </div>
+      <button onclick="closeNodePanel()" style="
+        width:24px;height:24px;border-radius:50%;flex-shrink:0;
+        background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);
+        color:rgba(255,255,255,.35);font-size:11px;cursor:pointer;
+        display:flex;align-items:center;justify-content:center;font-family:inherit;">✕</button>
     </div>
 
-    ${conns.length>0?`
-    <div style="margin-bottom:14px;">
-      <div style="font-size:9px;font-weight:600;color:rgba(255,255,255,.2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:7px;">Connected to</div>
-      <div style="display:flex;flex-wrap:wrap;gap:5px;">${connHTML}</div>
-    </div>`:''}
+    <!-- Mastery -->
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;
+      padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,.06);">
+      <div style="position:relative;width:54px;height:54px;flex-shrink:0;">
+        <svg width="54" height="54" viewBox="0 0 56 56" style="transform:rotate(-90deg);">
+          <circle cx="28" cy="28" r="22" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="5"/>
+          <circle cx="28" cy="28" r="22" fill="none" stroke="${col}" stroke-width="5"
+            stroke-dasharray="${circ}" stroke-dashoffset="${offset}" stroke-linecap="round"/>
+        </svg>
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+          <div style="font-size:13px;font-weight:800;color:${col};">${mas}%</div>
+          <div style="font-size:7px;color:rgba(255,255,255,.2);text-transform:uppercase;letter-spacing:.04em;">depth</div>
+        </div>
+      </div>
+      <div style="flex:1;">
+        <div style="font-size:12px;font-weight:600;color:#fff;margin-bottom:2px;">${masLabel}</div>
+        <div style="font-size:10px;color:rgba(255,255,255,.25);margin-bottom:7px;">${conns.length} connection${conns.length !== 1 ? 's' : ''} found</div>
+        <div style="height:2px;background:rgba(255,255,255,.06);border-radius:1px;overflow:hidden;">
+          <div style="width:${mas}%;height:100%;background:linear-gradient(90deg,${col},${col}aa);border-radius:1px;"></div>
+        </div>
+      </div>
+    </div>
 
-    <div style="margin-bottom:14px;">
-      <div style="font-size:9px;font-weight:600;color:rgba(255,255,255,.2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;">Curiosity trail</div>
+    <!-- Connections -->
+    <div style="margin-bottom:12px;">
+      <div style="font-size:8px;font-weight:600;color:rgba(255,255,255,.2);
+        text-transform:uppercase;letter-spacing:.1em;margin-bottom:7px;">Connections — tap to explore</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;">${connHTML}</div>
+    </div>
+
+    <!-- Curiosity trail -->
+    <div style="margin-bottom:12px;">
+      <div style="font-size:8px;font-weight:600;color:rgba(255,255,255,.2);
+        text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px;">Curiosity trail</div>
       ${qHTML}
     </div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
-      <div style="padding:10px 12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;">
-        <div style="font-size:9px;color:rgba(255,255,255,.2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">Pulse</div>
-        <div style="font-size:13px;font-weight:600;color:${col};">${state.emotion.charAt(0).toUpperCase()+state.emotion.slice(1)}</div>
+    <!-- Pulse + Growth -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:12px;">
+      <div style="padding:9px 11px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:11px;">
+        <div style="font-size:8px;color:rgba(255,255,255,.2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px;">Pulse</div>
+        <div style="font-size:12px;font-weight:600;color:${col};">${state.emotion.charAt(0).toUpperCase() + state.emotion.slice(1)}</div>
       </div>
-      <div style="padding:10px 12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;">
-        <div style="font-size:9px;color:rgba(255,255,255,.2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">Growth</div>
-        <div style="font-size:13px;font-weight:600;color:#4ade80;">↑ ${Math.max(1,Math.round(mas/8))}%</div>
+      <div style="padding:9px 11px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:11px;">
+        <div style="font-size:8px;color:rgba(255,255,255,.2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px;">Growth</div>
+        <div style="font-size:12px;font-weight:600;color:#4ade80;">↑ ${Math.max(1, Math.round(mas / 8))}%</div>
       </div>
     </div>
 
-    <button onclick="closeNodePanel();setTimeout(()=>{document.getElementById('chatInput').value='Tell me more about ${node.label}';document.getElementById('chatInput').focus();if(!chatExpanded)toggleChat();},300);" 
-      style="width:100%;padding:11px;background:${col}18;border:1px solid ${col}35;border-radius:12px;color:${col};font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:.02em;">
+    <!-- Explore button -->
+    <button onclick="closeNodePanel();setTimeout(()=>{
+      document.getElementById('chatInput').value='Tell me more about ${node.label}';
+      document.getElementById('chatInput').focus();
+      if(!chatExpanded)toggleChat();
+    },300);" style="
+      width:100%;padding:10px;
+      background:${col}18;border:1px solid ${col}35;
+      border-radius:11px;color:${col};
+      font-size:11px;font-weight:600;cursor:pointer;
+      font-family:'Inter',sans-serif;letter-spacing:.02em;">
       Explore ${node.label} →
     </button>
   `;
-
-  document.getElementById('nodePanel').classList.add('open');
-  document.getElementById('nodePanelBackdrop').classList.add('open');
 }
 
-function closeNodePanel(){
-  expandedNode=null;
-  document.getElementById('nodePanel').classList.remove('open');
-  document.getElementById('nodePanelBackdrop').classList.remove('open');
+// ── OPEN NODE PANEL ───────────────────────────────────────────
+function openNodePanel(node) {
+  expandedNode = node;
+  const col = node.col || '#38bdf8';
+
+  // Pause galaxy
+  galaxyPaused = true;
+  pausedROT = ROT;
+
+  // Build card
+  nodeCard.innerHTML = buildCardHTML(node);
+  nodeCard.style.borderColor = col + '40';
+  nodeCard.style.boxShadow = `0 20px 60px rgba(0,0,0,0.8), 0 0 40px ${col}15`;
+
+  // Get node screen position
+  const cx = window.innerWidth / 2;
+  const cy = window.innerHeight / 2;
+  const nx = cx + Math.cos(node.ang + ROT) * node.orb;
+  const ny = cy + Math.sin(node.ang + ROT) * node.orb * (node.tilt || 0.52);
+
+  // Show card temporarily to measure
+  nodeCard.style.opacity = '0';
+  nodeCard.style.pointerEvents = 'none';
+  nodeCard.style.left = '0px';
+  nodeCard.style.top = '0px';
+  document.body.appendChild(nodeCard);
+
+  // Measure then position
+  requestAnimationFrame(() => {
+    const cardW = nodeCard.offsetWidth;
+    const cardH = nodeCard.offsetHeight;
+    const pos = getCardPosition(nx, ny, cardW, cardH);
+
+    nodeCard.style.left = pos.left + 'px';
+    nodeCard.style.top = pos.top + 'px';
+
+    // Animate in
+    requestAnimationFrame(() => {
+      nodeCard.style.opacity = '1';
+      nodeCard.style.transform = 'scale(1)';
+      nodeCard.style.pointerEvents = 'all';
+      cardBackdrop.style.pointerEvents = 'all';
+
+      // Draw connector line
+      const cardRect = nodeCard.getBoundingClientRect();
+      connSVG.style.opacity = '1';
+      drawConnectorLine(nx, ny, cardRect, col);
+    });
+  });
 }
+
+// ── CLOSE NODE PANEL ──────────────────────────────────────────
+function closeNodePanel() {
+  expandedNode = null;
+  galaxyPaused = false;
+  nodeCard.style.opacity = '0';
+  nodeCard.style.transform = 'scale(0.88)';
+  nodeCard.style.pointerEvents = 'none';
+  cardBackdrop.style.pointerEvents = 'none';
+  connSVG.style.opacity = '0';
+}
+
+// ── NAVIGATE TO NODE ──────────────────────────────────────────
+function navigateToNode(id) {
+  const node = N.find(n => n.id === id);
+  if (!node || node.hidden) return;
+  closeNodePanel();
+  setTimeout(() => openNodePanel(node), 300);
+}
+
+// ── UPDATE LOOP (patch ROT to respect pause) ──────────────────
+// Override the ROT increment in the loop
+const _origLoop = loop;
+// Patch ROT behavior — check galaxyPaused in the animation
+// We do this by overriding the ROT update
+Object.defineProperty(window, '_galaxyPaused', {
+  get: () => galaxyPaused,
+  set: v => { galaxyPaused = v; }
+});
+
+// ── HIT DETECTION ─────────────────────────────────────────────
+function getNodeAt(mx, my) {
+  const cx = hitCanvas.width / 2, cy = hitCanvas.height / 2;
+  let best = null, bestDist = Infinity;
+  N.forEach(n => {
+    if (n.hidden && n.id !== 'you') return;
+    const nx = cx + Math.cos(n.ang + ROT) * n.orb;
+    const ny = cy + Math.sin(n.ang + ROT) * n.orb * (n.tilt || .52);
+    const dist = Math.hypot(mx - nx, my - ny);
+    if (dist < n.r + 26 && dist < bestDist) { bestDist = dist; best = n; }
+  });
+  return best;
+}
+
+hitCanvas.addEventListener('click', e => {
+  const rect = hitCanvas.getBoundingClientRect();
+  const n = getNodeAt(e.clientX - rect.left, e.clientY - rect.top);
+  if (n && n.id !== 'you') {
+    if (expandedNode && expandedNode.id === n.id) closeNodePanel();
+    else openNodePanel(n);
+  } else if (!n) {
+    closeNodePanel();
+  }
+});
+
+let touchStart = { x: 0, y: 0, t: 0 };
+hitCanvas.addEventListener('touchstart', e => {
+  touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now() };
+}, { passive: true });
+hitCanvas.addEventListener('touchend', e => {
+  const dx = Math.abs(e.changedTouches[0].clientX - touchStart.x);
+  const dy = Math.abs(e.changedTouches[0].clientY - touchStart.y);
+  const dt = Date.now() - touchStart.t;
+  if (dx < 12 && dy < 12 && dt < 300) {
+    const rect = hitCanvas.getBoundingClientRect();
+    const n = getNodeAt(e.changedTouches[0].clientX - rect.left, e.changedTouches[0].clientY - rect.top);
+    if (n && n.id !== 'you') {
+      if (expandedNode && expandedNode.id === n.id) closeNodePanel();
+      else openNodePanel(n);
+    } else if (!n) {
+      closeNodePanel();
+    }
+  }
+}, { passive: true });
+
 
 // ══════════════════════════════════════════════════════════════
 // HIT DETECTION
