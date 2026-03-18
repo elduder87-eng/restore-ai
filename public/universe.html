@@ -637,13 +637,77 @@ function drawBloom(){
     blx.strokeStyle=col+'90';blx.lineWidth=2;blx.stroke();
   }
 }
+// ── DRAW BLOOM OVERLAY ────────────────────────────────────────
+// REPLACE the entire drawBloom function with this version
+function drawBloom(){
+  blx.clearRect(0,0,blC.width,blC.height);
+  if(!bloomNode||bloomNode.id==='you')return;
 
-function getConnCount(id){
-  return CONNS.filter(c=>c[0]===id||c[1]===id).filter(([a,b])=>{
-    const na=N.find(n=>n.id===a),nb=N.find(n=>n.id===b);
-    return na&&nb&&!na.hidden&&!nb.hidden;
-  }).length;
+  const n=bloomNode;
+  const{x,y}=nodePos(n);
+  const col=n.col||'#38bdf8';
+  const mas=n.mas||0;
+
+  // Ambient halo
+  const haloR=n.r*8+Math.sin(bloomT*.05)*10;
+  const g=blx.createRadialGradient(x,y,n.r,x,y,haloR);
+  g.addColorStop(0,col+'18');g.addColorStop(1,col+'00');
+  blx.beginPath();blx.arc(x,y,haloR,0,Math.PI*2);blx.fillStyle=g;blx.fill();
+
+  // Floating info labels
+  const infos=[
+    {text:mas+'% depth',  angle:-.5, dist:n.r+55, size:12, alpha:.9},
+    {text:n.sub||'',      angle:.3,  dist:n.r+45, size:10, alpha:.6},
+    {text:getConnCount(n.id)+' connections', angle:Math.PI+.2, dist:n.r+50, size:11, alpha:.7},
+    {text:getCurrentPulse(), angle:Math.PI-.3, dist:n.r+42, size:10, alpha:.55},
+  ];
+
+  infos.forEach(info=>{
+    if(!info.text)return;
+    const ix=x+Math.cos(info.angle)*info.dist;
+    const iy=y+Math.sin(info.angle)*info.dist;
+    blx.font=`${info.size}px Inter`;
+    blx.textAlign='center';blx.textBaseline='middle';
+    blx.shadowColor=col;blx.shadowBlur=8;
+    blx.fillStyle=`rgba(255,255,255,${info.alpha})`;
+    blx.fillText(info.text,ix,iy);
+    blx.shadowBlur=0;
+  });
+
+  // Connection tags — using rect instead of roundRect
+  const conns=getNodeConns(n.id);
+  conns.forEach((cn,i)=>{
+    const angle=(i/conns.length)*Math.PI*2-Math.PI/2;
+    const dist=n.r+90+Math.sin(bloomT*.03+i)*8;
+    const tx=x+Math.cos(angle)*dist;
+    const ty=y+Math.sin(angle)*dist;
+
+    blx.font='10px Inter';
+    const tw=blx.measureText(cn.label).width;
+    const pad=8,th=20;
+
+    // Simple rect background (no roundRect)
+    blx.fillStyle=cn.col+'25';
+    blx.strokeStyle=cn.col+'60';
+    blx.lineWidth=1;
+    blx.fillRect(tx-tw/2-pad,ty-th/2,tw+pad*2,th);
+    blx.strokeRect(tx-tw/2-pad,ty-th/2,tw+pad*2,th);
+
+    blx.fillStyle=cn.col;
+    blx.textAlign='center';blx.textBaseline='middle';
+    blx.fillText(cn.label,tx,ty);
+  });
+
+  // Mastery arc
+  if(mas>0){
+    const arcR=n.r+18;
+    const arcEnd=(mas/100)*Math.PI*2-Math.PI/2;
+    blx.beginPath();
+    blx.arc(x,y,arcR,-Math.PI/2,arcEnd);
+    blx.strokeStyle=col+'90';blx.lineWidth=2;blx.stroke();
+  }
 }
+
 
 function getNodeConns(id){
   return CONNS
