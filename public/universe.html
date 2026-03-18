@@ -25,7 +25,7 @@ body{position:fixed;inset:0;}
 #bg{z-index:0;}
 #uni{z-index:1;pointer-events:none;}
 #bloom{z-index:2;pointer-events:none;}
-#hit{position:fixed;inset:0;z-index:10;pointer-events:all;touch-action:pan-x pan-y;background:transparent;}
+#hit{position:fixed;inset:0;z-index:10;pointer-events:all;touch-action:none;background:transparent;}
 
 /* ── LOADING ── */
 #loadingScreen{position:fixed;inset:0;z-index:99999;background:#05080f;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity 0.8s;}
@@ -189,7 +189,7 @@ body{position:fixed;inset:0;}
 
 <div id="chatBackdrop" onclick="closeChat()"></div>
 
-<div id="chatBtn" onclick="toggleChatSheet()">🎓
+<div id="chatBtn">🎓
   <div id="chatBtnBadge">!</div>
 </div>
 
@@ -429,6 +429,7 @@ function resize(){
   const w=window.innerWidth,h=window.innerHeight;
   bgC.width=uC.width=blC.width=hitC.width=w;
   bgC.height=uC.height=blC.height=hitC.height=h;
+  drawBg();
 }
 resize();
 window.addEventListener('resize',resize);
@@ -448,12 +449,12 @@ function drawBg(){
 }
 
 function nodePos(n){
-  const cx=uC.width/2,cy=uC.height/2-80;
+  const cx=uC.width/2,cy=uC.height/2-120;
   return{x:cx+Math.cos(n.ang+ROT)*n.orb,y:cy+Math.sin(n.ang+ROT)*n.orb*(n.tilt||.52)};
 }
 
 function drawSparks(){
-  const cx=uC.width/2,cy=uC.height/2-80;
+  const cx=uC.width/2,cy=uC.height/2-120;
   const dim=bloomNode!==null;
   SPARKS.forEach(s=>{
     s.ang+=s.spd;
@@ -584,14 +585,14 @@ const appState={
 // ══════════════════════════════════════════════════════════════
 // BLOOM
 // ══════════════════════════════════════════════════════════════
-function bloomOpen(node){bloomNode=node;bloomT=0;}
+function bloomOpen(node){bloomNode=node;bloomT=0;hasInteracted=true;}
 function bloomClose(){bloomNode=null;bloomT=0;}
 
 // ══════════════════════════════════════════════════════════════
 // HIT DETECTION
 // ══════════════════════════════════════════════════════════════
 function getNodeAt(mx,my){
-  const cx=hitC.width/2,cy=hitC.height/2-80;
+  const cx=hitC.width/2,cy=hitC.height/2-120;
   let best=null,bestDist=Infinity;
   N.forEach(n=>{
     if(n.hidden&&n.id!=='you')return;
@@ -602,22 +603,40 @@ function getNodeAt(mx,my){
   return best;
 }
 
-hitC.addEventListener('click',e=>{
-  const rect=hitC.getBoundingClientRect(),n=getNodeAt(e.clientX-rect.left,e.clientY-rect.top);
-  if(n&&n.id!=='you'){bloomNode&&bloomNode.id===n.id?bloomClose():bloomOpen(n);}
-  else bloomClose();
+// Pointer-based hit detection (fixes ghost click + touch issues)
+let pointerDown=null;
+let suppressClickUntil=0;
+
+function toggleBloomForNode(n){
+  if(!n||n.id==='you'){bloomClose();return;}
+  bloomNode&&bloomNode.id===n.id?bloomClose():bloomOpen(n);
+}
+
+hitC.addEventListener('pointerdown',e=>{
+  const rect=hitC.getBoundingClientRect();
+  const x=e.clientX-rect.left,y=e.clientY-rect.top;
+  pointerDown={x,y,t:Date.now(),node:getNodeAt(x,y)};
 });
 
-let tS={x:0,y:0,t:0};
-hitC.addEventListener('touchstart',e=>{tS={x:e.touches[0].clientX,y:e.touches[0].clientY,t:Date.now()};},{passive:true});
-hitC.addEventListener('touchend',e=>{
-  const dx=Math.abs(e.changedTouches[0].clientX-tS.x),dy=Math.abs(e.changedTouches[0].clientY-tS.y);
-  if(dx<12&&dy<12&&Date.now()-tS.t<300){
-    const rect=hitC.getBoundingClientRect(),n=getNodeAt(e.changedTouches[0].clientX-rect.left,e.changedTouches[0].clientY-rect.top);
-    if(n&&n.id!=='you'){bloomNode&&bloomNode.id===n.id?bloomClose():bloomOpen(n);}
-    else bloomClose();
+hitC.addEventListener('pointerup',e=>{
+  if(!pointerDown)return;
+  const rect=hitC.getBoundingClientRect();
+  const x=e.clientX-rect.left,y=e.clientY-rect.top;
+  const dx=Math.abs(x-pointerDown.x),dy=Math.abs(y-pointerDown.y);
+  const dt=Date.now()-pointerDown.t;
+  if(dx<12&&dy<12&&dt<350){
+    const endNode=getNodeAt(x,y);
+    toggleBloomForNode(endNode||pointerDown.node);
+    suppressClickUntil=Date.now()+500;
   }
-},{passive:true});
+  pointerDown=null;
+});
+
+hitC.addEventListener('click',e=>{
+  if(Date.now()<suppressClickUntil)return;
+  const rect=hitC.getBoundingClientRect();
+  toggleBloomForNode(getNodeAt(e.clientX-rect.left,e.clientY-rect.top));
+});
 
 // ══════════════════════════════════════════════════════════════
 // FLOATING CHAT
@@ -642,26 +661,33 @@ function closeChat(){
   document.getElementById('chatBtn').classList.remove('active');
 }
 
-// Draggable button
+// Drag-safe chat button (pointer-based)
 (function(){
   const btn=document.getElementById('chatBtn');
-  let drag=false,startX,startY,startBX,startBY,moved=false;
-  btn.addEventListener('touchstart',e=>{
-    const t=e.touches[0];startX=t.clientX;startY=t.clientY;
-    const r=btn.getBoundingClientRect();startBX=r.left;startBY=r.top;
+  let drag=false,moved=false,startX,startY,startBX,startBY;
+  btn.onclick=null;
+  btn.addEventListener('pointerdown',e=>{
+    const r=btn.getBoundingClientRect();
+    startX=e.clientX;startY=e.clientY;
+    startBX=r.left;startBY=r.top;
     drag=true;moved=false;
-  },{passive:true});
-  window.addEventListener('touchmove',e=>{
+    btn.setPointerCapture?.(e.pointerId);
+  });
+  btn.addEventListener('pointermove',e=>{
     if(!drag)return;
-    const t=e.touches[0],dx=t.clientX-startX,dy=t.clientY-startY;
+    const dx=e.clientX-startX,dy=e.clientY-startY;
     if(Math.abs(dx)>5||Math.abs(dy)>5)moved=true;
     if(!moved)return;
     const W=window.innerWidth,H=window.innerHeight;
     btn.style.left=Math.max(8,Math.min(W-60,startBX+dx))+'px';
     btn.style.top=Math.max(60,Math.min(H-130,startBY+dy))+'px';
     btn.style.right='auto';btn.style.bottom='auto';
-  },{passive:true});
-  window.addEventListener('touchend',()=>{drag=false;});
+  });
+  btn.addEventListener('pointerup',e=>{
+    if(!drag)return;
+    drag=false;
+    if(!moved)toggleChatSheet();
+  });
 })();
 
 // ══════════════════════════════════════════════════════════════
@@ -677,6 +703,7 @@ function addMsg(text,role){
 
 async function sendChat(text){
   if(!text.trim())return;
+  hasInteracted=true;
   document.getElementById('chatInput').value='';
   document.getElementById('chatSend').disabled=true;
   if(!chatOpen)openChat();
@@ -816,10 +843,13 @@ function scheduleSave(){
   },2000);
 }
 
+let hasInteracted=false;
+
 async function loadFromKV(){
+  if(hasInteracted)return;
   try{
-    const res=await fetch('/api/galaxy');if(!res.ok)return;
-    const{galaxy}=await res.json();if(!galaxy?.nodes)return;
+    const res=await fetch('/api/galaxy');if(!res.ok||hasInteracted)return;
+    const{galaxy}=await res.json();if(!galaxy?.nodes||hasInteracted)return;
     galaxy.nodes.forEach(s=>{const n=N.find(n=>n.id===s.id);if(n){n.hidden=s.hidden;n.mas=s.mas||0;}});
     if(galaxy.state){
       appState.moments=galaxy.state.moments||0;appState.breakthroughs=galaxy.state.breakthroughs||0;
