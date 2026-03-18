@@ -4843,15 +4843,13 @@ function openNodePanel(node) {
 
   // Push chat below panel
   const sheet = document.getElementById('mobileSheet');
-  const nav = document.getElementById('mobileNav');
-  const header = document.getElementById('mobileHeader');
-  const tc = document.getElementById('teacherChat');
-  if(sheet) sheet.style.zIndex = '10';
-  if(nav) nav.style.zIndex = '10';
-  if(header) header.style.zIndex = '10';
-  if(tc) tc.style.zIndex = '10';
-  if(tc) tc.style.setProperty('z-index', '200', 'important');    
-
+const tc = document.getElementById('teacherChat');
+const thk = document.getElementById('thkBar');
+const bot = document.getElementById('botBar');
+if(sheet) sheet.style.display = 'none';
+if(tc) tc.style.display = 'none';
+if(thk) thk.style.display = 'none';
+if(bot) bot.style.display = 'none';
   _expandedNode = node;
   _panelEl.innerHTML = buildPanelHTML(node);
   _panelEl.style.borderColor = (node.col || '#38bdf8') + '40';
@@ -4894,12 +4892,13 @@ function closeNodePanel() {
 
   // Restore z-indexes
   const sheet = document.getElementById('mobileSheet');
-  const nav = document.getElementById('mobileNav');
-  const header = document.getElementById('mobileHeader');
-  if(sheet) sheet.style.zIndex = '190';
-  if(nav) nav.style.zIndex = '200';
-  if(header) header.style.zIndex = '200';
-  if(tc) tc.style.setProperty('z-index', '200', 'important');
+const tc = document.getElementById('teacherChat');
+const thk = document.getElementById('thkBar');
+const bot = document.getElementById('botBar');
+if(sheet) sheet.style.display = '';
+if(tc) tc.style.display = '';
+if(thk) thk.style.display = '';
+if(bot) bot.style.display = '';
 
   // Un-dim nodes
   N.forEach(n => { n._dimmed = false; });
