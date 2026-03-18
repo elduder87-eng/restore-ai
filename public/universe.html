@@ -858,23 +858,10 @@ function drawSparks(){
     ux.fill();
   });
 }
-// ── PATCH LOOP TO RESPECT GALAXY PAUSE ───────────────────────
-// Replace the existing loop() function with this version
-// Find: function loop(){
-// Replace the entire loop function with this:
 
 function loop(){
   T++;
-  if (!galaxyPaused) {
-    ROT += .00028;
-  }
-  ux.clearRect(0, 0, uc.width, uc.height);
-  drawSparks();
-  drawConns();
-  N.forEach(drawNode);
-  requestAnimationFrame(loop);
-}
-
+  ROT+=.00028;
   ux.clearRect(0,0,uc.width,uc.height);
   drawSparks();
   drawConns();
@@ -1347,4 +1334,4 @@ setTimeout(loadUser,500);
 setTimeout(loadFromKV,800);
 </script>
 </body>
-        </html>
+          </html>
