@@ -726,6 +726,7 @@ const hitCanvas=document.getElementById('hit');
 let ROT=0, T=0;
 let FOCUSED=null;
 let expandedNode=null;
+let galaxyPaused=false;
 
 const SPARKS=Array.from({length:45},()=>({
   ang:Math.random()*Math.PI*2,
