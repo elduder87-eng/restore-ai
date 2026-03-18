@@ -4864,7 +4864,6 @@ function openNodePanel(node) {
     backdrop.style.pointerEvents = 'all';
   });
 }
-
 // ── CLOSE PANEL ───────────────────────────────────────────────
 function closeNodePanel() {
   if (!_panelEl) return;
@@ -4877,6 +4876,14 @@ function closeNodePanel() {
     backdrop.style.background = 'rgba(0,0,0,0)';
     backdrop.style.pointerEvents = 'none';
   }
+
+  // Restore z-indexes
+  const sheet = document.getElementById('mobileSheet');
+  const nav = document.getElementById('mobileNav');
+  const header = document.getElementById('mobileHeader');
+  if(sheet) sheet.style.zIndex = '190';
+  if(nav) nav.style.zIndex = '200';
+  if(header) header.style.zIndex = '200';
 
   // Un-dim nodes
   N.forEach(n => { n._dimmed = false; });
