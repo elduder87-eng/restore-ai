@@ -4837,9 +4837,13 @@ function buildPanelHTML(node) {
 
 // ── OPEN PANEL ────────────────────────────────────────────────
 function openNodePanel(node) {
-  if (!_panelEl) _panelEl = createNodePanel();
-  let backdrop = document.getElementById('nodePanelBackdrop');
-  if (!backdrop) backdrop = createBackdrop();
+  // Push chat below panel
+  const sheet = document.getElementById('mobileSheet');
+  const nav = document.getElementById('mobileNav');
+  const header = document.getElementById('mobileHeader');
+  if(sheet) sheet.style.zIndex = '10';
+  if(nav) nav.style.zIndex = '10';
+  if(header) header.style.zIndex = '10';
 
   _expandedNode = node;
   _panelEl.innerHTML = buildPanelHTML(node);
