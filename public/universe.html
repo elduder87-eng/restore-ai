@@ -725,372 +725,518 @@ const hitCanvas=document.getElementById('hit');
 
 let ROT=0, T=0;
 let FOCUSED=null;
-// ══════════════════════════════════════════════════════════════
-// HYBRID NODE INTERACTION SYSTEM
-// Replace everything from openNodePanel to the end of hit detection
-// ══════════════════════════════════════════════════════════════
+let expandedNode=null;
 
-// ── STATE ─────────────────────────────────────────────────────
-let expandedNode = null;
-let galaxyPaused = false;
-let pausedROT = 0;
+const SPARKS=Array.from({length:45},()=>({
+  ang:Math.random()*Math.PI*2,
+  orb:55+Math.random()*300,
+  tilt:.44+Math.random()*.12,
+  spd:(Math.random()-.5)*.0009,
+  r:.5+Math.random()*1.4,
+  a:.15+Math.random()*.5,
+  col:['#fbbf24','#fb923c','#4ade80','#38bdf8','#c084fc','#f472b6'][Math.floor(Math.random()*6)]
+}));
 
-// ── CREATE CARD ELEMENT ───────────────────────────────────────
-const nodeCard = document.createElement('div');
-nodeCard.id = 'nodeCard';
-nodeCard.style.cssText = `
-  position:fixed;
-  z-index:500;
-  width:min(280px, calc(100vw - 40px));
-  background:rgba(5,8,18,0.97);
-  border-radius:20px;
-  padding:18px;
-  opacity:0;
-  pointer-events:none;
-  transition:opacity 0.25s ease, transform 0.25s cubic-bezier(0.175,0.885,0.32,1.275);
-  transform:scale(0.88);
-  backdrop-filter:blur(24px);
-  box-shadow:0 20px 60px rgba(0,0,0,0.8);
-  max-height:70vh;
-  overflow-y:auto;
-  scrollbar-width:none;
-`;
-nodeCard.addEventListener('scroll', e => e.stopPropagation());
-document.body.appendChild(nodeCard);
-
-// ── SVG CONNECTOR LINE ────────────────────────────────────────
-const connSVG = document.createElement('canvas');
-connSVG.id = 'nodeConnLine';
-connSVG.style.cssText = `
-  position:fixed;inset:0;
-  z-index:499;
-  pointer-events:none;
-  opacity:0;
-  transition:opacity 0.25s;
-`;
-document.body.appendChild(connSVG);
-
-// ── BACKDROP ──────────────────────────────────────────────────
-const cardBackdrop = document.createElement('div');
-cardBackdrop.id = 'cardBackdrop';
-cardBackdrop.style.cssText = `
-  position:fixed;inset:0;
-  z-index:498;
-  pointer-events:none;
-`;
-cardBackdrop.addEventListener('click', closeNodePanel);
-document.body.appendChild(cardBackdrop);
-
-// ── DRAW CONNECTOR LINE ───────────────────────────────────────
-function drawConnectorLine(nx, ny, cardRect, col) {
-  const c = connSVG;
-  c.width = window.innerWidth;
-  c.height = window.innerHeight;
-  const ctx = c.getContext('2d');
-  ctx.clearRect(0, 0, c.width, c.height);
-
-  // Card attachment point
-  const cardCX = cardRect.left + cardRect.width / 2;
-  const cardCY = cardRect.top + cardRect.height / 2;
-
-  // Find closest edge of card to node
-  let cx = cardRect.left + cardRect.width / 2;
-  let cy = cardRect.top + cardRect.height / 2;
-  if (nx < cardRect.left) cx = cardRect.left;
-  else if (nx > cardRect.right) cx = cardRect.right;
-  if (ny < cardRect.top) cy = cardRect.top;
-  else if (ny > cardRect.bottom) cy = cardRect.bottom;
-
-  // Draw glowing line
-  const grad = ctx.createLinearGradient(nx, ny, cx, cy);
-  grad.addColorStop(0, col + 'cc');
-  grad.addColorStop(1, col + '22');
-  ctx.beginPath();
-  ctx.moveTo(nx, ny);
-  ctx.lineTo(cx, cy);
-  ctx.strokeStyle = grad;
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
-
-  // Dot at node
-  ctx.beginPath();
-  ctx.arc(nx, ny, 4, 0, Math.PI * 2);
-  ctx.fillStyle = col;
-  ctx.fill();
+function resize(){
+  const w=window.innerWidth, h=window.innerHeight;
+  bgCanvas.width=uc.width=hitCanvas.width=w;
+  bgCanvas.height=uc.height=hitCanvas.height=h;
 }
+resize();
+window.addEventListener('resize',resize);
 
-// ── SMART CARD POSITIONING ────────────────────────────────────
-function getCardPosition(nx, ny, cardW, cardH) {
-  const W = window.innerWidth, H = window.innerHeight;
-  const margin = 20;
-  const headerH = 56, navH = 64;
-
-  let left, top;
-
-  // Prefer right side, fallback to left
-  if (nx + cardW / 2 + margin + cardW < W) {
-    left = nx + 30;
-  } else {
-    left = nx - cardW - 30;
+function drawBg(){
+  const W=bgCanvas.width,H=bgCanvas.height;
+  const g=bx.createRadialGradient(W/2,H/2,0,W/2,H/2,Math.max(W,H)*.7);
+  g.addColorStop(0,'#070b14');g.addColorStop(1,'#05080f');
+  bx.fillStyle=g;bx.fillRect(0,0,W,H);
+  for(let i=0;i<180;i++){
+    const x=(Math.sin(i*127.1+1.3)*.5+.5)*W;
+    const y=(Math.sin(i*311.7+2.1)*.5+.5)*H;
+    const r=Math.random()<.02?1.5:Math.random()<.1?1:.5;
+    const a=.2+Math.random()*.7;
+    bx.beginPath();bx.arc(x,y,r,0,Math.PI*2);
+    bx.fillStyle=`rgba(190,210,255,${a})`;bx.fill();
   }
-
-  // Prefer centered vertically on node
-  top = ny - cardH / 2;
-
-  // Clamp to screen
-  left = Math.max(margin, Math.min(W - cardW - margin, left));
-  top = Math.max(headerH + margin, Math.min(H - navH - cardH - margin, top));
-
-  return { left, top };
 }
 
-// ── BUILD CARD HTML ───────────────────────────────────────────
-function buildCardHTML(node) {
-  const col = node.col || '#38bdf8';
-  const mas = node.mas || 0;
-  const masLabel = mas >= 80 ? 'Mastering' : mas >= 50 ? 'Connecting' : mas >= 25 ? 'Exploring' : 'Starting';
-  const circ = 138.2;
-  const offset = circ - (mas / 100) * circ;
+function drawNode(n){
+  const W=uc.width,H=uc.height;
+  const cx=W/2,cy=H/2;
+  const nx=cx+Math.cos(n.ang+ROT)*n.orb;
+  const ny=cy+Math.sin(n.ang+ROT)*n.orb*(n.tilt||.52);
+  const isExp=expandedNode&&expandedNode.id===n.id;
+  const isDimmed=expandedNode&&!isExp;
+  const dimA=isDimmed?.2:1;
 
-  // Get connections (only unlocked nodes)
-  const conns = CONNS
-    .filter(c => c[0] === node.id || c[1] === node.id)
-    .map(c => c[0] === node.id ? c[1] : c[0])
-    .map(id => N.find(n => n.id === id))
-    .filter(n => n && !n.hidden)
-    .slice(0, 8);
+  if(n.id==='you'){
+    // Glow
+    const g=ux.createRadialGradient(nx,ny,0,nx,ny,n.r*3.5);
+    g.addColorStop(0,`rgba(200,134,10,${.45*dimA})`);
+    g.addColorStop(1,'rgba(200,134,10,0)');
+    ux.beginPath();ux.arc(nx,ny,n.r*3.5,0,Math.PI*2);
+    ux.fillStyle=g;ux.fill();
+    // Sphere
+    const sg=ux.createRadialGradient(nx-n.r*.3,ny-n.r*.3,0,nx,ny,n.r);
+    sg.addColorStop(0,'#fde68a');sg.addColorStop(.6,'#c8860a');sg.addColorStop(1,'#92400e');
+    ux.beginPath();ux.arc(nx,ny,n.r,0,Math.PI*2);ux.fillStyle=sg;ux.fill();
+    // Highlight
+    ux.globalAlpha=.35*dimA;
+    ux.beginPath();ux.arc(nx-n.r*.3,ny-n.r*.35,n.r*.45,0,Math.PI*2);
+    ux.fillStyle='#fff';ux.fill();ux.globalAlpha=1;
+    // Label
+    ux.fillStyle=`rgba(255,255,255,${.8*dimA})`;
+    ux.font='bold 11px Inter';ux.textAlign='center';ux.textBaseline='middle';
+    ux.fillText('YOU',nx,ny);
+    ux.fillStyle=`rgba(200,134,10,${.6*dimA})`;
+    ux.font='10px Inter';ux.textBaseline='top';
+    ux.fillText('Your Understanding',nx,ny+n.r+6);
+  } else {
+    if(n.hidden)return;
+    // Glow
+    const gr=isExp?n.r*4.5:n.r*3.2;
+    const ga=isExp?.5:.28;
+    const g=ux.createRadialGradient(nx,ny,0,nx,ny,gr);
+    const col=n.col||'#38bdf8';
+    g.addColorStop(0,col+Math.round(ga*dimA*255).toString(16).padStart(2,'0'));
+    g.addColorStop(1,col+'00');
+    ux.beginPath();ux.arc(nx,ny,gr,0,Math.PI*2);ux.fillStyle=g;ux.fill();
+    // Pulse ring if expanded
+    if(isExp){
+      const pulse=.5+.5*Math.sin(T*.08);
+      ux.beginPath();ux.arc(nx,ny,n.r+8+pulse*4,0,Math.PI*2);
+      ux.strokeStyle=col+'50';ux.lineWidth=1.5;ux.stroke();
+    }
+    // Sphere
+    ux.globalAlpha=dimA;
+    const sg=ux.createRadialGradient(nx-n.r*.35,ny-n.r*.35,0,nx,ny,n.r);
+    sg.addColorStop(0,col+'ff');sg.addColorStop(.6,col+'cc');sg.addColorStop(1,col+'88');
+    ux.beginPath();ux.arc(nx,ny,n.r,0,Math.PI*2);ux.fillStyle=sg;ux.fill();
+    // Highlight
+    ux.globalAlpha=.35*dimA;
+    ux.beginPath();ux.arc(nx-n.r*.3,ny-n.r*.35,n.r*.45,0,Math.PI*2);
+    ux.fillStyle='#fff';ux.fill();ux.globalAlpha=1;
+    // Label
+    ux.globalAlpha=dimA;
+    ux.fillStyle=isExp?'#fff':'rgba(226,232,240,.85)';
+    ux.font=`${isExp?'600 ':''}11px Inter`;
+    ux.textAlign='center';ux.textBaseline='top';
+    ux.fillText(n.label,nx,ny+n.r+6);
+    ux.globalAlpha=1;
+  }
+}
 
-  const connHTML = conns.length > 0 ? conns.map(n => `
-    <span onclick="navigateToNode('${n.id}')" style="
-      padding:3px 10px;border-radius:20px;font-size:10px;font-weight:600;
-      border:1px solid ${n.col}50;background:${n.col}15;color:${n.col};
-      cursor:pointer;white-space:nowrap;
-      transition:background 0.15s;display:inline-block;
-    " onmouseover="this.style.background='${n.col}30'"
-       onmouseout="this.style.background='${n.col}15'">
-      ${n.label} →
-    </span>`).join('') : `<span style="font-size:11px;color:rgba(255,255,255,.3);">Explore more to discover connections.</span>`;
+function drawConns(){
+  const W=uc.width,H=uc.height;
+  const cx=W/2,cy=H/2;
+  CONNS.forEach(([a,b])=>{
+    const na=N.find(n=>n.id===a),nb=N.find(n=>n.id===b);
+    if(!na||!nb||na.hidden||nb.hidden)return;
+    const ax=cx+Math.cos(na.ang+ROT)*na.orb;
+    const ay=cy+Math.sin(na.ang+ROT)*na.orb*(na.tilt||.52);
+    const bx2=cx+Math.cos(nb.ang+ROT)*nb.orb;
+    const by=cy+Math.sin(nb.ang+ROT)*nb.orb*(nb.tilt||.52);
+    const isActive=expandedNode&&(a===expandedNode.id||b===expandedNode.id);
+    const isDimmed=expandedNode&&!isActive;
+    ux.beginPath();ux.moveTo(ax,ay);ux.lineTo(bx2,by);
+    ux.strokeStyle=isActive?`rgba(255,255,255,0.3)`:isDimmed?'rgba(255,255,255,0.03)':'rgba(255,255,255,0.1)';
+    ux.lineWidth=isActive?1.2:.7;ux.stroke();
+  });
+}
+
+function drawSparks(){
+  const W=uc.width,H=uc.height;
+  const cx=W/2,cy=H/2;
+  const isDimmed=expandedNode!==null;
+  SPARKS.forEach(s=>{
+    s.ang+=s.spd;
+    const sx=cx+Math.cos(s.ang+ROT)*s.orb;
+    const sy=cy+Math.sin(s.ang+ROT)*s.orb*s.tilt;
+    ux.beginPath();ux.arc(sx,sy,s.r,0,Math.PI*2);
+    const a=isDimmed?s.a*.15:s.a;
+    ux.fillStyle=s.col+Math.round(a*255).toString(16).padStart(2,'0');
+    ux.fill();
+  });
+}
+// ── PATCH LOOP TO RESPECT GALAXY PAUSE ───────────────────────
+// Replace the existing loop() function with this version
+// Find: function loop(){
+// Replace the entire loop function with this:
+
+function loop(){
+  T++;
+  if (!galaxyPaused) {
+    ROT += .00028;
+  }
+  ux.clearRect(0, 0, uc.width, uc.height);
+  drawSparks();
+  drawConns();
+  N.forEach(drawNode);
+  requestAnimationFrame(loop);
+}
+
+  ux.clearRect(0,0,uc.width,uc.height);
+  drawSparks();
+  drawConns();
+  N.forEach(drawNode);
+  requestAnimationFrame(loop);
+}
+
+// ══════════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════════
+const state = {
+  emotion: 'curious',
+  topics: [],
+  suggest: [],
+  moments: 0,
+  breakthroughs: 0,
+  pulseState: {curious:0,confused:0,reflecting:0,connecting:0,mastering:0},
+};
+
+// ══════════════════════════════════════════════════════════════
+// UI UPDATES
+// ══════════════════════════════════════════════════════════════
+function updateAllUI(){
+  const lit=N.filter(n=>!n.hidden).length;
+  // Chips
+  document.getElementById('chipNodes').textContent=lit;
+  document.getElementById('chipBreaks').textContent=state.breakthroughs;
+  // Frontier
+  let frontier=FRONTIERS[0];
+  for(const f of FRONTIERS){if(lit>=f.threshold)frontier=f;}
+  const nextIdx=FRONTIERS.indexOf(frontier)+1;
+  const next=FRONTIERS[nextIdx]||frontier;
+  const pct=Math.min(99,Math.round((lit/next.threshold)*100));
+  document.getElementById('chipFrontier').textContent=next.icon+' '+next.name+' →';
+  // Explore overlay
+  document.getElementById('expTopics').textContent=lit;
+  document.getElementById('expBreaks').textContent=state.breakthroughs;
+  document.getElementById('expFrontier').textContent=next.name;
+  document.getElementById('expFrontierBar').style.width=pct+'%';
+  document.getElementById('expFrontierPct').textContent=pct+'% Ready';
+  // Connect overlay
+  document.getElementById('conNodes').textContent=lit;
+  const links=CONNS.filter(([a,b])=>!N.find(n=>n.id===a)?.hidden&&!N.find(n=>n.id===b)?.hidden).length;
+  document.getElementById('conLinks').textContent=links;
+  // Me overlay
+  document.getElementById('meNodes').textContent=lit;
+  document.getElementById('meMoments').textContent=state.moments;
+  // Pulse
+  const ps=state.pulseState;
+  const total=Object.values(ps).reduce((a,b)=>a+b,0)||1;
+  const pcts={};
+  for(const[k,v]of Object.entries(ps))pcts[k]=Math.round(v/total*100);
+  const dominant=Object.entries(ps).sort((a,b)=>b[1]-a[1])[0]?.[0]||'curious';
+  const domPct=pcts[dominant]||0;
+  document.getElementById('mePulsePct').textContent=domPct+'%';
+  document.getElementById('mePulseLabel').textContent=dominant.charAt(0).toUpperCase()+dominant.slice(1);
+  document.getElementById('mePulseArc').setAttribute('stroke-dashoffset',175.9*(1-domPct/100));
+  document.getElementById('mePctConnect').textContent=(pcts.connecting||0)+'%';
+  document.getElementById('mePctReflect').textContent=(pcts.reflecting||0)+'%';
+  document.getElementById('mePctCurious').textContent=(pcts.curious||0)+'%';
+  document.getElementById('mePctConfused').textContent=(pcts.confused||0)+'%';
+  document.getElementById('mePctMaster').textContent=(pcts.mastering||0)+'%';
+  // Growth
+  const understand=Math.min(99,Math.round(lit/N.length*100));
+  const curiosity=Math.min(99,state.moments*5+2);
+  const connections=Math.min(99,links*3);
+  document.getElementById('growUnderstand').textContent='↑ '+understand+'%';
+  document.getElementById('growCuriosity').textContent='↑ '+curiosity+'%';
+  document.getElementById('growConnections').textContent='↑ '+connections+'%';
+  document.getElementById('growUnderstandBar').style.width=understand+'%';
+  document.getElementById('growCuriosityBar').style.width=curiosity+'%';
+  document.getElementById('growConnectionsBar').style.width=connections+'%';
+}
+
+function flashThinkingState(emotion){
+  const map={curious:0,confused:1,reflecting:2,connecting:3,mastering:4};
+  const cols={curious:'#38bdf8',confused:'#f87171',reflecting:'#4ade80',connecting:'#fbbf24',mastering:'#e2e8f0'};
+  const idx=map[emotion];
+  if(idx===undefined)return;
+  const el=document.getElementById('thk'+idx);
+  if(!el)return;
+  el.style.transform='scale(1.35)';
+  el.style.boxShadow=`0 0 14px ${cols[emotion]}`;
+  setTimeout(()=>{el.style.transform='';el.style.boxShadow='';},1800);
+}
+
+function showToast(text,sub,col){
+  const t=document.getElementById('growToast');
+  const tx=document.getElementById('toastText');
+  const ts=document.getElementById('toastSub');
+  tx.textContent=text;
+  ts.textContent=sub||'';
+  if(col)tx.style.color=col;
+  t.classList.add('show');
+  clearTimeout(window._toastTimer);
+  window._toastTimer=setTimeout(()=>{t.classList.remove('show');tx.style.color='';},3500);
+}
+
+// ══════════════════════════════════════════════════════════════
+// NODE UNLOCKING
+// ══════════════════════════════════════════════════════════════
+function highlightNodes(topics){
+  let newNodes=[];
+  topics.forEach(topic=>{
+    const node=N.find(n=>n.id===topic);
+    if(node&&node.hidden){
+      node.hidden=false;
+      node.mas=Math.min(100,(node.mas||0)+5);
+      newNodes.push(node);
+    } else if(node){
+      node.mas=Math.min(100,(node.mas||0)+2);
+    }
+  });
+  if(newNodes.length>0){
+    const n=newNodes[0];
+    showToast('🌟 '+n.label+' unlocked!','Your galaxy grew',n.col);
+    // Check cross-domain breakthrough
+    const clusters={
+      science:['phys','chem','bio','math','geo','env','neuro','eng'],
+      space:['astro','bh','st','cosmo','rel','grav'],
+      humanities:['hist','lit','art','music','film','ren','rev','anth','arch','cul'],
+      social:['psych','soc','pol','law','eth','know','ling','crim'],
+      tech:['tech','ai'],economics:['econ','biz','ind'],
+    };
+    const hit=new Set();
+    topics.forEach(t=>{for(const[c,ids]of Object.entries(clusters)){if(ids.includes(t))hit.add(c);}});
+    if(hit.size>=2){
+      state.breakthroughs++;
+      setTimeout(()=>showToast('⚡ Cross-Domain Breakthrough!','Rare connection discovered','#fbbf24'),1000);
+    }
+  }
+}
+
+function extractTopics(text){
+  const lower=text.toLowerCase();
+  const found=[];
+  for(const[kw,ids]of Object.entries(topicMap)){
+    if(lower.includes(kw))found.push(...ids);
+  }
+  return [...new Set(found)];
+}
+
+// ══════════════════════════════════════════════════════════════
+// CHAT
+// ══════════════════════════════════════════════════════════════
+let chatExpanded=false;
+const chatSheet=document.getElementById('chatSheet');
+
+function toggleChat(){
+  chatExpanded=!chatExpanded;
+  chatSheet.classList.toggle('expanded',chatExpanded);
+  if(chatExpanded)document.getElementById('chatInput').focus();
+}
+
+function addMsg(text,role){
+  const msgs=document.getElementById('chatMsgs');
+  const d=document.createElement('div');d.className='msg '+role;
+  const b=document.createElement('div');b.className='bubble';
+  b.textContent=text;d.appendChild(b);msgs.appendChild(d);
+  msgs.scrollTop=msgs.scrollHeight;
+  return b;
+}
+
+async function sendChat(text){
+  if(!text.trim())return;
+  document.getElementById('chatInput').value='';
+  document.getElementById('chatSend').disabled=true;
+  addMsg(text,'user');
+  // Expand if not already
+  if(!chatExpanded)toggleChat();
+  // Typing indicator
+  const typing=addMsg('...','ai');
+  typing.style.opacity='.5';
+
+  try{
+    const res=await fetch('/api/chat',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({message:text,userId:window._userId||'demo-user'})
+    });
+    const data=await res.json();
+    typing.textContent=data.reply||'Ask me that again?';
+    typing.style.opacity='1';
+
+    // Process response
+    state.emotion=data.emotion||'curious';
+    state.topics=data.topics||[];
+    state.suggest=data.suggest||[];
+    state.moments++;
+    if(state.pulseState[state.emotion]!==undefined)state.pulseState[state.emotion]++;
+
+    // Unlock nodes
+    highlightNodes(state.topics);
+    flashThinkingState(state.emotion);
+    updateAllUI();
+    scheduleSave();
+  }catch(e){
+    typing.textContent='Something interrupted my thinking.\n\nAsk me that again?';
+    typing.style.opacity='1';
+  }
+  document.getElementById('chatSend').disabled=false;
+}
+
+document.getElementById('chatSend').addEventListener('click',()=>{
+  sendChat(document.getElementById('chatInput').value);
+});
+document.getElementById('chatInput').addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat(e.target.value);}
+});
+
+// ══════════════════════════════════════════════════════════════
+// NODE PANEL
+// ══════════════════════════════════════════════════════════════
+function openNodePanel(node){
+  expandedNode=node;
+  const col=node.col||'#38bdf8';
+  const mas=node.mas||0;
+  const masLabel=mas>=80?'Mastering':mas>=50?'Connecting':mas>=25?'Exploring':'Starting';
+  const circ=138.2;
+  const offset=circ-(mas/100)*circ;
+
+  // Connections
+  const conns=CONNS
+    .filter(c=>c[0]===node.id||c[1]===node.id)
+    .map(c=>c[0]===node.id?c[1]:c[0])
+    .map(id=>N.find(n=>n.id===id))
+    .filter(n=>n&&!n.hidden)
+    .slice(0,6);
+
+  const connHTML=conns.map(n=>`
+    <span style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;
+      border:1px solid ${n.col}50;background:${n.col}15;color:${n.col};">
+      ${n.label}
+    </span>`).join('');
 
   // Questions from chat
-  const bubbles = [...document.querySelectorAll('#chatMsgs .msg.user .bubble')];
-  const questions = bubbles.map(b => b.textContent.trim()).filter(q => q.length > 8 && q.length < 80).slice(-3);
-  const qHTML = questions.length > 0
-    ? questions.map(q => `
-      <div style="font-size:11px;color:rgba(255,255,255,.45);padding:5px 0;
-        border-bottom:1px solid rgba(255,255,255,.04);display:flex;gap:7px;line-height:1.5;">
-        <span style="color:${col};opacity:.5;font-size:9px;margin-top:2px;flex-shrink:0;">?</span>${q}
-      </div>`).join('')
-    : `<div style="font-size:11px;color:rgba(255,255,255,.25);padding:5px 0;">Ask me about ${node.label} to build your trail.</div>`;
+  const bubbles=[...document.querySelectorAll('#chatMsgs .msg.user .bubble')];
+  const questions=bubbles.map(b=>b.textContent.trim()).filter(q=>q.length>8&&q.length<80).slice(-3);
+  const qHTML=questions.length>0
+    ?questions.map(q=>`<div style="font-size:12px;color:rgba(255,255,255,.5);padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);display:flex;gap:8px;"><span style="color:${col};opacity:.6;font-size:10px;margin-top:2px;">?</span>${q}</div>`).join('')
+    :`<div style="font-size:12px;color:rgba(255,255,255,.3);padding:6px 0;">Ask me about ${node.label} to build your curiosity trail.</div>`;
 
-  return `
-    <!-- Header -->
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-      <div style="display:flex;align-items:center;gap:10px;">
-        <div style="width:34px;height:34px;border-radius:50%;flex-shrink:0;
+  document.getElementById('nodePanelContent').innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="width:38px;height:38px;border-radius:50%;
           background:radial-gradient(circle at 35% 35%,${col}ff,${col}cc);
-          box-shadow:0 0 14px ${col}60;"></div>
+          box-shadow:0 0 18px ${col}60;flex-shrink:0;"></div>
         <div>
-          <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;color:#f0f4ff;line-height:1;">${node.label}</div>
-          <div style="font-size:9px;color:rgba(255,255,255,.25);margin-top:2px;letter-spacing:1px;text-transform:uppercase;">${node.sub || ''}</div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;color:#f0f4ff;line-height:1;">${node.label}</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:3px;letter-spacing:1px;text-transform:uppercase;">${node.sub||''}</div>
         </div>
       </div>
-      <button onclick="closeNodePanel()" style="
-        width:24px;height:24px;border-radius:50%;flex-shrink:0;
-        background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);
-        color:rgba(255,255,255,.35);font-size:11px;cursor:pointer;
-        display:flex;align-items:center;justify-content:center;font-family:inherit;">✕</button>
+      <button onclick="closeNodePanel()" style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.4);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;">✕</button>
     </div>
 
-    <!-- Mastery -->
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;
-      padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,.06);">
-      <div style="position:relative;width:54px;height:54px;flex-shrink:0;">
-        <svg width="54" height="54" viewBox="0 0 56 56" style="transform:rotate(-90deg);">
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,.06);">
+      <div style="position:relative;width:64px;height:64px;flex-shrink:0;">
+        <svg width="64" height="64" viewBox="0 0 56 56" style="transform:rotate(-90deg);">
           <circle cx="28" cy="28" r="22" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="5"/>
           <circle cx="28" cy="28" r="22" fill="none" stroke="${col}" stroke-width="5"
             stroke-dasharray="${circ}" stroke-dashoffset="${offset}" stroke-linecap="round"/>
         </svg>
         <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
-          <div style="font-size:13px;font-weight:800;color:${col};">${mas}%</div>
-          <div style="font-size:7px;color:rgba(255,255,255,.2);text-transform:uppercase;letter-spacing:.04em;">depth</div>
+          <div style="font-size:14px;font-weight:800;color:${col};">${mas}%</div>
+          <div style="font-size:7px;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:.05em;">depth</div>
         </div>
       </div>
       <div style="flex:1;">
-        <div style="font-size:12px;font-weight:600;color:#fff;margin-bottom:2px;">${masLabel}</div>
-        <div style="font-size:10px;color:rgba(255,255,255,.25);margin-bottom:7px;">${conns.length} connection${conns.length !== 1 ? 's' : ''} found</div>
+        <div style="font-size:13px;font-weight:600;color:#fff;margin-bottom:3px;">${masLabel}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.3);margin-bottom:8px;">${conns.length} connection${conns.length!==1?'s':''} discovered</div>
         <div style="height:2px;background:rgba(255,255,255,.06);border-radius:1px;overflow:hidden;">
           <div style="width:${mas}%;height:100%;background:linear-gradient(90deg,${col},${col}aa);border-radius:1px;"></div>
         </div>
       </div>
     </div>
 
-    <!-- Connections -->
-    <div style="margin-bottom:12px;">
-      <div style="font-size:8px;font-weight:600;color:rgba(255,255,255,.2);
-        text-transform:uppercase;letter-spacing:.1em;margin-bottom:7px;">Connections — tap to explore</div>
+    ${conns.length>0?`
+    <div style="margin-bottom:14px;">
+      <div style="font-size:9px;font-weight:600;color:rgba(255,255,255,.2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:7px;">Connected to</div>
       <div style="display:flex;flex-wrap:wrap;gap:5px;">${connHTML}</div>
-    </div>
+    </div>`:''}
 
-    <!-- Curiosity trail -->
-    <div style="margin-bottom:12px;">
-      <div style="font-size:8px;font-weight:600;color:rgba(255,255,255,.2);
-        text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px;">Curiosity trail</div>
+    <div style="margin-bottom:14px;">
+      <div style="font-size:9px;font-weight:600;color:rgba(255,255,255,.2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;">Curiosity trail</div>
       ${qHTML}
     </div>
 
-    <!-- Pulse + Growth -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:12px;">
-      <div style="padding:9px 11px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:11px;">
-        <div style="font-size:8px;color:rgba(255,255,255,.2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px;">Pulse</div>
-        <div style="font-size:12px;font-weight:600;color:${col};">${state.emotion.charAt(0).toUpperCase() + state.emotion.slice(1)}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+      <div style="padding:10px 12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;">
+        <div style="font-size:9px;color:rgba(255,255,255,.2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">Pulse</div>
+        <div style="font-size:13px;font-weight:600;color:${col};">${state.emotion.charAt(0).toUpperCase()+state.emotion.slice(1)}</div>
       </div>
-      <div style="padding:9px 11px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:11px;">
-        <div style="font-size:8px;color:rgba(255,255,255,.2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px;">Growth</div>
-        <div style="font-size:12px;font-weight:600;color:#4ade80;">↑ ${Math.max(1, Math.round(mas / 8))}%</div>
+      <div style="padding:10px 12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;">
+        <div style="font-size:9px;color:rgba(255,255,255,.2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">Growth</div>
+        <div style="font-size:13px;font-weight:600;color:#4ade80;">↑ ${Math.max(1,Math.round(mas/8))}%</div>
       </div>
     </div>
 
-    <!-- Explore button -->
-    <button onclick="closeNodePanel();setTimeout(()=>{
-      document.getElementById('chatInput').value='Tell me more about ${node.label}';
-      document.getElementById('chatInput').focus();
-      if(!chatExpanded)toggleChat();
-    },300);" style="
-      width:100%;padding:10px;
-      background:${col}18;border:1px solid ${col}35;
-      border-radius:11px;color:${col};
-      font-size:11px;font-weight:600;cursor:pointer;
-      font-family:'Inter',sans-serif;letter-spacing:.02em;">
+    <button onclick="closeNodePanel();setTimeout(()=>{document.getElementById('chatInput').value='Tell me more about ${node.label}';document.getElementById('chatInput').focus();if(!chatExpanded)toggleChat();},300);" 
+      style="width:100%;padding:11px;background:${col}18;border:1px solid ${col}35;border-radius:12px;color:${col};font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:.02em;">
       Explore ${node.label} →
     </button>
   `;
+
+  document.getElementById('nodePanel').classList.add('open');
+  document.getElementById('nodePanelBackdrop').classList.add('open');
 }
 
-// ── OPEN NODE PANEL ───────────────────────────────────────────
-function openNodePanel(node) {
-  expandedNode = node;
-  const col = node.col || '#38bdf8';
-
-  // Pause galaxy
-  galaxyPaused = true;
-  pausedROT = ROT;
-
-  // Build card
-  nodeCard.innerHTML = buildCardHTML(node);
-  nodeCard.style.borderColor = col + '40';
-  nodeCard.style.boxShadow = `0 20px 60px rgba(0,0,0,0.8), 0 0 40px ${col}15`;
-
-  // Get node screen position
-  const cx = window.innerWidth / 2;
-  const cy = window.innerHeight / 2;
-  const nx = cx + Math.cos(node.ang + ROT) * node.orb;
-  const ny = cy + Math.sin(node.ang + ROT) * node.orb * (node.tilt || 0.52);
-
-  // Show card temporarily to measure
-  nodeCard.style.opacity = '0';
-  nodeCard.style.pointerEvents = 'none';
-  nodeCard.style.left = '0px';
-  nodeCard.style.top = '0px';
-  document.body.appendChild(nodeCard);
-
-  // Measure then position
-  requestAnimationFrame(() => {
-    const cardW = nodeCard.offsetWidth;
-    const cardH = nodeCard.offsetHeight;
-    const pos = getCardPosition(nx, ny, cardW, cardH);
-
-    nodeCard.style.left = pos.left + 'px';
-    nodeCard.style.top = pos.top + 'px';
-
-    // Animate in
-    requestAnimationFrame(() => {
-      nodeCard.style.opacity = '1';
-      nodeCard.style.transform = 'scale(1)';
-      nodeCard.style.pointerEvents = 'all';
-      cardBackdrop.style.pointerEvents = 'all';
-
-      // Draw connector line
-      const cardRect = nodeCard.getBoundingClientRect();
-      connSVG.style.opacity = '1';
-      drawConnectorLine(nx, ny, cardRect, col);
-    });
-  });
+function closeNodePanel(){
+  expandedNode=null;
+  document.getElementById('nodePanel').classList.remove('open');
+  document.getElementById('nodePanelBackdrop').classList.remove('open');
 }
 
-// ── CLOSE NODE PANEL ──────────────────────────────────────────
-function closeNodePanel() {
-  expandedNode = null;
-  galaxyPaused = false;
-  nodeCard.style.opacity = '0';
-  nodeCard.style.transform = 'scale(0.88)';
-  nodeCard.style.pointerEvents = 'none';
-  cardBackdrop.style.pointerEvents = 'none';
-  connSVG.style.opacity = '0';
-}
-
-// ── NAVIGATE TO NODE ──────────────────────────────────────────
-function navigateToNode(id) {
-  const node = N.find(n => n.id === id);
-  if (!node || node.hidden) return;
-  closeNodePanel();
-  setTimeout(() => openNodePanel(node), 300);
-}
-
-// ── UPDATE LOOP (patch ROT to respect pause) ──────────────────
-// Override the ROT increment in the loop
-const _origLoop = loop;
-// Patch ROT behavior — check galaxyPaused in the animation
-// We do this by overriding the ROT update
-Object.defineProperty(window, '_galaxyPaused', {
-  get: () => galaxyPaused,
-  set: v => { galaxyPaused = v; }
-});
-
-// ── HIT DETECTION ─────────────────────────────────────────────
-function getNodeAt(mx, my) {
-  const cx = hitCanvas.width / 2, cy = hitCanvas.height / 2;
-  let best = null, bestDist = Infinity;
-  N.forEach(n => {
-    if (n.hidden && n.id !== 'you') return;
-    const nx = cx + Math.cos(n.ang + ROT) * n.orb;
-    const ny = cy + Math.sin(n.ang + ROT) * n.orb * (n.tilt || .52);
-    const dist = Math.hypot(mx - nx, my - ny);
-    if (dist < n.r + 26 && dist < bestDist) { bestDist = dist; best = n; }
+// ══════════════════════════════════════════════════════════════
+// HIT DETECTION
+// ══════════════════════════════════════════════════════════════
+function getNodeAt(mx,my){
+  const cx=hitCanvas.width/2,cy=hitCanvas.height/2;
+  let best=null,bestDist=Infinity;
+  N.forEach(n=>{
+    if(n.hidden&&n.id!=='you')return;
+    const nx=cx+Math.cos(n.ang+ROT)*n.orb;
+    const ny=cy+Math.sin(n.ang+ROT)*n.orb*(n.tilt||.52);
+    const dist=Math.hypot(mx-nx,my-ny);
+    if(dist<n.r+24&&dist<bestDist){bestDist=dist;best=n;}
   });
   return best;
 }
 
-hitCanvas.addEventListener('click', e => {
-  const rect = hitCanvas.getBoundingClientRect();
-  const n = getNodeAt(e.clientX - rect.left, e.clientY - rect.top);
-  if (n && n.id !== 'you') {
-    if (expandedNode && expandedNode.id === n.id) closeNodePanel();
+hitCanvas.addEventListener('click',e=>{
+  const rect=hitCanvas.getBoundingClientRect();
+  const n=getNodeAt(e.clientX-rect.left,e.clientY-rect.top);
+  if(n&&n.id!=='you'){
+    if(expandedNode&&expandedNode.id===n.id)closeNodePanel();
     else openNodePanel(n);
-  } else if (!n) {
+  } else if(!n){
     closeNodePanel();
   }
 });
 
-let touchStart = { x: 0, y: 0, t: 0 };
-hitCanvas.addEventListener('touchstart', e => {
-  touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now() };
-}, { passive: true });
-hitCanvas.addEventListener('touchend', e => {
-  const dx = Math.abs(e.changedTouches[0].clientX - touchStart.x);
-  const dy = Math.abs(e.changedTouches[0].clientY - touchStart.y);
-  const dt = Date.now() - touchStart.t;
-  if (dx < 12 && dy < 12 && dt < 300) {
-    const rect = hitCanvas.getBoundingClientRect();
-    const n = getNodeAt(e.changedTouches[0].clientX - rect.left, e.changedTouches[0].clientY - rect.top);
-    if (n && n.id !== 'you') {
-      if (expandedNode && expandedNode.id === n.id) closeNodePanel();
+// Touch support
+let touchStart={x:0,y:0,t:0};
+hitCanvas.addEventListener('touchstart',e=>{
+  touchStart={x:e.touches[0].clientX,y:e.touches[0].clientY,t:Date.now()};
+},{passive:true});
+hitCanvas.addEventListener('touchend',e=>{
+  const dx=Math.abs(e.changedTouches[0].clientX-touchStart.x);
+  const dy=Math.abs(e.changedTouches[0].clientY-touchStart.y);
+  const dt=Date.now()-touchStart.t;
+  if(dx<10&&dy<10&&dt<300){
+    const rect=hitCanvas.getBoundingClientRect();
+    const n=getNodeAt(e.changedTouches[0].clientX-rect.left,e.changedTouches[0].clientY-rect.top);
+    if(n&&n.id!=='you'){
+      if(expandedNode&&expandedNode.id===n.id)closeNodePanel();
       else openNodePanel(n);
-    } else if (!n) {
+    } else if(!n){
       closeNodePanel();
     }
   }
-}, { passive: true });
-
+},{passive:true});
 
 // ══════════════════════════════════════════════════════════════
 // NAVIGATION
@@ -1201,4 +1347,4 @@ setTimeout(loadUser,500);
 setTimeout(loadFromKV,800);
 </script>
 </body>
-</html>
+        </html>
