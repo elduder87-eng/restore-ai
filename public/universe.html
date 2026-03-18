@@ -861,7 +861,7 @@ function drawSparks(){
 
 function loop(){
   T++;
-  ROT+=.00028;
+  if(!galaxyPaused) ROT+=.00028;
   ux.clearRect(0,0,uc.width,uc.height);
   drawSparks();
   drawConns();
