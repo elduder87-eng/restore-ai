@@ -4470,15 +4470,121 @@ window.onRestoreResponse = function(data) {
   } catch(e) {
     console.log('onRestoreResponse error:', e.message);
   }
+// ══════════════════════════════════════════════════════════════
+// RESTORE LIVE UI SYSTEM — paste just before </script>
+// ══════════════════════════════════════════════════════════════
+
+// ── GLOBAL STATE ──────────────────────────────────────────────
+window.restoreState = {
+  emotion: 'curious',
+  topics: [],
+  suggest: [],
+  breakthroughs: 0,
+  moments: 0,
 };
 
-setTimeout(function() {
+// ── UPDATE ALL BOXES ──────────────────────────────────────────
+function updateMobileChips() {
   try {
-    updatePulseUI();
-    updateGrowthUI();
-    updateBottomStats();
-  } catch(e) {}
-}, 600);
+    const state = window.restoreState;
+    const pulseNum = document.querySelector('.pulse-n');
+    const pulseLbl = document.querySelector('.pulse-lbl');
+    const legendPercents = document.querySelectorAll('.plip');
+    const growthStats = document.querySelectorAll('.grwt');
+    const growthBars = document.querySelectorAll('.grw .pf');
+
+    const emotionMap = {
+      curious:    { label: 'Curious',    vals: [5,  10, 60, 5,  20] },
+      reflecting: { label: 'Reflecting', vals: [15, 45, 20, 5,  15] },
+      connecting: { label: 'Connecting', vals: [45, 20, 15, 5,  15] },
+      confused:   { label: 'Confused',   vals: [10, 10, 20, 45, 15] },
+      mastering:  { label: 'Mastering',  vals: [25, 25, 10, 5,  35] },
+    };
+
+    const current = emotionMap[state.emotion] || emotionMap.curious;
+    const totalActive = Math.min(100, Math.max(5, state.topics.length * 8 + state.suggest.length * 5));
+
+    if (pulseNum) pulseNum.textContent = totalActive + '%';
+    if (pulseLbl) pulseLbl.textContent = current.label;
+
+    legendPercents.forEach((el, i) => {
+      if (current.vals[i] != null) el.textContent = current.vals[i] + '%';
+    });
+
+    const litNodes = N ? N.filter(n => !n.hidden).length : 0;
+    const understanding = Math.min(100, litNodes * 3);
+    const curiosity     = Math.min(100, state.moments * 6 + 5);
+    const connections   = Math.min(100, state.suggest.length * 15 + state.topics.length * 5);
+    const confusion     = state.emotion === 'confused' ? 20 : 0;
+
+    if (growthStats[0]) growthStats[0].textContent = '↑ ' + understanding + '%';
+    if (growthStats[1]) growthStats[1].textContent = '↑ ' + curiosity + '%';
+    if (growthStats[2]) growthStats[2].textContent = '↑ ' + connections + '%';
+    if (growthStats[3]) growthStats[3].textContent = '↓ ' + confusion + '%';
+
+    if (growthBars[0]) growthBars[0].style.width = understanding + '%';
+    if (growthBars[1]) growthBars[1].style.width = curiosity + '%';
+    if (growthBars[2]) growthBars[2].style.width = connections + '%';
+    if (growthBars[3]) growthBars[3].style.width = confusion + '%';
+
+    // Mobile chips
+    const mChipNodes = document.getElementById('mChipNodes');
+    const mChipBreak = document.getElementById('mChipBreak');
+    if (mChipNodes) mChipNodes.textContent = litNodes;
+    if (mChipBreak) mChipBreak.textContent = state.breakthroughs;
+
+    // Bottom bar
+    const bb = document.getElementById('bottomBreakthroughs');
+    const bt = document.getElementById('bottomTopics');
+    const bm = document.getElementById('bottomMoments');
+    if (bb) bb.textContent = '⚡ ' + state.breakthroughs;
+    if (bt) bt.textContent = '🔭 ' + litNodes;
+    if (bm) bm.textContent = '🧩 ' + state.moments;
+
+  } catch(e) {
+    console.log('updateMobileChips error:', e.message);
+  }
+}
+
+// ── WIRE TO CHAT RESPONSE ─────────────────────────────────────
+window.onRestoreResponse = function(data) {
+  try {
+    window.restoreState.emotion  = data.emotion  || 'curious';
+    window.restoreState.topics   = data.topics   || [];
+    window.restoreState.suggest  = data.suggest  || [];
+    window.restoreState.moments  = (window.restoreState.moments || 0) + 1;
+
+    // Check cross-domain breakthrough
+    const clusters = {
+      science:    ['phys','chem','bio','math','geo','env','neuro','eng'],
+      space:      ['astro','bh','st','cosmo','rel','grav'],
+      humanities: ['hist','lit','art','music','film','ren','rev','anth','arch','cul'],
+      social:     ['psych','soc','pol','law','eth','know','ling','crim'],
+      tech:       ['tech','ai'],
+      economics:  ['econ','biz','ind'],
+    };
+    const hitClusters = new Set();
+    (data.topics || []).forEach(t => {
+      for (const [cluster, ids] of Object.entries(clusters)) {
+        if (ids.includes(t)) hitClusters.add(cluster);
+      }
+    });
+    if (hitClusters.size >= 2) {
+      window.restoreState.breakthroughs++;
+    }
+
+    updateMobileChips();
+    if (typeof updateFrontier === 'function') updateFrontier();
+    if (typeof scheduleSave === 'function') scheduleSave();
+  } catch(e) {
+    console.log('onRestoreResponse error:', e.message);
+  }
+};
+
+// ── INIT ON LOAD ──────────────────────────────────────────────
+setTimeout(function() {
+  try { updateMobileChips(); } catch(e) {}
+}, 800);
 
 </script>
 </body>
