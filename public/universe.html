@@ -270,15 +270,29 @@ body{position:fixed;inset:0;}
   <div class="m-chip" style="color:var(--blue);" id="chipFrontier">⚛ Quantum Mechanics</div>
 </div>
 
-<!-- Chat Panel -->
-<div id="chatPanel">
-  <div class="cp-topbar" onclick="toggleChat()">
-    <div class="cp-avatar">🎓</div>
+<!-- ══════════════════════════════════════════════════════════
+     FLOATING CHAT HTML
+     Replace the entire #chatPanel div with this
+     ══════════════════════════════════════════════════════════ -->
+
+<!-- Chat backdrop -->
+<div id="chatBackdrop" onclick="closeChat()"></div>
+
+<!-- Floating chat button -->
+<div id="chatBtn" onclick="toggleChatSheet()">🎓
+  <div id="chatBtnBadge">1</div>
+</div>
+
+<!-- Chat sheet -->
+<div id="chatSheet">
+  <div class="cs-handle" onclick="closeChat()"><div class="cs-handle-bar"></div></div>
+  <div class="cs-head">
+    <div class="cs-avatar">🎓</div>
     <div style="flex:1;">
-      <div class="cp-title">Restore Guide</div>
-      <div class="cp-status"><div class="cp-dot"></div> Online</div>
+      <div class="cs-title">Restore Guide</div>
+      <div class="cs-status"><div class="cs-dot"></div> Online</div>
     </div>
-    <div class="cp-toggle">▲</div>
+    <button class="cs-close" onclick="closeChat()">✕</button>
   </div>
   <div id="chatMsgs">
     <div class="msg ai"><div class="bubble">Hey! What are you curious about today? 🌌</div></div>
@@ -309,11 +323,137 @@ body{position:fixed;inset:0;}
       <div class="thk-label" style="color:#e2e8f0;">Mastering</div>
     </div>
   </div>
-  <div class="cp-input-row">
+  <div class="cs-input-row">
     <input id="chatInput" placeholder="Ask anything…" autocomplete="off"/>
     <button id="chatSend">➤</button>
   </div>
 </div>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     FLOATING CHAT JS
+     Replace the existing chat JS section with this
+     Find: // ══ CHAT ══ and replace down to scheduleSave
+     ══════════════════════════════════════════════════════════ -->
+<script>
+// ── CHAT SHEET ────────────────────────────────────────────────
+let chatOpen = false;
+
+function toggleChatSheet() {
+  chatOpen ? closeChat() : openChat();
+}
+
+function openChat() {
+  chatOpen = true;
+  document.getElementById('chatSheet').classList.add('open');
+  document.getElementById('chatBackdrop').classList.add('open');
+  document.getElementById('chatBtn').classList.add('active');
+  document.getElementById('chatBtnBadge').classList.remove('show');
+  setTimeout(() => document.getElementById('chatInput').focus(), 350);
+}
+
+function closeChat() {
+  chatOpen = false;
+  document.getElementById('chatSheet').classList.remove('open');
+  document.getElementById('chatBackdrop').classList.remove('open');
+  document.getElementById('chatBtn').classList.remove('active');
+}
+
+// ── DRAGGABLE CHAT BUTTON ─────────────────────────────────────
+(function() {
+  const btn = document.getElementById('chatBtn');
+  let dragging = false;
+  let startX, startY, startBX, startBY;
+  let moved = false;
+
+  function getPos() {
+    const rect = btn.getBoundingClientRect();
+    return { x: rect.left, y: rect.top };
+  }
+
+  btn.addEventListener('touchstart', e => {
+    const t = e.touches[0];
+    startX = t.clientX; startY = t.clientY;
+    const pos = getPos();
+    startBX = pos.x; startBY = pos.y;
+    dragging = true; moved = false;
+  }, { passive: true });
+
+  window.addEventListener('touchmove', e => {
+    if (!dragging) return;
+    const t = e.touches[0];
+    const dx = t.clientX - startX;
+    const dy = t.clientY - startY;
+    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) moved = true;
+    if (!moved) return;
+    const newX = startBX + dx;
+    const newY = startBY + dy;
+    const W = window.innerWidth, H = window.innerHeight;
+    const clamped = {
+      x: Math.max(8, Math.min(W - 60, newX)),
+      y: Math.max(60, Math.min(H - 130, newY))
+    };
+    btn.style.left = clamped.x + 'px';
+    btn.style.top = clamped.y + 'px';
+    btn.style.right = 'auto';
+    btn.style.bottom = 'auto';
+  }, { passive: true });
+
+  window.addEventListener('touchend', () => { dragging = false; });
+})();
+
+// ── MESSAGES ──────────────────────────────────────────────────
+function addMsg(text, role) {
+  const msgs = document.getElementById('chatMsgs');
+  const d = document.createElement('div'); d.className = 'msg ' + role;
+  const b = document.createElement('div'); b.className = 'bubble';
+  b.textContent = text; d.appendChild(b); msgs.appendChild(d);
+  msgs.scrollTop = msgs.scrollHeight;
+  return b;
+}
+
+// ── SEND ──────────────────────────────────────────────────────
+async function sendChat(text) {
+  if (!text.trim()) return;
+  document.getElementById('chatInput').value = '';
+  document.getElementById('chatSend').disabled = true;
+  if (!chatOpen) openChat();
+  addMsg(text, 'user');
+  const typing = addMsg('...', 'ai');
+  typing.style.opacity = '.5';
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: text, userId: window._userId || 'demo-user' })
+    });
+    const data = await res.json();
+    typing.textContent = data.reply || 'Ask me that again?';
+    typing.style.opacity = '1';
+    appState.emotion = data.emotion || 'curious';
+    appState.topics = data.topics || [];
+    appState.moments++;
+    if (appState.pulse[appState.emotion] !== undefined) appState.pulse[appState.emotion]++;
+    unlockNodes(appState.topics);
+    flashThink(appState.emotion);
+    updateUI();
+    scheduleSave();
+    // Show badge if chat is closed
+    if (!chatOpen) {
+      document.getElementById('chatBtnBadge').classList.add('show');
+    }
+  } catch (e) {
+    typing.textContent = 'Something interrupted my thinking.\n\nAsk me that again?';
+    typing.style.opacity = '1';
+  }
+  document.getElementById('chatSend').disabled = false;
+}
+
+document.getElementById('chatSend').addEventListener('click', () => sendChat(document.getElementById('chatInput').value));
+document.getElementById('chatInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(e.target.value); }
+});
+</script>
+
 
 <!-- Nav -->
 <div id="mNav">
