@@ -734,19 +734,22 @@ function toggleChatSheet(){chatOpen?closeChat():openChat();}
 
 function openChat(){
   chatOpen=true;
-  document.getElementById('chatOverlay').classList.add('open');
-  document.getElementById('chatBtn').classList.add('active');
-  document.getElementById('chatBtnBadge').classList.remove('show');
   hasInteracted=true;
-  setTimeout(()=>document.getElementById('chatInput').focus(),400);
+  const overlay=document.getElementById('chatOverlay');
+  overlay.style.display='flex';
+  requestAnimationFrame(()=>{
+    overlay.classList.add('open');
+    document.getElementById('chatBtn').classList.add('active');
+    document.getElementById('chatBtnBadge').classList.remove('show');
+    setTimeout(()=>document.getElementById('chatInput').focus(),400);
+  });
 }
-
 function closeChat(){
   chatOpen=false;
-  document.getElementById('chatOverlay').classList.remove('open');
+  const overlay=document.getElementById('chatOverlay');
+  overlay.classList.remove('open');
   document.getElementById('chatBtn').classList.remove('active');
-  // Show pulsing nodes if any pending
-  if(pendingNodes.length>0) notifyPendingNodes();
+  setTimeout(()=>{overlay.style.display='none';},320);
 }
 
 // ── SYSTEM MESSAGES ───────────────────────────────────────────
