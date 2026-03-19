@@ -465,7 +465,8 @@ const ltC=document.getElementById('lightning'),ltx=ltC.getContext('2d');
 const hitC=document.getElementById('hit');
 
 let ROT=0,T=0,bloomNode=null,bloomT=0;
-let lightningArcs=[]; // [{x1,y1,x2,y2,col,life,maxLife}]
+let lightningArcs=[];
+let connectionFlashes=[]; // {a,b,start,life}
 
 const EMOTION_COLORS={
   curious:'rgba(56,189,248,0.04)',
@@ -538,22 +539,114 @@ function drawSparks(){
   });
 }
 
+// ── CONNECTION FLASH SYSTEM ───────────────────────────────────
+function triggerConnectionFlash(pairs, delay=0){
+  pairs.forEach(([a,b],i)=>{
+    setTimeout(()=>{
+      connectionFlashes.push({a,b,start:performance.now(),life:900});
+    }, delay*i);
+  });
+}
+
+function drawSpark(x,y,intensity,col){
+  // Radial spark burst
+  for(let i=0;i<6;i++){
+    const ang=i*(Math.PI/3)+(T*.08);
+    const len=8*intensity;
+    ux.beginPath();
+    ux.moveTo(x+Math.cos(ang)*3,y+Math.sin(ang)*3);
+    ux.lineTo(x+Math.cos(ang)*len,y+Math.sin(ang)*len);
+    ux.strokeStyle=`rgba(255,255,200,${intensity*.7})`;
+    ux.lineWidth=1.5*intensity;
+    ux.stroke();
+  }
+  // Center glow
+  ux.beginPath();ux.arc(x,y,5*intensity,0,Math.PI*2);
+  ux.fillStyle=`rgba(255,255,255,${intensity*.8})`;
+  ux.fill();
+}
+
 function drawConns(){
+  const now=performance.now();
+  // Update flash timers
+  connectionFlashes=connectionFlashes.filter(f=>now-f.start<f.life);
+
   CONNS.forEach(([a,b])=>{
     const na=N.find(n=>n.id===a),nb=N.find(n=>n.id===b);
     if(!na||!nb||na.hidden||nb.hidden)return;
     const pa=nodePos(na,true),pb=nodePos(nb,true);
     const active=bloomNode&&(a===bloomNode.id||b===bloomNode.id);
     const dim=bloomNode&&!active;
-    ux.beginPath();ux.moveTo(pa.x,pa.y);ux.lineTo(pb.x,pb.y);
-    if(active){
-      // Glowing connection line
-      ux.strokeStyle=`rgba(255,255,255,0.4)`;ux.lineWidth=1.5;
+
+    // Check for active flash on this connection
+    const flash=connectionFlashes.find(f=>(f.a===a&&f.b===b)||(f.a===b&&f.b===a));
+
+    if(flash){
+      const progress=(now-flash.start)/flash.life;
+      const intensity=1-progress;
+      // Ease in-out curve
+      const ease=progress<0.15?progress/0.15:progress>0.85?(1-progress)/0.15:1;
+
+      // Stage 1: Ignition (0-0.15) — thick bright line
+      // Stage 2: Travel (0.15-0.75) — energy dot moves
+      // Stage 3: Fade (0.75-1.0) — softens out
+
+      // Glowing base line
+      ux.beginPath();ux.moveTo(pa.x,pa.y);ux.lineTo(pb.x,pb.y);
+      ux.strokeStyle=`rgba(251,191,36,${0.9*ease*intensity})`;
+      ux.lineWidth=2.5+3*intensity*ease;
+      ux.shadowColor='rgba(251,191,36,0.8)';
+      ux.shadowBlur=8*ease;
+      ux.stroke();
+      ux.shadowBlur=0;
+
+      // White core line
+      ux.beginPath();ux.moveTo(pa.x,pa.y);ux.lineTo(pb.x,pb.y);
+      ux.strokeStyle=`rgba(255,255,255,${0.5*ease*intensity})`;
+      ux.lineWidth=1;
+      ux.stroke();
+
+      // Stage 1: Ignition spark at source node
+      if(progress<0.2){
+        drawSpark(pa.x,pa.y,(1-progress/0.2)*ease,'#fbbf24');
+      }
+
+      // Stage 2: Energy travel dot
+      if(progress>0.05&&progress<0.9){
+        const travelProgress=(progress-0.05)/0.85;
+        const tx=pa.x+(pb.x-pa.x)*travelProgress;
+        const ty=pa.y+(pb.y-pa.y)*travelProgress;
+        const dotSize=4+5*intensity;
+        // Dot trail
+        ux.beginPath();ux.arc(tx,ty,dotSize,0,Math.PI*2);
+        ux.fillStyle=`rgba(255,255,255,${0.9*ease})`;
+        ux.shadowColor='rgba(255,220,100,0.9)';
+        ux.shadowBlur=12*ease;
+        ux.fill();
+        ux.shadowBlur=0;
+        // Small trailing glow
+        ux.beginPath();ux.arc(tx,ty,dotSize*2,0,Math.PI*2);
+        ux.fillStyle=`rgba(251,191,36,${0.3*ease})`;
+        ux.fill();
+      }
+
+      // Stage 3: Arrival spark at destination
+      if(progress>0.75){
+        const arrivalIntensity=(progress-0.75)/0.25;
+        drawSpark(pb.x,pb.y,arrivalIntensity*ease,'#fbbf24');
+      }
+
     } else {
-      ux.strokeStyle=dim?'rgba(255,255,255,0.02)':'rgba(255,255,255,0.08)';
-      ux.lineWidth=.7;
+      // Normal connection
+      ux.beginPath();ux.moveTo(pa.x,pa.y);ux.lineTo(pb.x,pb.y);
+      if(active){
+        ux.strokeStyle='rgba(255,255,255,0.4)';ux.lineWidth=1.5;
+      } else {
+        ux.strokeStyle=dim?'rgba(255,255,255,0.02)':'rgba(255,255,255,0.08)';
+        ux.lineWidth=.7;
+      }
+      ux.stroke();
     }
-    ux.stroke();
   });
 }
 
@@ -996,6 +1089,11 @@ async function sendChat(text){
     newNodes.forEach(n=>{
       n._pulsing=true;pendingNodes.add(n.id);
       soundUnlock();
+      // Flash connections from YOU to new node
+      setTimeout(()=>{
+        const pairs=CONNS.filter(([a,b])=>(a===n.id||b===n.id)&&(a==='you'||b==='you'));
+        if(pairs.length>0)triggerConnectionFlash(pairs,0);
+      },400);
       setTimeout(()=>addSystemMsg('🌟 '+n.label+' unlocked — go back to your galaxy to see it'),600);
     });
     if(newNodes.length>0){
@@ -1005,11 +1103,16 @@ async function sendChat(text){
       if(hit.size>=2){
         appState.breakthroughs++;
         soundBreakthrough();
-        // Fire lightning between connected new nodes
+        // Chain reaction flash — all connections between new nodes, staggered
         if(newNodes.length>=2){
           setTimeout(()=>fireLightning(newNodes[0],newNodes[1]),300);
+          // Flash connections between the new nodes too
+          const crossPairs=[];
+          newNodes.forEach((na,i)=>newNodes.forEach((nb,j)=>{
+            if(i<j)crossPairs.push([na.id,nb.id]);
+          }));
+          setTimeout(()=>triggerConnectionFlash(crossPairs,120),500);
         } else if(newNodes.length===1){
-          // Lightning to YOU
           setTimeout(()=>fireLightning(newNodes[0],N[0]),300);
         }
         setTimeout(()=>addSystemMsg('⚡ Cross-domain breakthrough! You just connected '+[...hit].join(' + ')),1200);
