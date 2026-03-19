@@ -25,7 +25,7 @@ body{position:fixed;inset:0;}
 #bg{z-index:0;}
 #uni{z-index:1;pointer-events:none;}
 #bloom{z-index:2;pointer-events:none;}
-#hit{position:fixed;inset:0;z-index:10;pointer-events:all;touch-action:none;background:transparent;}
+#hit{position:fixed;inset:0;z-index:500;pointer-events:all;touch-action:none;background:transparent;}
 
 /* ── LOADING ── */
 #loadingScreen{position:fixed;inset:0;z-index:99999;background:#05080f;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity 0.8s;}
@@ -69,101 +69,125 @@ body{position:fixed;inset:0;}
 #chatBtnBadge{position:absolute;top:-2px;right:-2px;width:16px;height:16px;border-radius:50%;background:#f87171;font-size:9px;font-weight:700;color:#fff;display:none;align-items:center;justify-content:center;border:2px solid #05080f;}
 #chatBtnBadge.show{display:flex;}
 
-/* ── CHAT BACKDROP ── */
-#chatBackdrop{position:fixed;inset:0;z-index:399;pointer-events:none;}
-#chatBackdrop.open{pointer-events:all;}
-
-/* ── MESSENGER CHAT WINDOW ── */
-#chatWindow{
-  position:fixed;
-  bottom:148px;
-  right:16px;
-  width:300px;
-  height:380px;
-  z-index:400;
-  background:rgba(5,8,18,0.97);
-  border:1px solid rgba(255,255,255,0.1);
-  border-radius:18px;
-  backdrop-filter:blur(24px);
-  box-shadow:0 8px 40px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.04);
+/* ── CHAT OVERLAY — full screen iMessage style ── */
+#chatOverlay{
+  position:fixed;inset:0;
+  z-index:800;
+  background:#05080f;
   display:flex;flex-direction:column;
-  opacity:0;pointer-events:none;
-  transform:scale(0.85) translateY(20px);
-  transform-origin:bottom right;
-  transition:opacity 0.22s ease, transform 0.22s cubic-bezier(0.175,0.885,0.32,1.275);
+  transform:translateY(100%);
+  transition:transform 0.32s cubic-bezier(0.4,0,0.2,1);
 }
-#chatWindow.open{
-  opacity:1;pointer-events:all;
-  transform:scale(1) translateY(0);
+#chatOverlay.open{transform:translateY(0);}
+
+/* Chat header */
+.ch-head{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 16px;
+  background:rgba(5,8,18,0.98);
+  border-bottom:1px solid rgba(255,255,255,0.07);
+  flex-shrink:0;
+  padding-top:max(12px, env(safe-area-inset-top));
 }
-.cw-head{
-  display:flex;align-items:center;gap:10px;
-  padding:12px 14px 10px;flex-shrink:0;
-  border-bottom:1px solid rgba(255,255,255,0.06);
-  border-radius:18px 18px 0 0;
-  background:rgba(255,255,255,0.03);
-}
-.cw-avatar{
-  width:34px;height:34px;border-radius:50%;flex-shrink:0;
-  background:conic-gradient(from 180deg,#38bdf8,#818cf8,#c084fc,#38bdf8);
-  display:flex;align-items:center;justify-content:center;font-size:16px;
-  box-shadow:0 0 12px rgba(56,189,248,0.4);
-}
-.cw-info{flex:1;}
-.cw-name{font-size:13px;font-weight:700;color:#fff;line-height:1;}
-.cw-status{font-size:10px;color:#4ade80;display:flex;align-items:center;gap:4px;margin-top:2px;}
-.cw-dot{width:5px;height:5px;border-radius:50%;background:#4ade80;box-shadow:0 0 5px #4ade80;}
-.cw-close{
-  width:26px;height:26px;border-radius:50%;
+.ch-back{
+  width:36px;height:36px;border-radius:50%;
   background:rgba(255,255,255,0.07);
   border:1px solid rgba(255,255,255,0.1);
-  color:rgba(255,255,255,0.5);font-size:12px;
-  cursor:pointer;display:flex;align-items:center;justify-content:center;
-  font-family:inherit;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;cursor:pointer;flex-shrink:0;color:#fff;
+  font-family:inherit;
 }
+.ch-avatar{
+  width:38px;height:38px;border-radius:50%;flex-shrink:0;
+  background:conic-gradient(from 180deg,#38bdf8,#818cf8,#c084fc,#38bdf8);
+  display:flex;align-items:center;justify-content:center;font-size:18px;
+  box-shadow:0 0 14px rgba(56,189,248,0.4);
+}
+.ch-info{flex:1;}
+.ch-name{font-size:15px;font-weight:700;color:#fff;line-height:1.2;}
+.ch-status{font-size:11px;color:#4ade80;display:flex;align-items:center;gap:4px;margin-top:2px;}
+.ch-dot{width:6px;height:6px;border-radius:50%;background:#4ade80;box-shadow:0 0 6px #4ade80;}
+
+/* Messages */
 #chatMsgs{
-  flex:1;overflow-y:auto;padding:10px 12px;
-  display:flex;flex-direction:column;gap:6px;
+  flex:1;overflow-y:auto;
+  padding:12px 16px;
+  display:flex;flex-direction:column;gap:8px;
   scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;
 }
 #chatMsgs::-webkit-scrollbar{display:none;}
 .msg{display:flex;flex-direction:column;}
 .msg.user{align-items:flex-end;}
 .msg.ai{align-items:flex-start;}
+.msg.system{align-items:center;}
 .bubble{
-  max-width:88%;padding:8px 12px;border-radius:14px;
-  font-size:12px;line-height:1.5;white-space:pre-wrap;
+  max-width:82%;padding:10px 14px;
+  border-radius:18px;font-size:15px;line-height:1.5;
+  white-space:pre-wrap;
 }
-.msg.ai .bubble{background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.2);color:#e2e8f0;border-radius:3px 14px 14px 14px;}
-.msg.user .bubble{background:rgba(129,140,248,0.2);border:1px solid rgba(129,140,248,0.25);color:#fff;border-radius:14px 14px 3px 14px;}
-.cw-thinking{
+.msg.ai .bubble{
+  background:rgba(56,189,248,0.1);
+  border:1px solid rgba(56,189,248,0.2);
+  color:#e2e8f0;
+  border-radius:4px 18px 18px 18px;
+}
+.msg.user .bubble{
+  background:linear-height(135deg,#38bdf8,#818cf8);
+  background:rgba(129,140,248,0.25);
+  border:1px solid rgba(129,140,248,0.3);
+  color:#fff;
+  border-radius:18px 18px 4px 18px;
+}
+.msg.system .bubble{
+  background:rgba(251,191,36,0.1);
+  border:1px solid rgba(251,191,36,0.25);
+  color:#fbbf24;
+  border-radius:12px;
+  font-size:12px;font-weight:600;
+  padding:7px 14px;
+  text-align:center;
+}
+
+/* Thinking row */
+.ch-thinking{
   display:flex;align-items:center;justify-content:space-around;
-  padding:6px 10px;flex-shrink:0;
-  border-top:1px solid rgba(255,255,255,0.04);
+  padding:8px 16px;flex-shrink:0;
+  border-top:1px solid rgba(255,255,255,0.05);
+  background:rgba(5,8,18,0.5);
 }
 .thk-item{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;}
-.thk-icon{width:24px;height:24px;border-radius:50%;border:1.5px solid;display:flex;align-items:center;justify-content:center;font-size:11px;transition:transform 0.3s,box-shadow 0.3s;}
-.thk-label{font-size:8px;font-weight:600;text-align:center;}
-.thk-arrow{color:#64748b;font-size:9px;}
-.cw-input{
-  display:flex;align-items:center;gap:8px;
-  padding:8px 12px 12px;flex-shrink:0;
+.thk-icon{width:30px;height:30px;border-radius:50%;border:1.5px solid;display:flex;align-items:center;justify-content:center;font-size:14px;transition:transform 0.3s,box-shadow 0.3s;}
+.thk-label{font-size:9px;font-weight:600;text-align:center;}
+.thk-arrow{color:#64748b;font-size:10px;}
+
+/* Input */
+.ch-input{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 16px;
+  padding-bottom:max(10px, env(safe-area-inset-bottom));
+  background:rgba(5,8,18,0.98);
+  border-top:1px solid rgba(255,255,255,0.07);
+  flex-shrink:0;
 }
 #chatInput{
-  flex:1;background:rgba(255,255,255,0.07);
-  border:1px solid rgba(255,255,255,0.1);
-  border-radius:20px;padding:8px 14px;
-  font-size:13px;color:#fff;
+  flex:1;
+  background:rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.12);
+  border-radius:22px;
+  padding:10px 16px;
+  font-size:16px;color:#fff;
   font-family:'Inter',sans-serif;outline:none;
+  -webkit-appearance:none;
 }
 #chatInput::placeholder{color:#475569;}
-#chatInput:focus{border-color:rgba(56,189,248,0.4);background:rgba(255,255,255,0.09);}
+#chatInput:focus{border-color:rgba(56,189,248,0.5);background:rgba(255,255,255,0.1);}
 #chatSend{
-  width:32px;height:32px;border-radius:50%;flex-shrink:0;
+  width:38px;height:38px;border-radius:50%;flex-shrink:0;
   background:linear-gradient(135deg,#38bdf8,#818cf8);
   border:none;cursor:pointer;
   display:flex;align-items:center;justify-content:center;
-  font-size:13px;color:#fff;
+  font-size:16px;color:#fff;flex-shrink:0;
 }
 #chatSend:disabled{opacity:.4;}
 
@@ -238,25 +262,24 @@ body{position:fixed;inset:0;}
   <div class="m-chip" style="color:var(--blue);" id="chipFrontier">⚛ Quantum Mechanics</div>
 </div>
 
-<div id="chatBackdrop" onclick="closeChat()"></div>
-
 <div id="chatBtn">🎓
   <div id="chatBtnBadge">!</div>
 </div>
 
-<div id="chatWindow">
-  <div class="cw-head">
-    <div class="cw-avatar">🎓</div>
-    <div class="cw-info">
-      <div class="cw-name">Restore Guide</div>
-      <div class="cw-status"><div class="cw-dot"></div> Online · Teacher Mode</div>
+<!-- Full screen iMessage-style chat -->
+<div id="chatOverlay">
+  <div class="ch-head">
+    <button class="ch-back" onclick="closeChat()">←</button>
+    <div class="ch-avatar">🎓</div>
+    <div class="ch-info">
+      <div class="ch-name">Restore Guide</div>
+      <div class="ch-status"><div class="ch-dot"></div> Online · Teacher Mode</div>
     </div>
-    <button class="cw-close" onclick="closeChat()">✕</button>
   </div>
   <div id="chatMsgs">
     <div class="msg ai"><div class="bubble">Hey! What are you curious about today? 🌌</div></div>
   </div>
-  <div class="cw-thinking">
+  <div class="ch-thinking">
     <div class="thk-item"><div class="thk-icon" style="border-color:#38bdf8;color:#38bdf8;" id="thk0">💙</div><div class="thk-label" style="color:#38bdf8;">Curious</div></div>
     <div class="thk-arrow">→</div>
     <div class="thk-item"><div class="thk-icon" style="border-color:#f87171;color:#f87171;" id="thk1">❤️</div><div class="thk-label" style="color:#f87171;">Confused</div></div>
@@ -267,8 +290,8 @@ body{position:fixed;inset:0;}
     <div class="thk-arrow">→</div>
     <div class="thk-item"><div class="thk-icon" style="border-color:#e2e8f0;color:#e2e8f0;" id="thk4">🤍</div><div class="thk-label" style="color:#e2e8f0;">Mastering</div></div>
   </div>
-  <div class="cw-input">
-    <input id="chatInput" placeholder="Ask anything…" autocomplete="off"/>
+  <div class="ch-input">
+    <input id="chatInput" placeholder="Ask anything…" autocomplete="off" enterkeyhint="send"/>
     <button id="chatSend">➤</button>
   </div>
 </div>
@@ -555,6 +578,14 @@ function drawNode(n){
       const p=.5+.5*Math.sin(bloomT*.1);
       ux.beginPath();ux.arc(x,y,r+10+p*6,0,Math.PI*2);ux.strokeStyle=col+'45';ux.lineWidth=1.5;ux.stroke();
     }
+    // Pulsing ring for newly unlocked nodes
+    if(n._pulsing){
+      const p=.5+.5*Math.sin(T*.06);
+      ux.beginPath();ux.arc(x,y,r+14+p*8,0,Math.PI*2);
+      ux.strokeStyle=col+'80';ux.lineWidth=2;ux.stroke();
+      ux.beginPath();ux.arc(x,y,r+22+p*10,0,Math.PI*2);
+      ux.strokeStyle=col+'30';ux.lineWidth=1;ux.stroke();
+    }
     ux.globalAlpha=dimA;
     const sg=ux.createRadialGradient(x-r*.35,y-r*.35,0,x,y,r);
     sg.addColorStop(0,col+'ff');sg.addColorStop(.6,col+'cc');sg.addColorStop(1,col+'88');
@@ -689,7 +720,7 @@ hitC.addEventListener('click',e=>{
 });
 
 // ══════════════════════════════════════════════════════════════
-// FLOATING CHAT
+// CHAT — full screen overlay
 // ══════════════════════════════════════════════════════════════
 let chatOpen=false;
 
@@ -697,21 +728,126 @@ function toggleChatSheet(){chatOpen?closeChat():openChat();}
 
 function openChat(){
   chatOpen=true;
-  document.getElementById('chatWindow').classList.add('open');
-  document.getElementById('chatBackdrop').classList.add('open');
+  document.getElementById('chatOverlay').classList.add('open');
   document.getElementById('chatBtn').classList.add('active');
   document.getElementById('chatBtnBadge').classList.remove('show');
-  setTimeout(()=>document.getElementById('chatInput').focus(),250);
+  hasInteracted=true;
+  setTimeout(()=>document.getElementById('chatInput').focus(),400);
 }
 
 function closeChat(){
   chatOpen=false;
-  document.getElementById('chatWindow').classList.remove('open');
-  document.getElementById('chatBackdrop').classList.remove('open');
+  document.getElementById('chatOverlay').classList.remove('open');
   document.getElementById('chatBtn').classList.remove('active');
+  // Show pulsing nodes if any pending
+  if(pendingNodes.length>0) notifyPendingNodes();
 }
 
-// Drag-safe chat button (pointer-based)
+// ── SYSTEM MESSAGES ───────────────────────────────────────────
+function addSystemMsg(text){
+  const msgs=document.getElementById('chatMsgs');
+  const d=document.createElement('div');d.className='msg system';
+  const b=document.createElement('div');b.className='bubble';
+  b.textContent=text;d.appendChild(b);msgs.appendChild(d);
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
+// ── PULSING NODES ─────────────────────────────────────────────
+const pendingNodes=new Set(); // nodes waiting to be acknowledged
+
+function setPulsingNode(node){
+  pendingNodes.add(node.id);
+  node._pulsing=true;
+}
+
+function notifyPendingNodes(){
+  if(pendingNodes.size===0)return;
+  // Badge shows on orb
+  document.getElementById('chatBtnBadge').classList.add('show');
+}
+
+// Clear pulse when node is bloomed
+const _origBloomOpen=bloomOpen;
+function bloomOpen(node){
+  node._pulsing=false;
+  pendingNodes.delete(node.id);
+  if(pendingNodes.size===0){
+    document.getElementById('chatBtnBadge').classList.remove('show');
+  }
+  bloomNode=node;bloomT=0;hasInteracted=true;
+}
+
+// Draw pulsing ring on pending nodes (in drawNode)
+// We inject this by patching the bloom draw — see drawNode above
+// The _pulsing flag triggers a continuous ring animation
+
+// ── MESSAGES ──────────────────────────────────────────────────
+function addMsg(text,role){
+  const msgs=document.getElementById('chatMsgs');
+  const d=document.createElement('div');d.className='msg '+role;
+  const b=document.createElement('div');b.className='bubble';
+  b.textContent=text;d.appendChild(b);msgs.appendChild(d);
+  msgs.scrollTop=msgs.scrollHeight;
+  return b;
+}
+
+// ── SEND ──────────────────────────────────────────────────────
+async function sendChat(text){
+  if(!text.trim())return;
+  hasInteracted=true;
+  document.getElementById('chatInput').value='';
+  document.getElementById('chatSend').disabled=true;
+  if(!chatOpen)openChat();
+  addMsg(text,'user');
+  const typing=addMsg('...','ai');typing.style.opacity='.5';
+  try{
+    const res=await fetch('/api/chat',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({message:text,userId:window._userId||'demo-user'})
+    });
+    const data=await res.json();
+    typing.textContent=data.reply||'Ask me that again?';
+    typing.style.opacity='1';
+    appState.emotion=data.emotion||'curious';
+    appState.topics=data.topics||[];
+    appState.moments++;
+    if(appState.pulse[appState.emotion]!==undefined)appState.pulse[appState.emotion]++;
+
+    // Unlock nodes + system messages
+    const newNodes=unlockNodes(appState.topics);
+    newNodes.forEach(n=>{
+      setPulsingNode(n);
+      setTimeout(()=>{
+        addSystemMsg('🌟 '+n.label+' unlocked — tap your galaxy to see it');
+      },600);
+    });
+
+    // Breakthrough system message
+    if(newNodes.length>0){
+      const clusters={science:['phys','chem','bio','math','geo','env','neuro','eng'],space:['astro','bh','st','cosmo','rel','grav'],humanities:['hist','lit','art','music','film','ren','rev','anth','arch','cul'],social:['psych','soc','pol','law','eth','know','ling','crim'],tech:['tech','ai'],econ:['econ','biz','ind']};
+      const hit=new Set();
+      appState.topics.forEach(t=>{for(const[c,ids]of Object.entries(clusters)){if(ids.includes(t))hit.add(c);}});
+      if(hit.size>=2){
+        appState.breakthroughs++;
+        setTimeout(()=>addSystemMsg('⚡ Cross-domain breakthrough — you just connected '+[...hit].join(' + ')),1200);
+      }
+    }
+
+    flashThink(appState.emotion);
+    updateUI();scheduleSave();
+  }catch(e){
+    typing.textContent='Something interrupted my thinking.\n\nAsk me that again?';
+    typing.style.opacity='1';
+  }
+  document.getElementById('chatSend').disabled=false;
+}
+
+document.getElementById('chatSend').addEventListener('click',()=>sendChat(document.getElementById('chatInput').value));
+document.getElementById('chatInput').addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat(e.target.value);}
+});
+
+// Drag-safe chat orb
 (function(){
   const btn=document.getElementById('chatBtn');
   let drag=false,moved=false,startX,startY,startBX,startBY;
@@ -733,9 +869,8 @@ function closeChat(){
     btn.style.top=Math.max(60,Math.min(H-130,startBY+dy))+'px';
     btn.style.right='auto';btn.style.bottom='auto';
   });
-  btn.addEventListener('pointerup',e=>{
-    if(!drag)return;
-    drag=false;
+  btn.addEventListener('pointerup',()=>{
+    if(!drag)return;drag=false;
     if(!moved)toggleChatSheet();
   });
 })();
@@ -791,14 +926,7 @@ function unlockNodes(topics){
     if(node&&node.hidden){node.hidden=false;node.mas=5;newNodes.push(node);}
     else if(node)node.mas=Math.min(100,(node.mas||0)+2);
   });
-  if(newNodes.length>0){
-    const n=newNodes[0];
-    showToast('🌟 '+n.label+' unlocked!','Your galaxy grew',n.col);
-    const clusters={science:['phys','chem','bio','math','geo','env','neuro','eng'],space:['astro','bh','st','cosmo','rel','grav'],humanities:['hist','lit','art','music','film','ren','rev','anth','arch','cul'],social:['psych','soc','pol','law','eth','know','ling','crim'],tech:['tech','ai'],econ:['econ','biz','ind']};
-    const hit=new Set();
-    topics.forEach(t=>{for(const[c,ids]of Object.entries(clusters)){if(ids.includes(t))hit.add(c);}});
-    if(hit.size>=2){appState.breakthroughs++;setTimeout(()=>showToast('⚡ Cross-Domain Breakthrough!','Rare connection discovered','#fbbf24','⚡'),1200);}
-  }
+  return newNodes;
 }
 
 // ══════════════════════════════════════════════════════════════
