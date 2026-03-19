@@ -632,23 +632,24 @@ hitC.addEventListener('click',e=>{
 let chatOpen=false;
 
 function toggleChatSheet(){chatOpen?closeChat():openChat();}
-
 function openChat(){
   chatOpen=true;hasInteracted=true;
-  document.getElementById('chatScreen').classList.add('open');
+  const screen=document.getElementById('chatScreen');
+  screen.style.display='flex';
+  screen.classList.add('open');
   document.getElementById('chatBtn').classList.add('active');
   document.getElementById('chatBtnBadge').classList.remove('show');
   setTimeout(()=>{document.getElementById('chatInput').focus();fixChatHeight();},300);
 }
-
 function closeChat(){
   chatOpen=false;
   const screen=document.getElementById('chatScreen');
   screen.classList.remove('open');
+  screen.style.display='none';
   screen.style.height='';
   screen.style.top='';
   document.getElementById('chatBtn').classList.remove('active');
-if(pendingNodes.size>0)document.getElementById('chatBtnBadge').classList.add('show');
+  if(pendingNodes.size>0)document.getElementById('chatBtnBadge').classList.add('show');
 }
 
 // Drag-safe orb
