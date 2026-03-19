@@ -77,8 +77,9 @@ body{position:fixed;inset:0;}
   display:flex;flex-direction:column;
   transform:translateY(100%);
   transition:transform 0.32s cubic-bezier(0.4,0,0.2,1);
+  pointer-events:none;
 }
-#chatOverlay.open{transform:translateY(0);}
+#chatOverlay.open{transform:translateY(0);pointer-events:all;}
 
 /* Chat header */
 .ch-head{
