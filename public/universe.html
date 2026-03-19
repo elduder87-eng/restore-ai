@@ -643,16 +643,21 @@ function openChat(){
   document.getElementById('chatScreen').classList.add('open');
   document.getElementById('chatBtn').classList.add('active');
   document.getElementById('chatBtnBadge').classList.remove('show');
-  setTimeout(()=>document.getElementById('chatInput').focus(),300);
+  setTimeout(()=>{
+    document.getElementById('chatInput').focus();
+    fixChatHeight();
+  },300);
 }
 
 function closeChat(){
   chatOpen=false;
-  document.getElementById('chatScreen').classList.remove('open');
+  const screen=document.getElementById('chatScreen');
+  screen.classList.remove('open');
+  screen.style.height='';
+  screen.style.top='';
   document.getElementById('chatBtn').classList.remove('active');
-  if(pendingNodes.size>0){
-    document.getElementById('chatBtnBadge').classList.add('show');
-  }
+  if(pendingNodes.size>0)document.getElementById('chatBtnBadge').classList.add('show');
+}
 }
 
 // Drag-safe orb
@@ -887,6 +892,21 @@ setTimeout(()=>{
 },1200);
 setTimeout(loadUser,500);
 setTimeout(loadFromKV,800);
+// ── ANDROID KEYBOARD FIX ─────────────────────────────────────
+function fixChatHeight(){
+  const screen = document.getElementById('chatScreen');
+  if(!screen || !chatOpen) return;
+  const vv = window.visualViewport;
+  if(vv){
+    screen.style.height = vv.height + 'px';
+    screen.style.top = vv.offsetTop + 'px';
+  }
+}
+
+if(window.visualViewport){
+  window.visualViewport.addEventListener('resize', fixChatHeight);
+  window.visualViewport.addEventListener('scroll', fixChatHeight);
+}
 </script>
 </body>
 </html>
