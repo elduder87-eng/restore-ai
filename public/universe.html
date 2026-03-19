@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v5.0 -->
+<!-- v6.0 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -20,13 +20,14 @@
 html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none;background:var(--bg);font-family:'Inter',sans-serif;color:var(--text);}
 body{position:fixed;inset:0;}
 
-/* ── CANVAS — lowest layer ── */
+/* ── CANVAS ── */
 #bg{position:fixed;inset:0;z-index:0;}
 #uni{position:fixed;inset:0;z-index:1;pointer-events:none;}
 #bloom{position:fixed;inset:0;z-index:2;pointer-events:none;}
-#hit{position:fixed;inset:0;z-index:3;pointer-events:all;touch-action:manipulation;background:transparent;}
+#lightning{position:fixed;inset:0;z-index:3;pointer-events:none;}
+#hit{position:fixed;inset:0;z-index:4;pointer-events:all;touch-action:manipulation;background:transparent;}
 
-/* ── UI LAYER — above canvas ── */
+/* ── HEADER ── */
 #mHeader{position:fixed;top:0;left:0;right:0;height:52px;z-index:20;background:rgba(5,8,15,0.75);border-bottom:1px solid rgba(255,255,255,0.05);backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:space-between;padding:0 16px;pointer-events:all;}
 .mh-brand{display:flex;align-items:center;gap:10px;}
 .mh-logo{width:32px;height:32px;border-radius:50%;border:1px solid rgba(99,179,237,0.4);background:#05080f;display:flex;align-items:center;justify-content:center;animation:brandGlow 3s ease-in-out infinite;}
@@ -36,49 +37,55 @@ body{position:fixed;inset:0;}
 .mh-btn{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;}
 .mh-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#818cf8,#c084fc);border:2px solid rgba(255,255,255,0.2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;}
 
-#mChips{position:fixed;top:60px;left:12px;right:12px;z-index:20;display:flex;gap:6px;pointer-events:none;}
+/* ── SHARE BUTTON — distinct from chat orb ── */
+#shareBtn{
+  position:fixed;top:64px;right:16px;
+  width:44px;height:44px;
+  border-radius:12px;
+  background:rgba(251,191,36,0.15);
+  border:1px solid rgba(251,191,36,0.4);
+  z-index:20;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;
+  box-shadow:0 0 16px rgba(251,191,36,0.2);
+  pointer-events:all;
+  transition:all 0.2s;
+}
+#shareBtn:active{transform:scale(0.92);background:rgba(251,191,36,0.3);}
+
+/* ── CHIPS ── */
+#mChips{position:fixed;top:60px;left:12px;right:70px;z-index:20;display:flex;gap:6px;pointer-events:none;}
 .m-chip{background:rgba(5,8,20,0.7);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:4px 10px;backdrop-filter:blur(10px);font-size:11px;font-weight:600;color:#f0f4ff;}
 
-/* ── CHAT ORB ── */
+/* ── CHAT ORB — circular, distinct from share ── */
 #chatBtn{
   position:fixed;bottom:80px;right:20px;
-  width:52px;height:52px;border-radius:50%;
+  width:56px;height:56px;border-radius:50%;
   background:conic-gradient(from 180deg,#38bdf8,#818cf8,#c084fc,#38bdf8);
-  box-shadow:0 0 20px rgba(56,189,248,0.4),0 4px 20px rgba(0,0,0,0.5);
+  box-shadow:0 0 24px rgba(56,189,248,0.5),0 4px 20px rgba(0,0,0,0.5);
   z-index:20;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;font-size:22px;
+  display:flex;align-items:center;justify-content:center;font-size:24px;
   animation:chatBtnPulse 3s ease-in-out infinite;
   touch-action:none;user-select:none;pointer-events:all;
 }
 @keyframes chatBtnPulse{
-  0%,100%{box-shadow:0 0 20px rgba(56,189,248,0.4),0 4px 20px rgba(0,0,0,0.5);}
-  50%{box-shadow:0 0 35px rgba(56,189,248,0.65),0 4px 20px rgba(0,0,0,0.5);}
+  0%,100%{box-shadow:0 0 24px rgba(56,189,248,0.5),0 4px 20px rgba(0,0,0,0.5);transform:scale(1);}
+  50%{box-shadow:0 0 40px rgba(56,189,248,0.8),0 4px 20px rgba(0,0,0,0.5);transform:scale(1.05);}
 }
-#chatBtn.active{background:conic-gradient(from 180deg,#4ade80,#38bdf8,#818cf8,#4ade80);animation:none;}
-#chatBtnBadge{position:absolute;top:-2px;right:-2px;width:16px;height:16px;border-radius:50%;background:#f87171;font-size:9px;font-weight:700;color:#fff;display:none;align-items:center;justify-content:center;border:2px solid #05080f;}
+#chatBtn.active{background:conic-gradient(from 180deg,#4ade80,#38bdf8,#818cf8,#4ade80);animation:none;box-shadow:0 0 30px rgba(74,222,128,0.6);}
+#chatBtnBadge{position:absolute;top:-3px;right:-3px;width:18px;height:18px;border-radius:50%;background:#f87171;font-size:10px;font-weight:700;color:#fff;display:none;align-items:center;justify-content:center;border:2px solid #05080f;}
 #chatBtnBadge.show{display:flex;}
 
 /* ── NAV ── */
 #mNav{position:fixed;bottom:0;left:0;right:0;height:56px;z-index:20;background:rgba(5,8,15,0.97);border-top:1px solid rgba(255,255,255,0.07);backdrop-filter:blur(16px);display:flex;pointer-events:all;}
-.nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;border:none;background:none;color:rgba(255,255,255,0.3);transition:color 0.2s;font-family:'Inter',sans-serif;padding:4px 0;pointer-events:all;}
+.nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;border:none;background:none;color:rgba(255,255,255,0.3);transition:color 0.2s;font-family:'Inter',sans-serif;padding:4px 0;}
 .nav-tab.active{color:#63b3ed;}
 .nav-icon{font-size:18px;line-height:1;}
 .nav-label{font-size:9px;font-weight:600;letter-spacing:.02em;}
 
-/* ── CHAT SCREEN — slides in from bottom ── */
-#chatScreen{
-  position:fixed;inset:0;
-  z-index:50;
-  background:#05080f;
-  display:flex;flex-direction:column;
-  transform:translateY(100%);
-  transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);
-  pointer-events:none;
-}
-#chatScreen.open{
-  transform:translateY(0);
-  pointer-events:all;
-}
+/* ── CHAT SCREEN ── */
+#chatScreen{position:fixed;top:0;left:0;right:0;bottom:0;z-index:50;background:#05080f;display:none;flex-direction:column;overflow:hidden;}
+#chatScreen.open{display:flex;}
 .cs-head{display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(5,8,18,0.98);border-bottom:1px solid rgba(255,255,255,0.07);flex-shrink:0;}
 .cs-back{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;color:#fff;font-family:inherit;flex-shrink:0;}
 .cs-avatar{width:38px;height:38px;border-radius:50%;flex-shrink:0;background:conic-gradient(from 180deg,#38bdf8,#818cf8,#c084fc,#38bdf8);display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 0 14px rgba(56,189,248,0.4);}
@@ -149,6 +156,7 @@ body{position:fixed;inset:0;}
 <canvas id="bg"></canvas>
 <canvas id="uni"></canvas>
 <canvas id="bloom"></canvas>
+<canvas id="lightning"></canvas>
 <canvas id="hit"></canvas>
 
 <div id="mHeader">
@@ -174,6 +182,9 @@ body{position:fixed;inset:0;}
   </div>
 </div>
 
+<!-- Share button — square, gold, top right, completely different from orb -->
+<div id="shareBtn" onclick="shareGalaxy()">📸</div>
+
 <div id="mChips">
   <div class="m-chip">✨ <span id="chipNodes">1</span></div>
   <div class="m-chip">⚡ <span id="chipBreaks">0</span></div>
@@ -182,7 +193,6 @@ body{position:fixed;inset:0;}
 
 <div id="chatBtn">🎓<div id="chatBtnBadge">!</div></div>
 
-<!-- Chat Screen -->
 <div id="chatScreen">
   <div class="cs-head">
     <button class="cs-back" onclick="closeChat()">←</button>
@@ -290,6 +300,56 @@ body{position:fixed;inset:0;}
 
 <script>
 // ══════════════════════════════════════════════════════════════
+// SOUND ENGINE
+// ══════════════════════════════════════════════════════════════
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null;
+
+function getAudio() {
+  if (!audioCtx) audioCtx = new AudioCtx();
+  return audioCtx;
+}
+
+function playTone(freq, duration, type='sine', vol=0.15, fadeOut=true) {
+  try {
+    const ctx = getAudio();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    gain.gain.setValueAtTime(vol, ctx.currentTime);
+    if (fadeOut) gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+    osc.start(); osc.stop(ctx.currentTime + duration);
+  } catch(e) {}
+}
+
+function soundUnlock() {
+  // Ascending chime — wonder
+  playTone(523, 0.3, 'sine', 0.12);
+  setTimeout(() => playTone(659, 0.3, 'sine', 0.1), 100);
+  setTimeout(() => playTone(784, 0.5, 'sine', 0.08), 200);
+}
+
+function soundBreakthrough() {
+  // Rich chord — discovery
+  playTone(261, 0.8, 'sine', 0.1);
+  setTimeout(() => playTone(329, 0.8, 'sine', 0.08), 50);
+  setTimeout(() => playTone(392, 0.8, 'sine', 0.06), 100);
+  setTimeout(() => playTone(523, 1.0, 'sine', 0.1), 200);
+}
+
+function soundBloom() {
+  // Soft whoosh
+  playTone(440, 0.15, 'sine', 0.06);
+  setTimeout(() => playTone(880, 0.2, 'sine', 0.04), 80);
+}
+
+function soundTap() {
+  playTone(660, 0.08, 'sine', 0.05);
+}
+
+// ══════════════════════════════════════════════════════════════
 // NODE DATA
 // ══════════════════════════════════════════════════════════════
 const N=[
@@ -396,47 +456,74 @@ const topicMap={
 };
 
 // ══════════════════════════════════════════════════════════════
-// CANVAS
+// CANVAS SETUP
 // ══════════════════════════════════════════════════════════════
 const bgC=document.getElementById('bg'),bx=bgC.getContext('2d');
 const uC=document.getElementById('uni'),ux=uC.getContext('2d');
 const blC=document.getElementById('bloom'),blx=blC.getContext('2d');
+const ltC=document.getElementById('lightning'),ltx=ltC.getContext('2d');
 const hitC=document.getElementById('hit');
-let ROT=0,T=0,bloomNode=null,bloomT=0;
 
-const SPARKS=Array.from({length:40},()=>({
-  ang:Math.random()*Math.PI*2,orb:55+Math.random()*290,
+let ROT=0,T=0,bloomNode=null,bloomT=0;
+let lightningArcs=[]; // [{x1,y1,x2,y2,col,life,maxLife}]
+
+const EMOTION_COLORS={
+  curious:'rgba(56,189,248,0.04)',
+  confused:'rgba(248,113,113,0.04)',
+  reflecting:'rgba(74,222,128,0.04)',
+  connecting:'rgba(251,191,36,0.04)',
+  mastering:'rgba(255,255,255,0.03)',
+};
+
+const SPARKS=Array.from({length:55},()=>({
+  ang:Math.random()*Math.PI*2,orb:40+Math.random()*320,
   tilt:.44+Math.random()*.12,spd:(Math.random()-.5)*.0009,
-  r:.5+Math.random()*1.3,a:.15+Math.random()*.5,
-  col:['#fbbf24','#fb923c','#4ade80','#38bdf8','#c084fc','#f472b6'][Math.floor(Math.random()*6)]
+  r:.4+Math.random()*1.6,a:.1+Math.random()*.6,
+  col:['#fbbf24','#fb923c','#4ade80','#38bdf8','#c084fc','#f472b6','#2dd4bf'][Math.floor(Math.random()*7)]
 }));
 
 function resize(){
   const w=window.innerWidth,h=window.innerHeight;
-  bgC.width=uC.width=blC.width=hitC.width=w;
-  bgC.height=uC.height=blC.height=hitC.height=h;
+  bgC.width=uC.width=blC.width=ltC.width=hitC.width=w;
+  bgC.height=uC.height=blC.height=ltC.height=hitC.height=h;
   drawBg();
 }
 resize();
 window.addEventListener('resize',resize);
 
+// ── BACKGROUND ────────────────────────────────────────────────
 function drawBg(){
   const W=bgC.width,H=bgC.height;
-  const g=bx.createRadialGradient(W/2,H/2,0,W/2,H/2,Math.max(W,H)*.7);
-  g.addColorStop(0,'#070b14');g.addColorStop(1,'#05080f');
+  // Deep space gradient
+  const g=bx.createRadialGradient(W/2,H/2,0,W/2,H/2,Math.max(W,H)*.8);
+  g.addColorStop(0,'#080c18');g.addColorStop(.5,'#060910');g.addColorStop(1,'#05080f');
   bx.fillStyle=g;bx.fillRect(0,0,W,H);
-  for(let i=0;i<160;i++){
+  // Nebula clouds
+  [[W*.3,H*.4,180,'rgba(56,189,248,0.025)'],[W*.7,H*.6,220,'rgba(192,132,252,0.02)'],[W*.5,H*.3,160,'rgba(74,222,128,0.02)']].forEach(([cx,cy,r,col])=>{
+    const ng=bx.createRadialGradient(cx,cy,0,cx,cy,r);
+    ng.addColorStop(0,col);ng.addColorStop(1,'transparent');
+    bx.beginPath();bx.arc(cx,cy,r,0,Math.PI*2);bx.fillStyle=ng;bx.fill();
+  });
+  // Stars — three sizes for depth
+  for(let i=0;i<220;i++){
     const x=(Math.sin(i*127.1+1.3)*.5+.5)*W;
     const y=(Math.sin(i*311.7+2.1)*.5+.5)*H;
-    const r=Math.random()<.02?1.5:Math.random()<.1?1:.5;
+    const r=i<30?1.5:i<80?1:.5;
+    const a=i<30?.8:i<80?.5:.2+Math.random()*.4;
     bx.beginPath();bx.arc(x,y,r,0,Math.PI*2);
-    bx.fillStyle=`rgba(190,210,255,${.2+Math.random()*.7})`;bx.fill();
+    const hue=i%3===0?'190,220,255':i%3===1?'255,220,190':'255,255,255';
+    bx.fillStyle=`rgba(${hue},${a})`;bx.fill();
   }
 }
 
-function nodePos(n){
+function nodePos(n,gravPull){
   const cx=uC.width/2,cy=uC.height/2-80;
-  return{x:cx+Math.cos(n.ang+ROT)*n.orb,y:cy+Math.sin(n.ang+ROT)*n.orb*(n.tilt||.52)};
+  let orb=n.orb;
+  // Gravity pull toward bloomed node
+  if(gravPull&&bloomNode&&n.id!==bloomNode.id&&n.id!=='you'){
+    orb*=0.94;
+  }
+  return{x:cx+Math.cos(n.ang+ROT)*orb,y:cy+Math.sin(n.ang+ROT)*orb*(n.tilt||.52)};
 }
 
 function drawSparks(){
@@ -446,7 +533,7 @@ function drawSparks(){
     s.ang+=s.spd;
     const sx=cx+Math.cos(s.ang+ROT)*s.orb,sy=cy+Math.sin(s.ang+ROT)*s.orb*s.tilt;
     ux.beginPath();ux.arc(sx,sy,s.r,0,Math.PI*2);
-    ux.fillStyle=s.col+Math.round((dim?s.a*.12:s.a)*255).toString(16).padStart(2,'0');
+    ux.fillStyle=s.col+Math.round((dim?s.a*.1:s.a)*255).toString(16).padStart(2,'0');
     ux.fill();
   });
 }
@@ -455,63 +542,115 @@ function drawConns(){
   CONNS.forEach(([a,b])=>{
     const na=N.find(n=>n.id===a),nb=N.find(n=>n.id===b);
     if(!na||!nb||na.hidden||nb.hidden)return;
-    const pa=nodePos(na),pb=nodePos(nb);
+    const pa=nodePos(na,true),pb=nodePos(nb,true);
     const active=bloomNode&&(a===bloomNode.id||b===bloomNode.id);
     const dim=bloomNode&&!active;
     ux.beginPath();ux.moveTo(pa.x,pa.y);ux.lineTo(pb.x,pb.y);
-    ux.strokeStyle=active?'rgba(255,255,255,.35)':dim?'rgba(255,255,255,.02)':'rgba(255,255,255,.09)';
-    ux.lineWidth=active?1.2:.7;ux.stroke();
+    if(active){
+      // Glowing connection line
+      ux.strokeStyle=`rgba(255,255,255,0.4)`;ux.lineWidth=1.5;
+    } else {
+      ux.strokeStyle=dim?'rgba(255,255,255,0.02)':'rgba(255,255,255,0.08)';
+      ux.lineWidth=.7;
+    }
+    ux.stroke();
   });
 }
 
 function drawNode(n){
   if(n.hidden&&n.id!=='you')return;
-  const{x,y}=nodePos(n);
+  const{x,y}=nodePos(n,true);
   const bloomed=bloomNode&&bloomNode.id===n.id;
   const dim=bloomNode&&!bloomed;
-  const dimA=dim?.25:1;
-  const r=n.r*(bloomed?(1+.15*Math.sin(bloomT*.08)):1);
+  const dimA=dim?.2:1;
+  // Mastery affects size
+  const masBonus=n.id==='you'?1:1+(n.mas||0)/100*.25;
+  const r=n.r*masBonus*(bloomed?(1+.15*Math.sin(bloomT*.08)):1);
 
   if(n.id==='you'){
-    const g=ux.createRadialGradient(x,y,0,x,y,r*3.5);
-    g.addColorStop(0,`rgba(200,134,10,${.45*dimA})`);g.addColorStop(1,'rgba(200,134,10,0)');
-    ux.beginPath();ux.arc(x,y,r*3.5,0,Math.PI*2);ux.fillStyle=g;ux.fill();
-    const sg=ux.createRadialGradient(x-r*.3,y-r*.3,0,x,y,r);
-    sg.addColorStop(0,'#fde68a');sg.addColorStop(.6,'#c8860a');sg.addColorStop(1,'#92400e');
+    // Outer glow
+    const g=ux.createRadialGradient(x,y,0,x,y,r*4);
+    g.addColorStop(0,`rgba(200,134,10,${.5*dimA})`);
+    g.addColorStop(.5,`rgba(200,134,10,${.15*dimA})`);
+    g.addColorStop(1,'rgba(200,134,10,0)');
+    ux.beginPath();ux.arc(x,y,r*4,0,Math.PI*2);ux.fillStyle=g;ux.fill();
+    // Sphere with rich shading
+    const sg=ux.createRadialGradient(x-r*.35,y-r*.4,r*.1,x+r*.1,y+r*.1,r*1.2);
+    sg.addColorStop(0,'#fff5d6');sg.addColorStop(.3,'#fde68a');
+    sg.addColorStop(.65,'#c8860a');sg.addColorStop(1,'#6b3a00');
     ux.beginPath();ux.arc(x,y,r,0,Math.PI*2);ux.fillStyle=sg;ux.fill();
-    ux.globalAlpha=.35*dimA;ux.beginPath();ux.arc(x-r*.3,y-r*.35,r*.45,0,Math.PI*2);ux.fillStyle='#fff';ux.fill();ux.globalAlpha=1;
-    ux.fillStyle=`rgba(255,255,255,${.8*dimA})`;ux.font='bold 11px Inter';ux.textAlign='center';ux.textBaseline='middle';ux.fillText('YOU',x,y);
+    // Specular highlight
+    ux.globalAlpha=.6*dimA;
+    const sh=ux.createRadialGradient(x-r*.3,y-r*.35,0,x-r*.3,y-r*.35,r*.45);
+    sh.addColorStop(0,'rgba(255,255,255,0.9)');sh.addColorStop(1,'rgba(255,255,255,0)');
+    ux.beginPath();ux.arc(x-r*.3,y-r*.35,r*.45,0,Math.PI*2);ux.fillStyle=sh;ux.fill();
+    ux.globalAlpha=1;
+    // Label
+    ux.fillStyle=`rgba(255,255,255,${.9*dimA})`;
+    ux.font='bold 12px Inter';ux.textAlign='center';ux.textBaseline='middle';
+    ux.fillText('YOU',x,y);
   } else {
     const col=n.col||'#38bdf8';
-    const gr=ux.createRadialGradient(x,y,0,x,y,bloomed?r*5:r*3.2);
-    gr.addColorStop(0,col+Math.round((bloomed?.5:.28)*dimA*255).toString(16).padStart(2,'0'));
-    gr.addColorStop(1,col+'00');
-    ux.beginPath();ux.arc(x,y,bloomed?r*5:r*3.2,0,Math.PI*2);ux.fillStyle=gr;ux.fill();
+    // Multi-layer glow — eye popping!
+    const glowR=bloomed?r*6:r*4;
+    // Outer diffuse glow
+    const g1=ux.createRadialGradient(x,y,0,x,y,glowR);
+    g1.addColorStop(0,col+Math.round(.35*dimA*255).toString(16).padStart(2,'0'));
+    g1.addColorStop(.4,col+Math.round(.12*dimA*255).toString(16).padStart(2,'0'));
+    g1.addColorStop(1,col+'00');
+    ux.beginPath();ux.arc(x,y,glowR,0,Math.PI*2);ux.fillStyle=g1;ux.fill();
+    // Inner corona
+    const g2=ux.createRadialGradient(x,y,r*.5,x,y,r*1.8);
+    g2.addColorStop(0,col+Math.round(.5*dimA*255).toString(16).padStart(2,'0'));
+    g2.addColorStop(1,col+'00');
+    ux.beginPath();ux.arc(x,y,r*1.8,0,Math.PI*2);ux.fillStyle=g2;ux.fill();
+    // Bloom pulse rings
     if(bloomed){
       const p=.5+.5*Math.sin(bloomT*.1);
-      ux.beginPath();ux.arc(x,y,r+10+p*6,0,Math.PI*2);ux.strokeStyle=col+'45';ux.lineWidth=1.5;ux.stroke();
+      ux.beginPath();ux.arc(x,y,r+12+p*8,0,Math.PI*2);
+      ux.strokeStyle=col+'60';ux.lineWidth=2;ux.stroke();
+      ux.beginPath();ux.arc(x,y,r+22+p*14,0,Math.PI*2);
+      ux.strokeStyle=col+'25';ux.lineWidth=1;ux.stroke();
     }
+    // Pulsing rings for new nodes
     if(n._pulsing){
       const p=.5+.5*Math.sin(T*.06);
-      ux.beginPath();ux.arc(x,y,r+14+p*8,0,Math.PI*2);ux.strokeStyle=col+'80';ux.lineWidth=2;ux.stroke();
-      ux.beginPath();ux.arc(x,y,r+24+p*10,0,Math.PI*2);ux.strokeStyle=col+'30';ux.lineWidth=1;ux.stroke();
+      ux.beginPath();ux.arc(x,y,r+16+p*10,0,Math.PI*2);
+      ux.strokeStyle=col+'90';ux.lineWidth=2.5;ux.stroke();
+      ux.beginPath();ux.arc(x,y,r+28+p*12,0,Math.PI*2);
+      ux.strokeStyle=col+'40';ux.lineWidth=1.5;ux.stroke();
     }
+    // Sphere — rich shading
     ux.globalAlpha=dimA;
-    const sg=ux.createRadialGradient(x-r*.35,y-r*.35,0,x,y,r);
-    sg.addColorStop(0,col+'ff');sg.addColorStop(.6,col+'cc');sg.addColorStop(1,col+'88');
+    const sg=ux.createRadialGradient(x-r*.4,y-r*.4,r*.05,x+r*.15,y+r*.15,r*1.1);
+    sg.addColorStop(0,'#ffffff');
+    sg.addColorStop(.15,col+'ff');
+    sg.addColorStop(.6,col+'cc');
+    sg.addColorStop(1,col+'44');
     ux.beginPath();ux.arc(x,y,r,0,Math.PI*2);ux.fillStyle=sg;ux.fill();
-    ux.globalAlpha=.35*dimA;ux.beginPath();ux.arc(x-r*.3,y-r*.35,r*.45,0,Math.PI*2);ux.fillStyle='#fff';ux.fill();
+    // Specular
+    ux.globalAlpha=.5*dimA;
+    const spec=ux.createRadialGradient(x-r*.3,y-r*.35,0,x-r*.3,y-r*.35,r*.4);
+    spec.addColorStop(0,'rgba(255,255,255,0.95)');spec.addColorStop(1,'rgba(255,255,255,0)');
+    ux.beginPath();ux.arc(x-r*.3,y-r*.35,r*.4,0,Math.PI*2);ux.fillStyle=spec;ux.fill();
+    // Rim light (opposite side glow)
+    ux.globalAlpha=.2*dimA;
+    ux.beginPath();ux.arc(x+r*.25,y+r*.25,r*.6,0,Math.PI*2);
+    ux.strokeStyle=col;ux.lineWidth=r*.4;ux.stroke();
     ux.globalAlpha=dimA;
-    ux.fillStyle=bloomed?'#fff':'rgba(226,232,240,.8)';
-    ux.font=`${bloomed?'600 ':''}11px Inter`;ux.textAlign='center';ux.textBaseline='top';
-    ux.fillText(n.label,x,y+r+6);ux.globalAlpha=1;
+    // Label
+    ux.fillStyle=bloomed?'#fff':'rgba(226,232,240,.9)';
+    ux.font=`${bloomed?'600 ':n._pulsing?'600 ':''}11px Inter`;
+    ux.textAlign='center';ux.textBaseline='top';
+    ux.shadowColor=col;ux.shadowBlur=bloomed?8:4;
+    ux.fillText(n.label,x,y+r+7);
+    ux.shadowBlur=0;ux.globalAlpha=1;
   }
 }
 
 function getConnCount(id){
   return CONNS.filter(c=>c[0]===id||c[1]===id).filter(([a,b])=>!N.find(n=>n.id===a)?.hidden&&!N.find(n=>n.id===b)?.hidden).length;
 }
-
 function getNodeConns(id){
   return CONNS.filter(c=>c[0]===id||c[1]===id).map(c=>c[0]===id?c[1]:c[0]).map(i=>N.find(n=>n.id===i)).filter(n=>n&&!n.hidden).slice(0,6);
 }
@@ -519,49 +658,118 @@ function getNodeConns(id){
 function drawBloom(){
   blx.clearRect(0,0,blC.width,blC.height);
   if(!bloomNode||bloomNode.id==='you')return;
-  const n=bloomNode,{x,y}=nodePos(n),col=n.col||'#38bdf8',mas=n.mas||0;
-  const haloR=n.r*8+Math.sin(bloomT*.05)*10;
+  const n=bloomNode,{x,y}=nodePos(n,false),col=n.col||'#38bdf8',mas=n.mas||0;
+  // Ambient halo
+  const haloR=n.r*9+Math.sin(bloomT*.04)*12;
   const g=blx.createRadialGradient(x,y,n.r,x,y,haloR);
-  g.addColorStop(0,col+'18');g.addColorStop(1,col+'00');
+  g.addColorStop(0,col+'20');g.addColorStop(.5,col+'08');g.addColorStop(1,col+'00');
   blx.beginPath();blx.arc(x,y,haloR,0,Math.PI*2);blx.fillStyle=g;blx.fill();
+  // Floating info labels
+  const lastThought=n._lastThought||'';
   const infos=[
-    {text:mas+'% depth',angle:-.5,dist:n.r+55,size:12,alpha:.9},
-    {text:n.sub||'',angle:.3,dist:n.r+45,size:10,alpha:.6},
-    {text:getConnCount(n.id)+' connections',angle:Math.PI+.2,dist:n.r+50,size:11,alpha:.7},
-    {text:(appState.emotion||'curious').charAt(0).toUpperCase()+(appState.emotion||'curious').slice(1),angle:Math.PI-.3,dist:n.r+42,size:10,alpha:.55},
+    {text:mas+'% depth',angle:-.55,dist:n.r+60,size:13,alpha:.95,bold:true},
+    {text:n.sub||'',angle:.35,dist:n.r+50,size:11,alpha:.65},
+    {text:getConnCount(n.id)+' connections',angle:Math.PI+.25,dist:n.r+55,size:12,alpha:.75},
+    {text:(appState.emotion||'curious').charAt(0).toUpperCase()+(appState.emotion||'curious').slice(1),angle:Math.PI-.35,dist:n.r+46,size:11,alpha:.6},
   ];
+  if(lastThought){
+    infos.push({text:'"'+lastThought+'"',angle:-.1,dist:n.r+75,size:10,alpha:.5,italic:true});
+  }
   infos.forEach(info=>{
     if(!info.text)return;
     const ix=x+Math.cos(info.angle)*info.dist,iy=y+Math.sin(info.angle)*info.dist;
-    blx.font=`${info.size}px Inter`;blx.textAlign='center';blx.textBaseline='middle';
-    blx.shadowColor=col;blx.shadowBlur=8;
-    blx.fillStyle=`rgba(255,255,255,${info.alpha})`;blx.fillText(info.text,ix,iy);
+    blx.font=`${info.italic?'italic ':info.bold?'600 ':''}${info.size}px Inter`;
+    blx.textAlign='center';blx.textBaseline='middle';
+    blx.shadowColor=col;blx.shadowBlur=10;
+    blx.fillStyle=`rgba(255,255,255,${info.alpha})`;
+    blx.fillText(info.text,ix,iy);
     blx.shadowBlur=0;
   });
+  // Connection tags orbiting
   const conns=getNodeConns(n.id);
   conns.forEach((cn,i)=>{
-    const angle=(i/conns.length)*Math.PI*2-Math.PI/2;
-    const dist=n.r+90+Math.sin(bloomT*.03+i)*8;
+    const angle=(i/conns.length)*Math.PI*2-Math.PI/2+Math.sin(bloomT*.015)*0.1;
+    const dist=n.r+95+Math.sin(bloomT*.025+i)*10;
     const tx=x+Math.cos(angle)*dist,ty=y+Math.sin(angle)*dist;
     blx.font='10px Inter';
-    const tw=blx.measureText(cn.label).width,pad=8,th=20;
-    blx.fillStyle=cn.col+'25';blx.strokeStyle=cn.col+'60';blx.lineWidth=1;
+    const tw=blx.measureText(cn.label).width,pad=9,th=21;
+    // Tag glow
+    blx.shadowColor=cn.col;blx.shadowBlur=8;
+    blx.fillStyle=cn.col+'30';blx.strokeStyle=cn.col+'70';blx.lineWidth=1;
     blx.fillRect(tx-tw/2-pad,ty-th/2,tw+pad*2,th);
     blx.strokeRect(tx-tw/2-pad,ty-th/2,tw+pad*2,th);
     blx.fillStyle=cn.col;blx.textAlign='center';blx.textBaseline='middle';
     blx.fillText(cn.label,tx,ty);
+    blx.shadowBlur=0;
   });
+  // Mastery arc
   if(mas>0){
-    blx.beginPath();blx.arc(x,y,n.r+18,-Math.PI/2,(mas/100)*Math.PI*2-Math.PI/2);
-    blx.strokeStyle=col+'90';blx.lineWidth=2;blx.stroke();
+    blx.beginPath();blx.arc(x,y,n.r+20,-Math.PI/2,(mas/100)*Math.PI*2-Math.PI/2);
+    blx.strokeStyle=col+'aa';blx.lineWidth=2.5;
+    blx.shadowColor=col;blx.shadowBlur=6;
+    blx.stroke();blx.shadowBlur=0;
   }
+}
+
+// ── LIGHTNING ARCS ────────────────────────────────────────────
+function fireLightning(nodeA, nodeB, col){
+  const pa=nodePos(nodeA,false), pb=nodePos(nodeB,false);
+  lightningArcs.push({
+    x1:pa.x,y1:pa.y,x2:pb.x,y2:pb.y,
+    col:col||nodeA.col||'#fbbf24',
+    life:0,maxLife:40,
+    segments:8,
+  });
+}
+
+function drawLightning(){
+  ltx.clearRect(0,0,ltC.width,ltC.height);
+  lightningArcs=lightningArcs.filter(arc=>{
+    arc.life++;
+    const progress=arc.life/arc.maxLife;
+    const alpha=progress<0.3?progress/0.3:1-(progress-0.3)/0.7;
+    if(alpha<=0)return false;
+    // Draw jagged arc
+    const dx=(arc.x2-arc.x1)/arc.segments;
+    const dy=(arc.y2-arc.y1)/arc.segments;
+    ltx.beginPath();ltx.moveTo(arc.x1,arc.y1);
+    for(let i=1;i<arc.segments;i++){
+      const jitter=(1-progress)*30;
+      const px=arc.x1+dx*i+(Math.random()-.5)*jitter;
+      const py=arc.y1+dy*i+(Math.random()-.5)*jitter;
+      ltx.lineTo(px,py);
+    }
+    ltx.lineTo(arc.x2,arc.y2);
+    ltx.strokeStyle=arc.col+Math.round(alpha*255).toString(16).padStart(2,'0');
+    ltx.lineWidth=2+alpha*2;
+    ltx.shadowColor=arc.col;ltx.shadowBlur=15*alpha;
+    ltx.stroke();ltx.shadowBlur=0;
+    // Glow dots at endpoints
+    if(progress<0.5){
+      ltx.beginPath();ltx.arc(arc.x1,arc.y1,6*alpha,0,Math.PI*2);
+      ltx.fillStyle=arc.col+Math.round(alpha*.8*255).toString(16).padStart(2,'0');
+      ltx.fill();
+      ltx.beginPath();ltx.arc(arc.x2,arc.y2,6*alpha,0,Math.PI*2);
+      ltx.fill();
+    }
+    return arc.life<arc.maxLife;
+  });
+}
+
+// Emotion tint overlay
+function drawEmotionOverlay(){
+  const col=EMOTION_COLORS[appState.emotion]||EMOTION_COLORS.curious;
+  bx.fillStyle=col;bx.fillRect(0,0,bgC.width,bgC.height);
 }
 
 function loop(){
   T++;ROT+=.00028;
   if(bloomNode)bloomT++;
+  // Redraw emotion tint
+  drawBg();
+  drawEmotionOverlay();
   ux.clearRect(0,0,uC.width,uC.height);
-  drawSparks();drawConns();N.forEach(drawNode);drawBloom();
+  drawSparks();drawConns();N.forEach(drawNode);drawBloom();drawLightning();
   requestAnimationFrame(loop);
 }
 
@@ -582,11 +790,12 @@ function bloomOpen(node){
   bloomNode=node;bloomT=0;hasInteracted=true;
   node._pulsing=false;pendingNodes.delete(node.id);
   if(pendingNodes.size===0)document.getElementById('chatBtnBadge').classList.remove('show');
+  soundBloom();
 }
 function bloomClose(){bloomNode=null;bloomT=0;}
 
 // ══════════════════════════════════════════════════════════════
-// HIT DETECTION — pointer events only
+// HIT DETECTION
 // ══════════════════════════════════════════════════════════════
 function getNodeAt(mx,my){
   const cx=hitC.width/2,cy=hitC.height/2-80;
@@ -613,8 +822,9 @@ hitC.addEventListener('pointerup',e=>{
   const dx=Math.abs(x-pointerDown.x),dy=Math.abs(y-pointerDown.y);
   if(dx<12&&dy<12&&Date.now()-pointerDown.t<350){
     const n=getNodeAt(x,y)||pointerDown.node;
-    if(n&&n.id!=='you'){bloomNode&&bloomNode.id===n.id?bloomClose():bloomOpen(n);}
-    else bloomClose();
+    if(n&&n.id!=='you'){
+      bloomNode&&bloomNode.id===n.id?bloomClose():bloomOpen(n);
+    } else bloomClose();
     suppressUntil=Date.now()+500;
   }
   pointerDown=null;
@@ -631,7 +841,6 @@ hitC.addEventListener('click',e=>{
 // CHAT
 // ══════════════════════════════════════════════════════════════
 let chatOpen=false;
-
 function toggleChatSheet(){chatOpen?closeChat():openChat();}
 
 function openChat(){
@@ -646,11 +855,22 @@ function openChat(){
 function closeChat(){
   chatOpen=false;
   const sc=document.getElementById('chatScreen');
-  sc.classList.remove('open');
-  sc.style.display='none';
+  sc.classList.remove('open');sc.style.display='none';
   sc.style.height='';sc.style.top='';
   document.getElementById('chatBtn').classList.remove('active');
   if(pendingNodes.size>0)document.getElementById('chatBtnBadge').classList.add('show');
+}
+
+function fixChatHeight(){
+  if(!chatOpen)return;
+  const sc=document.getElementById('chatScreen');
+  const vv=window.visualViewport;
+  if(!sc||!vv)return;
+  sc.style.height=vv.height+'px';sc.style.top=vv.offsetTop+'px';
+}
+if(window.visualViewport){
+  window.visualViewport.addEventListener('resize',fixChatHeight);
+  window.visualViewport.addEventListener('scroll',fixChatHeight);
 }
 
 // Drag-safe orb
@@ -668,7 +888,7 @@ function closeChat(){
     if(Math.abs(dx)>5||Math.abs(dy)>5)moved=true;
     if(!moved)return;
     const W=window.innerWidth,H=window.innerHeight;
-    btn.style.left=Math.max(8,Math.min(W-60,startBX+dx))+'px';
+    btn.style.left=Math.max(8,Math.min(W-64,startBX+dx))+'px';
     btn.style.top=Math.max(60,Math.min(H-130,startBY+dy))+'px';
     btn.style.right='auto';btn.style.bottom='auto';
   });
@@ -707,9 +927,10 @@ async function sendChat(text){
     appState.topics=data.topics||[];
     appState.moments++;
     if(appState.pulse[appState.emotion]!==undefined)appState.pulse[appState.emotion]++;
-    const newNodes=unlockNodes(appState.topics);
+    const newNodes=unlockNodes(appState.topics,text);
     newNodes.forEach(n=>{
       n._pulsing=true;pendingNodes.add(n.id);
+      soundUnlock();
       setTimeout(()=>addSystemMsg('🌟 '+n.label+' unlocked — go back to your galaxy to see it'),600);
     });
     if(newNodes.length>0){
@@ -718,6 +939,14 @@ async function sendChat(text){
       appState.topics.forEach(t=>{for(const[c,ids]of Object.entries(clusters)){if(ids.includes(t))hit.add(c);}});
       if(hit.size>=2){
         appState.breakthroughs++;
+        soundBreakthrough();
+        // Fire lightning between connected new nodes
+        if(newNodes.length>=2){
+          setTimeout(()=>fireLightning(newNodes[0],newNodes[1]),300);
+        } else if(newNodes.length===1){
+          // Lightning to YOU
+          setTimeout(()=>fireLightning(newNodes[0],N[0]),300);
+        }
         setTimeout(()=>addSystemMsg('⚡ Cross-domain breakthrough! You just connected '+[...hit].join(' + ')),1200);
       }
     }
@@ -734,14 +963,34 @@ document.getElementById('chatInput').addEventListener('keydown',e=>{if(e.key==='
 // ══════════════════════════════════════════════════════════════
 // NODE UNLOCKING
 // ══════════════════════════════════════════════════════════════
-function unlockNodes(topics){
+function unlockNodes(topics,question){
   let newNodes=[];
   topics.forEach(topic=>{
     const node=N.find(n=>n.id===topic);
-    if(node&&node.hidden){node.hidden=false;node.mas=5;newNodes.push(node);}
-    else if(node)node.mas=Math.min(100,(node.mas||0)+2);
+    if(node&&node.hidden){
+      node.hidden=false;node.mas=5;newNodes.push(node);
+      // Store last thought
+      if(question)node._lastThought=question.slice(0,40);
+    } else if(node){
+      node.mas=Math.min(100,(node.mas||0)+2);
+      if(question)node._lastThought=question.slice(0,40);
+    }
   });
   return newNodes;
+}
+
+// ══════════════════════════════════════════════════════════════
+// SHARE
+// ══════════════════════════════════════════════════════════════
+function shareGalaxy(){
+  const lit=N.filter(n=>!n.hidden).length;
+  const text=`🌌 I've mapped ${lit} ideas in my Restore galaxy!\n\nWhere Understanding Grows 🚪\nmappedknowledge.ai`;
+  if(navigator.share){
+    navigator.share({title:'My Restore Galaxy',text,url:'https://mappedknowledge.ai'}).catch(()=>{});
+  } else {
+    navigator.clipboard?.writeText(text);
+    showToast('📋 Copied!','Share link ready','#fbbf24','📋');
+  }
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -752,8 +1001,8 @@ function flashThink(emotion){
   const cols={curious:'#38bdf8',confused:'#f87171',reflecting:'#4ade80',connecting:'#fbbf24',mastering:'#e2e8f0'};
   const el=document.getElementById('thk'+map[emotion]);
   if(!el)return;
-  el.style.transform='scale(1.35)';el.style.boxShadow=`0 0 14px ${cols[emotion]}`;
-  setTimeout(()=>{el.style.transform='';el.style.boxShadow='';},1800);
+  el.style.transform='scale(1.4)';el.style.boxShadow=`0 0 16px ${cols[emotion]}`;
+  setTimeout(()=>{el.style.transform='';el.style.boxShadow='';},2000);
 }
 
 function showToast(text,sub,col,icon){
@@ -858,7 +1107,7 @@ function resetChat(){
   closeOverlay('me');
 }
 function resetGalaxy(){
-  N.forEach(n=>{if(n.id!=='you'){n.hidden=true;n.mas=0;n._pulsing=false;}});
+  N.forEach(n=>{if(n.id!=='you'){n.hidden=true;n.mas=0;n._pulsing=false;n._lastThought=null;}});
   appState.moments=0;appState.breakthroughs=0;
   Object.keys(appState.pulse).forEach(k=>appState.pulse[k]=0);
   appState.emotion='curious';bloomClose();resetChat();updateUI();scheduleSave();
@@ -882,23 +1131,9 @@ loop();updateUI();
 setTimeout(()=>{
   document.getElementById('loadingScreen').classList.add('hide');
   setTimeout(()=>document.getElementById('loadingScreen').style.display='none',800);
-},1200);
+},1400);
 setTimeout(loadUser,500);
 setTimeout(loadFromKV,800);
-
-// ── ANDROID KEYBOARD FIX ─────────────────────────────────────
-function fixChatHeight(){
-  if(!chatOpen)return;
-  const sc=document.getElementById('chatScreen');
-  const vv=window.visualViewport;
-  if(!sc||!vv)return;
-  sc.style.height=vv.height+'px';
-  sc.style.top=vv.offsetTop+'px';
-}
-if(window.visualViewport){
-  window.visualViewport.addEventListener('resize',fixChatHeight);
-  window.visualViewport.addEventListener('scroll',fixChatHeight);
-}
 </script>
 </body>
 </html>
