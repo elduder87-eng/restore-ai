@@ -67,13 +67,17 @@ body{position:fixed;inset:0;}
 
 /* ── CHAT SCREEN — slides in from bottom ── */
 #chatScreen{
-  position:fixed;inset:0;
+  position:fixed;
+  top:0;left:0;right:0;
+  bottom:0;
+  height:100%;
   z-index:50;
   background:#05080f;
   display:flex;flex-direction:column;
   transform:translateY(100%);
   transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);
   pointer-events:none;
+  overflow:hidden;
 }
 #chatScreen.open{
   transform:translateY(0);
