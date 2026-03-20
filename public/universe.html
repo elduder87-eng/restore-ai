@@ -512,7 +512,7 @@ function soundTap() {
 // NODE DATA
 // ══════════════════════════════════════════════════════════════
 const N=[
-  {id:'you',   label:'YOU',           sub:'Your Understanding',  ang:0,    orb:0,   tilt:1,   r:34, col:'#c8860a', mas:100},
+  {id:'you',   label:'YOU',           sub:'Your Understanding',  ang:0,    orb:0,   tilt:1,   r:44, col:'#c8860a', mas:100},
   {id:'phys',  label:'Physics',       sub:'Gravity · Motion',    ang:.2,   orb:162, tilt:.52, r:27, col:'#fb923c', mas:0, hidden:true},
   {id:'grav',  label:'Gravity',       sub:'Newton · Einstein',   ang:-.45, orb:112, tilt:.52, r:11, col:'#fb923c', mas:0, hidden:true},
   {id:'newt',  label:"Newton's Laws", sub:'Motion Laws',         ang:-.7,  orb:228, tilt:.52, r:10, col:'#fb923c', mas:0, hidden:true},
@@ -947,22 +947,28 @@ function drawNode(n){
     // Outer atmospheric glow
     for(let i=4;i>0;i--){
       const gr=ux.createRadialGradient(x,y,r*.6,x,y,r*(1+i*.4));
-      gr.addColorStop(0,ec+'00');gr.addColorStop(.4,ec+Math.round(15/i).toString(16).padStart(2,'0'));gr.addColorStop(1,ec+'00');
+      gr.addColorStop(0,'rgba(0,0,0,0)');
+      gr.addColorStop(.4,ec+Math.round(15/i).toString(16).padStart(2,'0'));
+      gr.addColorStop(1,'rgba(0,0,0,0)');
       ux.beginPath();ux.arc(x,y,r*(1+i*.4),0,Math.PI*2);ux.fillStyle=gr;ux.fill();
     }
     ux.globalAlpha=dimA;
-    // Emotion-driven colors
     const darkCol=({curious:'#05111d',connecting:'#1c0800',mastering:'#041a0d',confused:'#200505',reflecting:'#130520'})[appState.emotion]||'#05111d';
     const midCol=({curious:'#0e3a5c',connecting:'#7c3a00',mastering:'#14532d',confused:'#7f1d1d',reflecting:'#4c1d95'})[appState.emotion]||'#0e3a5c';
     // Brain sphere body
     const body=ux.createRadialGradient(x-r*.22,y-r*.28,r*.05,x+r*.12,y+r*.12,r*1.05);
     body.addColorStop(0,darkCol);body.addColorStop(.45,midCol);body.addColorStop(.78,ec+'88');body.addColorStop(1,ec+'cc');
     ux.beginPath();ux.arc(x,y,r,0,Math.PI*2);ux.fillStyle=body;ux.fill();
-    // Nebula wisps
+
+    // ── CLIP sphere for folds and wisps ──
+    ux.save();
+    ux.beginPath();ux.arc(x,y,r*.98,0,Math.PI*2);ux.clip();
+
+    // Nebula wisps inside
     for(let i=0;i<3;i++){
       const wx=x+Math.sin(T*.007+i*2.1)*r*.28,wy=y+Math.cos(T*.006+i*1.8)*r*.22;
       const wg=ux.createRadialGradient(wx,wy,0,wx,wy,r*.42);
-      wg.addColorStop(0,ec+'18');wg.addColorStop(1,ec+'00');
+      wg.addColorStop(0,ec+'18');wg.addColorStop(1,'rgba(0,0,0,0)');
       ux.beginPath();ux.arc(wx,wy,r*.42,0,Math.PI*2);ux.fillStyle=wg;ux.fill();
     }
     // Brain fold helper
@@ -1008,7 +1014,10 @@ function drawNode(n){
     ux.globalAlpha=.55*dimA;ux.strokeStyle=darkCol;ux.lineWidth=1.5*s;
     ux.beginPath();ux.moveTo(x,y-r*.88);ux.lineTo(x,y+r*.88);ux.stroke();
     ux.globalAlpha=dimA;
-    // Electrons
+
+    ux.restore(); // end sphere clip
+
+    // Electrons fire OUTSIDE the sphere
     if(!n._electrons)n._electrons=[];
     const spawnRate=appState.emotion==='connecting'?4:appState.emotion==='mastering'?5:7;
     if(T%spawnRate===0&&n._electrons.length<22){
