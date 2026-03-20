@@ -965,7 +965,10 @@ function drawNode(n){
     const midCol=({curious:'#0e3a5c',connecting:'#7c3a00',mastering:'#14532d',confused:'#7f1d1d',reflecting:'#4c1d95'})[appState.emotion]||'#0e3a5c';
     // Sphere
     const body=ux.createRadialGradient(x-r*.2,y-r*.25,r*.05,x+r*.1,y+r*.1,r*1.05);
-    body.addColorStop(0,darkCol);body.addColorStop(.5,midCol);body.addColorStop(.85,ec+'55');body.addColorStop(1,ec+'99');
+    body.addColorStop(0,midCol);
+    body.addColorStop(.5,ec+'44');
+    body.addColorStop(.85,ec+'88');
+    body.addColorStop(1,ec+'bb');
     ux.beginPath();ux.arc(x,y,r,0,Math.PI*2);ux.fillStyle=body;ux.fill();
     // Wisps
     for(let i=0;i<3;i++){
@@ -988,11 +991,13 @@ function drawNode(n){
       [[x+58*s,y-5*s],[x+64*s,y+22*s],[x+58*s,y+46*s],[x+40*s,y+62*s]],
     ];
     folds.forEach(pts=>{
-      ux.globalAlpha=.85*dimA;ux.strokeStyle=darkCol;ux.lineWidth=2.5*s;
+      // Dark groove
+      ux.globalAlpha=.9*dimA;ux.strokeStyle=darkCol;ux.lineWidth=3*s;
       ux.beginPath();ux.moveTo(pts[0][0],pts[0][1]);
       for(let i=1;i<pts.length-1;i++){const mx=(pts[i][0]+pts[i+1][0])/2,my=(pts[i][1]+pts[i+1][1])/2;ux.quadraticCurveTo(pts[i][0],pts[i][1],mx,my);}
       ux.lineTo(pts[pts.length-1][0],pts[pts.length-1][1]);ux.stroke();
-      ux.globalAlpha=.25*dimA;ux.strokeStyle=ec;ux.lineWidth=.8*s;ux.stroke();
+      // Bright highlight on fold ridge
+      ux.globalAlpha=.45*dimA;ux.strokeStyle=ec;ux.lineWidth=1.2*s;ux.stroke();
       ux.globalAlpha=dimA;
     });
     // Corpus callosum
