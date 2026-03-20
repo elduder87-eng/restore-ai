@@ -933,6 +933,14 @@ function _prerender(n){
 const _nodeCache={};
 function _getNC(n){if(!_nodeCache[n.id])_nodeCache[n.id]=_prerender(n);return _nodeCache[n.id];}
 
+// Brain fold draw helper — must be outside drawNode
+function _bf(pts,lw,al,col2,dimA){
+  ux.globalAlpha=al*dimA;ux.strokeStyle=col2;ux.lineWidth=lw;ux.lineCap='round';ux.lineJoin='round';
+  ux.beginPath();ux.moveTo(pts[0][0],pts[0][1]);
+  for(let i=1;i<pts.length-1;i++){const mx=(pts[i][0]+pts[i+1][0])/2,my=(pts[i][1]+pts[i+1][1])/2;ux.quadraticCurveTo(pts[i][0],pts[i][1],mx,my);}
+  ux.lineTo(pts[pts.length-1][0],pts[pts.length-1][1]);ux.stroke();ux.globalAlpha=1;
+}
+
 function drawNode(n){
   if(n.hidden&&n.id!=='you')return;
   const{x,y}=nodePos(n,true);
@@ -971,45 +979,38 @@ function drawNode(n){
       wg.addColorStop(0,ec+'18');wg.addColorStop(1,'rgba(0,0,0,0)');
       ux.beginPath();ux.arc(wx,wy,r*.42,0,Math.PI*2);ux.fillStyle=wg;ux.fill();
     }
-    // Brain fold helper
-    function bf(pts,lw,al,col2){
-      ux.globalAlpha=al*dimA;ux.strokeStyle=col2;ux.lineWidth=lw;ux.lineCap='round';ux.lineJoin='round';
-      ux.beginPath();ux.moveTo(pts[0][0],pts[0][1]);
-      for(let i=1;i<pts.length-1;i++){const mx=(pts[i][0]+pts[i+1][0])/2,my=(pts[i][1]+pts[i+1][1])/2;ux.quadraticCurveTo(pts[i][0],pts[i][1],mx,my);}
-      ux.lineTo(pts[pts.length-1][0],pts[pts.length-1][1]);ux.stroke();ux.globalAlpha=dimA;
-    }
     const s=r/44;
     // Left hemisphere
-    bf([[x-28*s,y-68*s],[x-52*s,y-46*s],[x-62*s,y-14*s],[x-56*s,y+18*s]],2.8*s,.9,darkCol);
-    bf([[x-28*s,y-68*s],[x-52*s,y-46*s],[x-62*s,y-14*s],[x-56*s,y+18*s]],.9*s,.22,ec);
-    bf([[x-14*s,y-74*s],[x-34*s,y-54*s],[x-42*s,y-22*s],[x-38*s,y+8*s]],2.4*s,.85,darkCol);
-    bf([[x-14*s,y-74*s],[x-34*s,y-54*s],[x-42*s,y-22*s],[x-38*s,y+8*s]],.75*s,.18,ec);
-    bf([[x-4*s,y-76*s],[x-18*s,y-58*s],[x-24*s,y-28*s],[x-20*s,y-2*s]],2.0*s,.8,darkCol);
-    bf([[x-4*s,y-76*s],[x-18*s,y-58*s],[x-24*s,y-28*s],[x-20*s,y-2*s]],.65*s,.15,ec);
-    bf([[x-56*s,y+18*s],[x-60*s,y+44*s],[x-50*s,y+64*s],[x-28*s,y+74*s]],2.6*s,.85,darkCol);
-    bf([[x-56*s,y+18*s],[x-60*s,y+44*s],[x-50*s,y+64*s],[x-28*s,y+74*s]],.8*s,.2,ec);
-    bf([[x-38*s,y+14*s],[x-42*s,y+38*s],[x-34*s,y+58*s],[x-14*s,y+68*s]],2.2*s,.8,darkCol);
-    bf([[x-38*s,y+14*s],[x-42*s,y+38*s],[x-34*s,y+58*s],[x-14*s,y+68*s]],.7*s,.15,ec);
-    bf([[x-62*s,y-2*s],[x-68*s,y+24*s],[x-62*s,y+48*s],[x-44*s,y+66*s]],2.4*s,.82,darkCol);
-    bf([[x-62*s,y-2*s],[x-68*s,y+24*s],[x-62*s,y+48*s],[x-44*s,y+66*s]],.75*s,.18,ec);
+    _bf([[x-28*s,y-68*s],[x-52*s,y-46*s],[x-62*s,y-14*s],[x-56*s,y+18*s]],2.8*s,.9,darkCol,dimA);
+    _bf([[x-28*s,y-68*s],[x-52*s,y-46*s],[x-62*s,y-14*s],[x-56*s,y+18*s]],.9*s,.22,ec,dimA);
+    _bf([[x-14*s,y-74*s],[x-34*s,y-54*s],[x-42*s,y-22*s],[x-38*s,y+8*s]],2.4*s,.85,darkCol,dimA);
+    _bf([[x-14*s,y-74*s],[x-34*s,y-54*s],[x-42*s,y-22*s],[x-38*s,y+8*s]],.75*s,.18,ec,dimA);
+    _bf([[x-4*s,y-76*s],[x-18*s,y-58*s],[x-24*s,y-28*s],[x-20*s,y-2*s]],2.0*s,.8,darkCol,dimA);
+    _bf([[x-4*s,y-76*s],[x-18*s,y-58*s],[x-24*s,y-28*s],[x-20*s,y-2*s]],.65*s,.15,ec,dimA);
+    _bf([[x-56*s,y+18*s],[x-60*s,y+44*s],[x-50*s,y+64*s],[x-28*s,y+74*s]],2.6*s,.85,darkCol,dimA);
+    _bf([[x-56*s,y+18*s],[x-60*s,y+44*s],[x-50*s,y+64*s],[x-28*s,y+74*s]],.8*s,.2,ec,dimA);
+    _bf([[x-38*s,y+14*s],[x-42*s,y+38*s],[x-34*s,y+58*s],[x-14*s,y+68*s]],2.2*s,.8,darkCol,dimA);
+    _bf([[x-38*s,y+14*s],[x-42*s,y+38*s],[x-34*s,y+58*s],[x-14*s,y+68*s]],.7*s,.15,ec,dimA);
+    _bf([[x-62*s,y-2*s],[x-68*s,y+24*s],[x-62*s,y+48*s],[x-44*s,y+66*s]],2.4*s,.82,darkCol,dimA);
+    _bf([[x-62*s,y-2*s],[x-68*s,y+24*s],[x-62*s,y+48*s],[x-44*s,y+66*s]],.75*s,.18,ec,dimA);
     // Right hemisphere
-    bf([[x+28*s,y-68*s],[x+52*s,y-46*s],[x+62*s,y-14*s],[x+56*s,y+18*s]],2.8*s,.9,darkCol);
-    bf([[x+28*s,y-68*s],[x+52*s,y-46*s],[x+62*s,y-14*s],[x+56*s,y+18*s]],.9*s,.22,ec);
-    bf([[x+14*s,y-74*s],[x+34*s,y-54*s],[x+42*s,y-22*s],[x+38*s,y+8*s]],2.4*s,.85,darkCol);
-    bf([[x+14*s,y-74*s],[x+34*s,y-54*s],[x+42*s,y-22*s],[x+38*s,y+8*s]],.75*s,.18,ec);
-    bf([[x+4*s,y-76*s],[x+18*s,y-58*s],[x+24*s,y-28*s],[x+20*s,y-2*s]],2.0*s,.8,darkCol);
-    bf([[x+4*s,y-76*s],[x+18*s,y-58*s],[x+24*s,y-28*s],[x+20*s,y-2*s]],.65*s,.15,ec);
-    bf([[x+56*s,y+18*s],[x+60*s,y+44*s],[x+50*s,y+64*s],[x+28*s,y+74*s]],2.6*s,.85,darkCol);
-    bf([[x+56*s,y+18*s],[x+60*s,y+44*s],[x+50*s,y+64*s],[x+28*s,y+74*s]],.8*s,.2,ec);
-    bf([[x+38*s,y+14*s],[x+42*s,y+38*s],[x+34*s,y+58*s],[x+14*s,y+68*s]],2.2*s,.8,darkCol);
-    bf([[x+38*s,y+14*s],[x+42*s,y+38*s],[x+34*s,y+58*s],[x+14*s,y+68*s]],.7*s,.15,ec);
-    bf([[x+62*s,y-2*s],[x+68*s,y+24*s],[x+62*s,y+48*s],[x+44*s,y+66*s]],2.4*s,.82,darkCol);
-    bf([[x+62*s,y-2*s],[x+68*s,y+24*s],[x+62*s,y+48*s],[x+44*s,y+66*s]],.75*s,.18,ec);
+    _bf([[x+28*s,y-68*s],[x+52*s,y-46*s],[x+62*s,y-14*s],[x+56*s,y+18*s]],2.8*s,.9,darkCol,dimA);
+    _bf([[x+28*s,y-68*s],[x+52*s,y-46*s],[x+62*s,y-14*s],[x+56*s,y+18*s]],.9*s,.22,ec,dimA);
+    _bf([[x+14*s,y-74*s],[x+34*s,y-54*s],[x+42*s,y-22*s],[x+38*s,y+8*s]],2.4*s,.85,darkCol,dimA);
+    _bf([[x+14*s,y-74*s],[x+34*s,y-54*s],[x+42*s,y-22*s],[x+38*s,y+8*s]],.75*s,.18,ec,dimA);
+    _bf([[x+4*s,y-76*s],[x+18*s,y-58*s],[x+24*s,y-28*s],[x+20*s,y-2*s]],2.0*s,.8,darkCol,dimA);
+    _bf([[x+4*s,y-76*s],[x+18*s,y-58*s],[x+24*s,y-28*s],[x+20*s,y-2*s]],.65*s,.15,ec,dimA);
+    _bf([[x+56*s,y+18*s],[x+60*s,y+44*s],[x+50*s,y+64*s],[x+28*s,y+74*s]],2.6*s,.85,darkCol,dimA);
+    _bf([[x+56*s,y+18*s],[x+60*s,y+44*s],[x+50*s,y+64*s],[x+28*s,y+74*s]],.8*s,.2,ec,dimA);
+    _bf([[x+38*s,y+14*s],[x+42*s,y+38*s],[x+34*s,y+58*s],[x+14*s,y+68*s]],2.2*s,.8,darkCol,dimA);
+    _bf([[x+38*s,y+14*s],[x+42*s,y+38*s],[x+34*s,y+58*s],[x+14*s,y+68*s]],.7*s,.15,ec,dimA);
+    _bf([[x+62*s,y-2*s],[x+68*s,y+24*s],[x+62*s,y+48*s],[x+44*s,y+66*s]],2.4*s,.82,darkCol,dimA);
+    _bf([[x+62*s,y-2*s],[x+68*s,y+24*s],[x+62*s,y+48*s],[x+44*s,y+66*s]],.75*s,.18,ec,dimA);
     // Corpus callosum
-    bf([[x-10*s,y-20*s],[x-5*s,y-28*s],[x+5*s,y-28*s],[x+10*s,y-20*s]],4*s,.7,midCol);
-    bf([[x-10*s,y-20*s],[x-5*s,y-28*s],[x+5*s,y-28*s],[x+10*s,y-20*s]],1.5*s,.65,ec);
-    bf([[x-8*s,y-10*s],[x-4*s,y-18*s],[x+4*s,y-18*s],[x+8*s,y-10*s]],3*s,.6,midCol);
-    bf([[x-8*s,y-10*s],[x-4*s,y-18*s],[x+4*s,y-18*s],[x+8*s,y-10*s]],1*s,.55,ec);
+    _bf([[x-10*s,y-20*s],[x-5*s,y-28*s],[x+5*s,y-28*s],[x+10*s,y-20*s]],4*s,.7,midCol,dimA);
+    _bf([[x-10*s,y-20*s],[x-5*s,y-28*s],[x+5*s,y-28*s],[x+10*s,y-20*s]],1.5*s,.65,ec,dimA);
+    _bf([[x-8*s,y-10*s],[x-4*s,y-18*s],[x+4*s,y-18*s],[x+8*s,y-10*s]],3*s,.6,midCol,dimA);
+    _bf([[x-8*s,y-10*s],[x-4*s,y-18*s],[x+4*s,y-18*s],[x+8*s,y-10*s]],1*s,.55,ec,dimA);
     // Midline fissure
     ux.globalAlpha=.55*dimA;ux.strokeStyle=darkCol;ux.lineWidth=1.5*s;
     ux.beginPath();ux.moveTo(x,y-r*.88);ux.lineTo(x,y+r*.88);ux.stroke();
