@@ -938,11 +938,13 @@ function drawNode(n){
     const ec=EMOTION_COLORS[appState.emotion]||EMOTION_COLORS.curious;
     const breath=.5+.5*Math.sin(T*.025);
     // Outer atmospheric glow
-    for(let i=4;i>0;i--){
+   for(let i=4;i>0;i--){
       const gr=ux.createRadialGradient(x,y,r*.6,x,y,r*(1+i*.4));
-      gr.addColorStop(0,ec+'00');gr.addColorStop(.4,ec+Math.round(15/i).toString(16).padStart(2,'0'));gr.addColorStop(1,ec+'00');
+      gr.addColorStop(0,'rgba(0,0,0,0)');
+      gr.addColorStop(.4,ec+Math.round(15/i).toString(16).padStart(2,'0'));
+      gr.addColorStop(1,'rgba(0,0,0,0)');
       ux.beginPath();ux.arc(x,y,r*(1+i*.4),0,Math.PI*2);ux.fillStyle=gr;ux.fill();
-    }
+   }
     ux.globalAlpha=dimA;
     // Emotion-driven colors
     const darkCol=({curious:'#05111d',connecting:'#1c0800',mastering:'#041a0d',confused:'#200505',reflecting:'#130520'})[appState.emotion]||'#05111d';
