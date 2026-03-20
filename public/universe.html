@@ -944,7 +944,9 @@ function _bf(pts,lw,al,col2,dimA){
 function drawNode(n){
   if(n.hidden&&n.id!=='you')return;
   const{x,y}=nodePos(n,true);
-  const bloomed=bloomNode&&bloomNode.id===n.id,dim=bloomNode&&!bloomed&&n.id!=='you',dimA=dim?.2:1;
+  const bloomed=bloomNode&&bloomNode.id===n.id;
+  const dim=bloomNode&&!bloomed&&n.id!=='you';
+  const dimA=dim?.2:1;
   const masBonus=n.id==='you'?1.3:1+(n.mas||0)/100*.2;
   const r=n.r*masBonus*(bloomed?(1+.15*Math.sin(bloomT*.08)):1);
   const col=n.col||'#38bdf8';
