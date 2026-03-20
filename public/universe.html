@@ -1191,7 +1191,7 @@ function loop(){
   drawBg();
   drawEmotionOverlay();
   ux.clearRect(0,0,uC.width,uC.height);
-  drawSparks();drawConns();N.forEach(drawNode);drawBloom();drawLightning();
+  drawSparks();drawConns();N.forEach(n=>{if(n.id!=='you')drawNode(n);});drawBloom();drawLightning();drawNode(N[0]);
   requestAnimationFrame(loop);
 }
 
