@@ -1189,11 +1189,19 @@ function drawEmotionOverlay(){
 function loop(){
   T++;ROT+=.00028;
   if(bloomNode)bloomT++;
-  // Redraw emotion tint
-  drawBg();
-  drawEmotionOverlay();
-  ux.clearRect(0,0,uC.width,uC.height);
-  drawSparks();drawConns();N.forEach(n=>{if(n.id!=='you')drawNode(n);});drawBloom();drawLightning();drawNode(N[0]);
+  try{
+    drawBg();
+    drawEmotionOverlay();
+    ux.clearRect(0,0,uC.width,uC.height);
+    drawSparks();drawConns();
+    N.forEach(n=>{if(n.id!=='you')drawNode(n);});
+    drawBloom();drawLightning();
+    // YOU always last, always on top
+    const youNode=N.find(n=>n.id==='you');
+    if(youNode)drawNode(youNode);
+  }catch(e){
+    console.error('loop error:',e.message);
+  }
   requestAnimationFrame(loop);
 }
 
