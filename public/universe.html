@@ -269,7 +269,80 @@ body{position:fixed;inset:0;}
 .stat-n{font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:300;line-height:1;}
 .stat-l{font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:3px;}
 
-/* ── LOADING ── */
+/* ── MIC + TTS BUTTONS ── */
+#micBtn{
+  width:36px;height:36px;border-radius:50%;flex-shrink:0;
+  background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);
+  color:rgba(255,255,255,0.5);font-size:16px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.2s;font-family:inherit;
+}
+#micBtn.listening{background:rgba(248,113,113,0.2);border-color:#f87171;color:#f87171;animation:micPulse 1s ease-in-out infinite;}
+@keyframes micPulse{0%,100%{box-shadow:0 0 0 0 rgba(248,113,113,0.4);}50%{box-shadow:0 0 0 8px rgba(248,113,113,0);}}
+#ttsBtn{
+  width:36px;height:36px;border-radius:50%;flex-shrink:0;
+  background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);
+  color:rgba(255,255,255,0.5);font-size:16px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.2s;font-family:inherit;
+}
+#ttsBtn.active{background:rgba(56,189,248,0.15);border-color:#38bdf8;color:#38bdf8;}
+
+/* ── SIGN IN MODAL ── */
+#signInModal{
+  position:fixed;inset:0;z-index:900;
+  display:none;align-items:flex-end;justify-content:center;
+  background:rgba(0,0,0,0.5);backdrop-filter:blur(8px);
+}
+#signInModal.show{display:flex;}
+.si-card{
+  background:rgba(5,8,20,0.98);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:24px 24px 0 0;
+  padding:28px 24px 40px;
+  width:100%;max-width:480px;
+  text-align:center;
+  animation:slideUp 0.35s cubic-bezier(0.4,0,0.2,1);
+}
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.si-icon{font-size:40px;margin-bottom:12px;}
+.si-title{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;letter-spacing:2px;color:#f0f4ff;margin-bottom:8px;}
+.si-sub{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:24px;}
+.si-btn{
+  width:100%;padding:14px;border-radius:14px;
+  background:linear-gradient(135deg,#38bdf8,#818cf8);
+  border:none;color:#fff;font-size:15px;font-weight:700;
+  cursor:pointer;font-family:'Inter',sans-serif;
+  margin-bottom:10px;
+}
+.si-skip{
+  width:100%;padding:10px;border-radius:14px;
+  background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);
+  color:rgba(255,255,255,0.4);font-size:13px;
+  cursor:pointer;font-family:'Inter',sans-serif;
+}
+
+/* ── DOOR OPENING ANIMATION ── */
+#doorLeft,#doorRight{
+  position:fixed;top:0;bottom:0;z-index:101;
+  background:linear-gradient(135deg,#070b18,#0a0f1e);
+  transition:transform 1.2s cubic-bezier(0.77,0,0.18,1);
+  display:flex;align-items:center;justify-content:center;
+}
+#doorLeft{left:0;right:50%;border-right:1px solid rgba(99,179,237,0.2);}
+#doorRight{left:50%;right:0;border-left:1px solid rgba(99,179,237,0.2);}
+#doorLeft.open{transform:translateX(-100%);}
+#doorRight.open{transform:translateX(100%);}
+.door-star{position:absolute;background:rgba(200,220,255,0.6);border-radius:50%;}
+#doorLogo{
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+  z-index:102;text-align:center;
+  transition:opacity 0.5s;
+}
+#doorLogo.hide{opacity:0;}
+.dl-text{font-family:'Cormorant Garamond',serif;font-size:42px;font-weight:300;letter-spacing:8px;color:#f0f4ff;text-transform:uppercase;}
+.dl-sub{font-size:12px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-top:8px;}
+.dl-line{width:60px;height:1px;background:rgba(99,179,237,0.4);margin:12px auto 0;}
 #loadingScreen{position:fixed;inset:0;z-index:100;background:#05080f;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity 0.8s;}
 #loadingScreen.hide{opacity:0;pointer-events:none;}
 .ls-logo{font-family:'Cormorant Garamond',serif;font-size:42px;font-weight:300;letter-spacing:8px;color:#f0f4ff;text-transform:uppercase;}
@@ -290,6 +363,26 @@ body{position:fixed;inset:0;}
   <div class="ls-logo">Restore</div>
   <div class="ls-sub">Where Understanding Grows</div>
   <div class="ls-dot"></div>
+</div>
+
+<!-- Door opening animation -->
+<div id="doorLeft"></div>
+<div id="doorRight"></div>
+<div id="doorLogo">
+  <div class="dl-text">Restore</div>
+  <div class="dl-sub">Where Understanding Grows</div>
+  <div class="dl-line"></div>
+</div>
+
+<!-- Sign in to save modal -->
+<div id="signInModal">
+  <div class="si-card">
+    <div class="si-icon">🌌</div>
+    <div class="si-title">Your Galaxy is Growing</div>
+    <div class="si-sub">You've unlocked 3 ideas. Sign in to save your progress — so you never lose what you've built.</div>
+    <button class="si-btn" onclick="goSignIn()">✨ Sign In to Save</button>
+    <button class="si-skip" onclick="dismissSignIn()">Keep Exploring for Now</button>
+  </div>
 </div>
 
 <canvas id="bg"></canvas>
@@ -356,7 +449,9 @@ body{position:fixed;inset:0;}
     <div class="thk-item"><div class="thk-icon" style="border-color:#e2e8f0;color:#e2e8f0;" id="thk4">🤍</div><div class="thk-label" style="color:#e2e8f0;">Mastering</div></div>
   </div>
   <div class="cs-input">
+    <button id="micBtn" onclick="toggleSpeech()">🎤</button>
     <input id="chatInput" placeholder="Ask anything…" autocomplete="off" enterkeyhint="send"/>
+    <button id="ttsBtn" onclick="toggleTTS()" title="Read responses aloud">🔊</button>
     <button id="chatSend">➤</button>
   </div>
 </div>
@@ -1382,6 +1477,100 @@ function closeChat(){
   if(pendingNodes.size>0)document.getElementById('chatBtnBadge').classList.add('show');
 }
 
+// ══════════════════════════════════════════════════════════════
+// TEXT TO SPEECH
+// ══════════════════════════════════════════════════════════════
+let ttsEnabled=false;
+
+function toggleTTS(){
+  ttsEnabled=!ttsEnabled;
+  document.getElementById('ttsBtn').classList.toggle('active',ttsEnabled);
+  if(!ttsEnabled)window.speechSynthesis?.cancel();
+  showToast(ttsEnabled?'🔊 Voice On':'🔇 Voice Off',ttsEnabled?'AI will read responses':'Responses silent','#38bdf8',ttsEnabled?'🔊':'🔇');
+}
+
+function speakText(text){
+  if(!ttsEnabled||!window.speechSynthesis)return;
+  window.speechSynthesis.cancel();
+  const utt=new SpeechSynthesisUtterance(text);
+  utt.rate=0.92;utt.pitch=1;utt.volume=0.9;
+  const voices=window.speechSynthesis.getVoices();
+  const preferred=voices.find(v=>v.name.includes('Google')||v.name.includes('Samantha')||v.name.includes('Daniel')||v.lang==='en-US');
+  if(preferred)utt.voice=preferred;
+  window.speechSynthesis.speak(utt);
+}
+
+// ══════════════════════════════════════════════════════════════
+// SPEECH INPUT
+// ══════════════════════════════════════════════════════════════
+let recognition=null,isListening=false;
+
+function toggleSpeech(){
+  if(!('webkitSpeechRecognition' in window)&&!('SpeechRecognition' in window)){
+    showToast('🎤 Not supported','Try typing instead','#f87171','🎤');return;
+  }
+  if(isListening){stopListening();return;}
+  startListening();
+}
+function startListening(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  recognition=new SR();recognition.continuous=false;recognition.interimResults=true;recognition.lang='en-US';
+  recognition.onstart=()=>{isListening=true;document.getElementById('micBtn').classList.add('listening');document.getElementById('chatInput').placeholder='Listening...';};
+  recognition.onresult=(e)=>{
+    const t=Array.from(e.results).map(r=>r[0].transcript).join('');
+    document.getElementById('chatInput').value=t;
+    if(e.results[0].isFinal){stopListening();sendChat(t);}
+  };
+  recognition.onerror=()=>stopListening();recognition.onend=()=>stopListening();
+  recognition.start();
+}
+function stopListening(){
+  isListening=false;
+  document.getElementById('micBtn').classList.remove('listening');
+  document.getElementById('chatInput').placeholder='Ask anything…';
+  recognition?.stop();
+}
+
+// ══════════════════════════════════════════════════════════════
+// DOOR OPENING ANIMATION
+// ══════════════════════════════════════════════════════════════
+function initDoorAnimation(){
+  ['doorLeft','doorRight'].forEach(id=>{
+    const door=document.getElementById(id);
+    for(let i=0;i<25;i++){
+      const star=document.createElement('div');star.className='door-star';
+      const sz=Math.random()<.1?2:1;
+      star.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;opacity:${.2+Math.random()*.6};`;
+      door.appendChild(star);
+    }
+  });
+  setTimeout(()=>{
+    document.getElementById('doorLeft').classList.add('open');
+    document.getElementById('doorRight').classList.add('open');
+    document.getElementById('doorLogo').classList.add('hide');
+  },1200);
+  setTimeout(()=>{
+    document.getElementById('doorLeft').style.display='none';
+    document.getElementById('doorRight').style.display='none';
+    document.getElementById('doorLogo').style.display='none';
+    document.getElementById('loadingScreen').classList.add('hide');
+    setTimeout(()=>document.getElementById('loadingScreen').style.display='none',800);
+  },2500);
+}
+
+// ══════════════════════════════════════════════════════════════
+// SIGN IN TO SAVE
+// ══════════════════════════════════════════════════════════════
+let signInShown=false;
+function checkSignInPrompt(){
+  if(signInShown)return;
+  if(window._userId&&window._userId!=='demo-user')return;
+  const lit=N.filter(n=>!n.hidden).length;
+  if(lit>=3){signInShown=true;setTimeout(()=>document.getElementById('signInModal').classList.add('show'),1000);}
+}
+function goSignIn(){document.getElementById('signInModal').classList.remove('show');window.location.href='/sign-in';}
+function dismissSignIn(){document.getElementById('signInModal').classList.remove('show');}
+
 function fixChatHeight(){
   if(!chatOpen)return;
   const sc=document.getElementById('chatScreen');
@@ -1483,6 +1672,8 @@ async function sendChat(text){
       body:JSON.stringify({message:text,userId:window._userId||'demo-user'})});
     const data=await res.json();
     typing.textContent=data.reply||'Ask me that again?';typing.style.opacity='1';
+    // Speak the response if TTS enabled
+    speakText(data.reply||'');
     appState.emotion=data.emotion||'curious';
     appState.topics=data.topics||[];
     appState.moments++;
@@ -1591,6 +1782,7 @@ function updateUI(){
   const lit=N.filter(n=>!n.hidden).length;
   document.getElementById('chipNodes').textContent=lit;
   document.getElementById('chipBreaks').textContent=appState.breakthroughs;
+  checkSignInPrompt();
   let frontier=FRONTIERS[0];
   for(const f of FRONTIERS){if(lit>=f.threshold)frontier=f;}
   const nextIdx=FRONTIERS.indexOf(frontier)+1;
@@ -1700,10 +1892,8 @@ async function loadUser(){
 // INIT
 // ══════════════════════════════════════════════════════════════
 loop();updateUI();
-setTimeout(()=>{
-  document.getElementById('loadingScreen').classList.add('hide');
-  setTimeout(()=>document.getElementById('loadingScreen').style.display='none',800);
-},1400);
+// Door opening animation
+initDoorAnimation();
 setTimeout(loadUser,500);
 setTimeout(loadFromKV,800);
 </script>
