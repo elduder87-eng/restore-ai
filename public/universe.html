@@ -634,6 +634,13 @@ const EMOTION_COLORS={
   connecting:'rgba(251,191,36,0.04)',
   mastering:'rgba(255,255,255,0.03)',
 };
+const EMOTION_HEX={
+  curious:'#38bdf8',
+  confused:'#f87171',
+  reflecting:'#4ade80',
+  connecting:'#fbbf24',
+  mastering:'#e2e8f0',
+};
 
 const SPARKS=Array.from({length:55},()=>({
   ang:Math.random()*Math.PI*2,orb:40+Math.random()*320,
@@ -935,16 +942,14 @@ function drawNode(n){
   const col=n.col||'#38bdf8';
 
   if(n.id==='you'){
-    const ec=EMOTION_COLORS[appState.emotion]||EMOTION_COLORS.curious;
+    const ec=EMOTION_HEX[appState.emotion]||EMOTION_HEX.curious;
     const breath=.5+.5*Math.sin(T*.025);
     // Outer atmospheric glow
-   for(let i=4;i>0;i--){
+    for(let i=4;i>0;i--){
       const gr=ux.createRadialGradient(x,y,r*.6,x,y,r*(1+i*.4));
-      gr.addColorStop(0,'rgba(0,0,0,0)');
-      gr.addColorStop(.4,ec+Math.round(15/i).toString(16).padStart(2,'0'));
-      gr.addColorStop(1,'rgba(0,0,0,0)');
+      gr.addColorStop(0,ec+'00');gr.addColorStop(.4,ec+Math.round(15/i).toString(16).padStart(2,'0'));gr.addColorStop(1,ec+'00');
       ux.beginPath();ux.arc(x,y,r*(1+i*.4),0,Math.PI*2);ux.fillStyle=gr;ux.fill();
-   }
+    }
     ux.globalAlpha=dimA;
     // Emotion-driven colors
     const darkCol=({curious:'#05111d',connecting:'#1c0800',mastering:'#041a0d',confused:'#200505',reflecting:'#130520'})[appState.emotion]||'#05111d';
