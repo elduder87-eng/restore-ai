@@ -1472,10 +1472,14 @@ if(window.speechSynthesis){
 function toggleTTS(){
   ttsEnabled=!ttsEnabled;
   document.getElementById('ttsBtn').classList.toggle('active',ttsEnabled);
-  if(!ttsEnabled)window.speechSynthesis?.cancel();
-  showToast(ttsEnabled?'🔊 Voice On':'🔇 Voice Off',ttsEnabled?'AI will read responses':'Responses silent','#38bdf8',ttsEnabled?'🔊':'🔇');
-  // Speak a test phrase so Android unlocks audio
-  if(ttsEnabled)speakText('Voice on.');
+  if(!ttsEnabled){
+    window.speechSynthesis?.cancel();
+    showToast('🔇 Voice Off','Responses silent','#64748b','🔇');
+    return;
+  }
+  showToast('🔊 Voice On','AI will read responses','#38bdf8','🔊');
+  // Android requires user gesture to unlock audio — speak immediately
+  setTimeout(()=>speakText('Voice enabled.'),100);
 }
 
 function speakText(text){
@@ -1619,7 +1623,8 @@ function initDoorAnimation(){
 
     if(personAlpha<0.05)return;
     ctx.globalAlpha=personAlpha;
-    ctx.fillStyle='#05080f';
+    ctx.fillStyle='rgba(15,25,50,0.95)';
+    ctx.strokeStyle='rgba(99,179,237,0.4)';
 
     const ph=100*personScale; // person height
     const py=groundY-ph;
@@ -1659,24 +1664,58 @@ function initDoorAnimation(){
   }
 
   function drawText(alpha){
+    // Text BELOW the door
+    const doorBottom=CY+Math.min(H*.65,480)*.35+40;
     ctx.textAlign='center';
-    // Title
-    ctx.font='300 38px "Cormorant Garamond", Georgia, serif';
-    ctx.fillStyle=`rgba(240,244,255,${alpha})`;
-    ctx.letterSpacing='8px';
-    ctx.shadowColor='rgba(99,179,237,0.4)';ctx.shadowBlur=20;
-    ctx.fillText('RESTORE',CX,CY-Math.min(H*.65,480)*.75);
+    // Sub text — bigger, brighter, below door
+    ctx.font='600 14px Inter, sans-serif';
+    ctx.fillStyle=`rgba(99,179,237,${alpha})`;
+    ctx.shadowColor='rgba(99,179,237,0.6)';ctx.shadowBlur=12;
+    ctx.fillText('WHERE UNDERSTANDING GROWS',CX,doorBottom);
     ctx.shadowBlur=0;
-    // Sub
-    ctx.font='500 11px Inter, sans-serif';
-    ctx.fillStyle=`rgba(100,116,139,${alpha})`;
-    ctx.fillText('WHERE UNDERSTANDING GROWS',CX,CY-Math.min(H*.65,480)*.65);
-    // Line
+    // Line under sub
     ctx.beginPath();
-    ctx.moveTo(CX-30,CY-Math.min(H*.65,480)*.6);
-    ctx.lineTo(CX+30,CY-Math.min(H*.65,480)*.6);
-    ctx.strokeStyle=`rgba(99,179,237,${alpha*.4})`;
+    ctx.moveTo(CX-40,doorBottom+10);
+    ctx.lineTo(CX+40,doorBottom+10);
+    ctx.strokeStyle=`rgba(99,179,237,${alpha*.5})`;
     ctx.lineWidth=1;ctx.stroke();
+    // RESTORE title above door
+    const doorTop=CY-Math.min(H*.65,480)*.65-24;
+    ctx.font='300 44px "Cormorant Garamond", Georgia, serif';
+    ctx.fillStyle=`rgba(240,244,255,${alpha})`;
+    ctx.shadowColor='rgba(99,179,237,0.5)';ctx.shadowBlur=24;
+    ctx.fillText('RESTORE',CX,doorTop);
+    ctx.shadowBlur=0;
+  }
+
+  // Comets
+  const comets=Array.from({length:4},(_,i)=>({
+    x:-100+i*50,y:50+i*80,
+    vx:8+i*3,vy:2+i*1.5,
+    len:80+i*40,alpha:0,
+    delay:0.3+i*0.4,
+  }));
+
+  function drawComets(elapsed,openAmount){
+    if(openAmount<0.2)return;
+    comets.forEach(c=>{
+      const t=Math.max(0,elapsed-c.delay);
+      if(t<=0)return;
+      c.x+=c.vx;c.y+=c.vy;
+      const a=Math.min(1,t/.3)*openAmount*.7;
+      if(a<=0)return;
+      const grad=ctx.createLinearGradient(c.x-c.len,c.y-c.len*.25,c.x,c.y);
+      grad.addColorStop(0,'rgba(56,189,248,0)');
+      grad.addColorStop(0.7,`rgba(129,140,248,${a*.5})`);
+      grad.addColorStop(1,`rgba(255,255,255,${a})`);
+      ctx.beginPath();ctx.moveTo(c.x-c.len,c.y-c.len*.25);ctx.lineTo(c.x,c.y);
+      ctx.strokeStyle=grad;ctx.lineWidth=2;ctx.stroke();
+      // Head glow
+      ctx.beginPath();ctx.arc(c.x,c.y,3,0,Math.PI*2);
+      ctx.fillStyle=`rgba(255,255,255,${a})`;
+      ctx.shadowColor='rgba(56,189,248,0.8)';ctx.shadowBlur=10;
+      ctx.fill();ctx.shadowBlur=0;
+    });
   }
 
   function animateFrame(){
@@ -1685,31 +1724,39 @@ function initDoorAnimation(){
     ctx.fillStyle='#05080f';ctx.fillRect(0,0,W,H);
 
     if(phase==='intro'){
-      // 0-1.5s: show title + door + silhouette
-      const a=Math.min(1,elapsed/.6);
+      // 0-1.8s: fade in title + door + silhouette
+      const a=Math.min(1,elapsed/.8);
       drawStars(a);
       drawDoor(0);
       drawSilhouette(0);
       drawText(a);
-      if(elapsed>1.5){phase='opening';startTime=Date.now();}
+      if(elapsed>1.8){phase='opening';startTime=Date.now();}
 
     } else if(phase==='opening'){
-      // 0-1.5s: door opens, silhouette walks through
-      const open=Math.min(1,elapsed/1.2);
+      // 0-2s: door opens slowly, comets fly through
+      const open=Math.min(1,elapsed/1.6);
       const ease=open<.5?2*open*open:(1-Math.pow(-2*open+2,2)/2);
-      drawStars(1-open*.5);
+      drawStars(1-open*.3);
       drawDoor(ease);
+      drawComets(elapsed,ease);
       drawSilhouette(ease);
-      drawText(1-ease);
-      if(elapsed>1.5){phase='fading';startTime=Date.now();}
+      drawText(Math.max(0,1-open*1.5));
+      if(elapsed>2.5){phase='hold';startTime=Date.now();}
+
+    } else if(phase==='hold'){
+      // 0-1.2s: hold doors open — galaxy visible, more comets
+      drawStars(.7);
+      drawDoor(1);
+      drawComets(elapsed+2,1);
+      if(elapsed>1.2){phase='fading';startTime=Date.now();}
 
     } else if(phase==='fading'){
-      // 0-0.8s: fade to black then reveal galaxy
-      const fade=Math.min(1,elapsed/.6);
+      // fade out
+      const fade=Math.min(1,elapsed/.5);
       ctx.globalAlpha=1-fade;
-      drawStars(1);drawDoor(1);
+      drawStars(.7);drawDoor(1);
       ctx.globalAlpha=1;
-      if(elapsed>.6){
+      if(elapsed>.5){
         canvas.classList.add('hide');
         setTimeout(()=>{
           canvas.style.display='none';
@@ -1721,7 +1768,6 @@ function initDoorAnimation(){
     }
     requestAnimationFrame(animateFrame);
   }
-  // Hide the default loading screen immediately — door takes over
   document.getElementById('loadingScreen').style.display='none';
   requestAnimationFrame(animateFrame);
 }
