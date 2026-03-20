@@ -212,7 +212,49 @@ body{position:fixed;inset:0;}
 #chatSend{width:38px;height:38px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,#38bdf8,#818cf8);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff;}
 #chatSend:disabled{opacity:.4;}
 
-/* ── OVERLAYS ── */
+/* ── APPLIED KNOWLEDGE OVERLAY ── */
+#appliedPanel{
+  position:fixed;
+  bottom:0;left:0;right:0;
+  z-index:25;
+  background:rgba(5,8,18,0.97);
+  border-top:1px solid rgba(255,255,255,0.08);
+  border-radius:20px 20px 0 0;
+  padding:16px 18px 32px;
+  backdrop-filter:blur(20px);
+  transform:translateY(100%);
+  transition:transform 0.35s cubic-bezier(0.4,0,0.2,1);
+  pointer-events:none;
+  max-height:55vh;
+  overflow-y:auto;
+}
+#appliedPanel.open{
+  transform:translateY(0);
+  pointer-events:all;
+}
+.ap-handle{display:flex;justify-content:center;margin-bottom:12px;}
+.ap-handle-bar{width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,0.12);}
+.ap-header{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.ap-icon{font-size:20px;}
+.ap-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;letter-spacing:2px;color:#f0f4ff;}
+.ap-node{font-size:11px;color:var(--muted);margin-top:2px;}
+.ap-items{display:flex;flex-direction:column;gap:10px;}
+.ap-item{
+  display:flex;align-items:flex-start;gap:12px;
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:12px;padding:12px 14px;
+}
+.ap-item-num{
+  width:22px;height:22px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:700;flex-shrink:0;
+  margin-top:1px;
+}
+.ap-item-text{font-size:13px;line-height:1.5;color:#e2e8f0;}
+.ap-loading{display:flex;align-items:center;gap:10px;padding:16px 0;color:var(--muted);font-size:13px;}
+.ap-dot{width:6px;height:6px;border-radius:50%;animation:apPulse 1.2s ease-in-out infinite;}
+@keyframes apPulse{0%,100%{opacity:.2;transform:scale(.8);}50%{opacity:1;transform:scale(1.2);}}
 .overlay{position:fixed;inset:0;background:rgba(5,8,20,0.99);z-index:50;display:none;flex-direction:column;overflow-y:auto;}
 .overlay.open{display:flex;}
 .ov-head{position:sticky;top:0;background:rgba(5,8,20,0.97);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,0.07);padding:14px 20px;display:flex;align-items:center;gap:14px;z-index:10;flex-shrink:0;}
@@ -316,6 +358,26 @@ body{position:fixed;inset:0;}
   <div class="cs-input">
     <input id="chatInput" placeholder="Ask anything…" autocomplete="off" enterkeyhint="send"/>
     <button id="chatSend">➤</button>
+  </div>
+</div>
+
+<!-- Applied Knowledge Panel -->
+<div id="appliedPanel">
+  <div class="ap-handle"><div class="ap-handle-bar"></div></div>
+  <div class="ap-header">
+    <div class="ap-icon">⚡</div>
+    <div>
+      <div class="ap-title">Applied Knowledge</div>
+      <div class="ap-node" id="apNodeName">Loading...</div>
+    </div>
+  </div>
+  <div class="ap-items" id="apItems">
+    <div class="ap-loading">
+      <div class="ap-dot" style="background:#38bdf8;animation-delay:0s;"></div>
+      <div class="ap-dot" style="background:#818cf8;animation-delay:.2s;"></div>
+      <div class="ap-dot" style="background:#c084fc;animation-delay:.4s;"></div>
+      <span>Generating your applications...</span>
+    </div>
   </div>
 </div>
 
@@ -1041,13 +1103,92 @@ const pendingNodes=new Set();
 // ══════════════════════════════════════════════════════════════
 // BLOOM
 // ══════════════════════════════════════════════════════════════
+// ── APPLIED KNOWLEDGE ────────────────────────────────────────
+const _appliedCache = {}; // cache per node
+
+async function fetchAppliedKnowledge(node) {
+  if (_appliedCache[node.id]) {
+    showAppliedPanel(node, _appliedCache[node.id]);
+    return;
+  }
+  // Show loading state
+  showAppliedPanel(node, null);
+
+  const unlockedNodes = N.filter(n => !n.hidden).map(n => n.id);
+  const recentQuestions = N.filter(n => n._lastThought).map(n => n._lastThought);
+
+  try {
+    const res = await fetch('/api/applied', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        nodeId: node.id,
+        nodeLabel: node.label,
+        unlockedNodes,
+        recentQuestions,
+        emotion: appState.emotion,
+      })
+    });
+    const data = await res.json();
+    _appliedCache[node.id] = data.applications || [];
+    showAppliedPanel(node, _appliedCache[node.id]);
+  } catch(e) {
+    showAppliedPanel(node, []);
+  }
+}
+
+function showAppliedPanel(node, applications) {
+  const panel = document.getElementById('appliedPanel');
+  const nodeNameEl = document.getElementById('apNodeName');
+  const itemsEl = document.getElementById('apItems');
+  const col = node.col || '#38bdf8';
+
+  nodeNameEl.textContent = node.label + ' · ' + (node.sub || '');
+  nodeNameEl.style.color = col;
+
+  // Update panel border color to match node
+  panel.style.borderTopColor = col + '40';
+
+  if (!applications) {
+    // Loading state
+    itemsEl.innerHTML = `
+      <div class="ap-loading">
+        <div class="ap-dot" style="background:${col};animation-delay:0s;"></div>
+        <div class="ap-dot" style="background:${col};animation-delay:.2s;"></div>
+        <div class="ap-dot" style="background:${col};animation-delay:.4s;"></div>
+        <span style="color:rgba(255,255,255,0.3);">Generating your applications...</span>
+      </div>`;
+  } else if (applications.length === 0) {
+    itemsEl.innerHTML = `<div style="color:rgba(255,255,255,0.3);font-size:13px;padding:8px 0;">Keep exploring to unlock personalized applications.</div>`;
+  } else {
+    itemsEl.innerHTML = applications.map((app, i) => `
+      <div class="ap-item" style="border-color:${col}20;">
+        <div class="ap-item-num" style="background:${col}20;color:${col};">${i+1}</div>
+        <div class="ap-item-text">${app}</div>
+      </div>
+    `).join('');
+  }
+
+  panel.classList.add('open');
+}
+
+function hideAppliedPanel() {
+  document.getElementById('appliedPanel').classList.remove('open');
+}
+
 function bloomOpen(node){
   bloomNode=node;bloomT=0;hasInteracted=true;
   node._pulsing=false;pendingNodes.delete(node.id);
   if(pendingNodes.size===0)document.getElementById('chatBtnBadge').classList.remove('show');
   soundBloom();
+  // Fetch and show Applied Knowledge
+  fetchAppliedKnowledge(node);
 }
-function bloomClose(){bloomNode=null;bloomT=0;}
+
+function bloomClose(){
+  bloomNode=null;bloomT=0;
+  hideAppliedPanel();
+}
 
 // ══════════════════════════════════════════════════════════════
 // HIT DETECTION
@@ -1214,14 +1355,8 @@ async function sendChat(text){
   const typing=addMsg('...','ai');typing.style.opacity='.5';
   try{
     const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},
-  body:JSON.stringify({
-    message:text,
-    userId:window._userId||'demo-user',
-    emotion:appState.emotion,
-    moments:appState.moments,
-    topics:appState.topics
-  })});
-const data=await res.json();
+      body:JSON.stringify({message:text,userId:window._userId||'demo-user'})});
+    const data=await res.json();
     typing.textContent=data.reply||'Ask me that again?';typing.style.opacity='1';
     appState.emotion=data.emotion||'curious';
     appState.topics=data.topics||[];
