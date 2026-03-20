@@ -341,14 +341,108 @@ body{position:fixed;inset:0;}
 </head>
 <body>
 
-<div id="loadingScreen">
-  <div class="ls-logo">Restore</div>
-  <div class="ls-sub">Where Understanding Grows</div>
-  <div class="ls-dot"></div>
+<div id="loadingScreen" style="position:fixed;inset:0;z-index:101;background:#05080f;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:40px;transition:opacity 0.8s;">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400&display=swap');
+.badge-ring{width:300px;height:300px;border-radius:50%;border:1.5px solid rgba(99,179,237,0.0);display:flex;align-items:center;justify-content:center;position:relative;animation:ringFadeIn 1s ease 0.5s forwards;opacity:0;}
+@keyframes ringFadeIn{to{opacity:1;border-color:rgba(99,179,237,0.3);box-shadow:0 0 80px rgba(99,179,237,0.06),inset 0 0 80px rgba(0,0,0,0.5);}}
+.door-wrap{position:relative;width:160px;height:150px;}
+.universe-layer{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0;animation:universeReveal 1.2s ease 2.2s forwards;}
+@keyframes universeReveal{to{opacity:1;}}
+.door-panel-wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;perspective:400px;}
+.door-panel{position:absolute;transform-origin:left center;animation:swingOpen 1.4s cubic-bezier(0.4,0,0.2,1) 1.2s forwards;transform:rotateY(0deg);}
+@keyframes swingOpen{0%{transform:rotateY(0deg);}100%{transform:rotateY(-72deg);}}
+.person-layer{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0;animation:personAppear 0.8s ease 2.8s forwards;}
+@keyframes personAppear{0%{opacity:0;transform:translateY(6px);}100%{opacity:1;transform:translateY(0);}}
+.light-spill{position:absolute;bottom:10px;left:50%;transform:translateX(-60%);width:80px;height:12px;border-radius:50%;background:radial-gradient(ellipse,rgba(99,179,237,0.4),transparent 70%);opacity:0;animation:spillIn 1s ease 2.2s forwards;}
+@keyframes spillIn{to{opacity:1;}}
+.ls-wordmark{display:flex;flex-direction:column;align-items:center;gap:8px;opacity:0;animation:wordIn 1.2s ease 3.2s forwards;}
+@keyframes wordIn{0%{opacity:0;transform:translateY(12px);}100%{opacity:1;transform:translateY(0);}}
+.ls-wordmark .ls-name{font-family:'Cormorant Garamond',serif;font-size:52px;font-weight:300;letter-spacing:10px;color:#f0f4ff;text-transform:uppercase;line-height:1;}
+.ls-wordmark .ls-tag{font-family:'Montserrat',sans-serif;font-size:10px;font-weight:300;letter-spacing:5px;color:#63b3ed;text-transform:uppercase;opacity:0;animation:tagIn 1s ease 3.8s forwards;}
+@keyframes tagIn{to{opacity:1;}}
+.ls-dots{display:flex;gap:8px;opacity:0;animation:dotsIn 0.6s ease 4.2s forwards;}
+@keyframes dotsIn{to{opacity:1;}}
+.ls-dot2{width:5px;height:5px;border-radius:50%;background:#63b3ed;animation:pulse2 1.2s ease-in-out infinite;}
+.ls-dot2:nth-child(2){animation-delay:0.2s;}.ls-dot2:nth-child(3){animation-delay:0.4s;}
+@keyframes pulse2{0%,100%{opacity:0.2;transform:scale(0.8);}50%{opacity:1;transform:scale(1.2);}}
+</style>
+
+  <div class="badge-ring">
+    <div class="door-wrap">
+      <div class="universe-layer">
+        <svg width="160" height="150" viewBox="0 0 120 110" fill="none">
+          <defs>
+            <radialGradient id="uGrad" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#7dd3fc" stop-opacity="0.95"/>
+              <stop offset="35%" stop-color="#3b82f6" stop-opacity="0.85"/>
+              <stop offset="70%" stop-color="#1e1b4b" stop-opacity="0.95"/>
+              <stop offset="100%" stop-color="#05080f" stop-opacity="1"/>
+            </radialGradient>
+            <radialGradient id="neb" cx="38%" cy="38%" r="55%">
+              <stop offset="0%" stop-color="#a78bfa" stop-opacity="0.5"/>
+              <stop offset="100%" stop-color="#05080f" stop-opacity="0"/>
+            </radialGradient>
+            <clipPath id="uClip"><rect x="34" y="8" width="36" height="62" rx="2"/></clipPath>
+          </defs>
+          <rect x="34" y="8" width="36" height="62" rx="2" fill="url(#uGrad)"/>
+          <rect x="34" y="8" width="36" height="62" rx="2" fill="url(#neb)"/>
+          <g clip-path="url(#uClip)">
+            <circle cx="44" cy="18" r="1.3" fill="white"><animate attributeName="opacity" values="0.4;1;0.4" dur="2.1s" repeatCount="indefinite"/></circle>
+            <circle cx="60" cy="22" r="0.9" fill="white"><animate attributeName="opacity" values="0.3;0.9;0.3" dur="1.7s" repeatCount="indefinite"/></circle>
+            <circle cx="51" cy="32" r="1.6" fill="#bfdbfe"><animate attributeName="opacity" values="0.5;1;0.5" dur="2.5s" repeatCount="indefinite"/></circle>
+            <circle cx="41" cy="44" r="1.0" fill="white"><animate attributeName="opacity" values="0.3;0.8;0.3" dur="1.9s" repeatCount="indefinite"/></circle>
+            <circle cx="63" cy="37" r="1.2" fill="#c4b5fd"><animate attributeName="opacity" values="0.4;1;0.4" dur="2.6s" repeatCount="indefinite"/></circle>
+            <circle cx="56" cy="53" r="0.8" fill="white"><animate attributeName="opacity" values="0.3;0.7;0.3" dur="1.5s" repeatCount="indefinite"/></circle>
+            <circle cx="38" cy="27" r="0.7" fill="#fde68a"><animate attributeName="opacity" values="0.5;1;0.5" dur="2.2s" repeatCount="indefinite"/></circle>
+            <circle cx="66" cy="14" r="1.1" fill="white"><animate attributeName="opacity" values="0.4;0.9;0.4" dur="1.8s" repeatCount="indefinite"/></circle>
+          </g>
+          <rect x="18" y="8" width="68" height="70" rx="3" fill="none" stroke="#63b3ed" stroke-width="1.5" opacity="0.4"/>
+          <line x1="14" y1="78" x2="90" y2="78" stroke="#63b3ed" stroke-width="1.5" opacity="0.35"/>
+        </svg>
+      </div>
+      <div class="door-panel-wrap">
+        <div class="door-panel">
+          <svg width="160" height="150" viewBox="0 0 120 110" fill="none">
+            <rect x="18" y="8" width="68" height="70" rx="3" fill="#0d1117" stroke="#63b3ed" stroke-width="1.5" opacity="0.85"/>
+            <rect x="24" y="15" width="26" height="26" rx="2" fill="none" stroke="#63b3ed" stroke-width="0.8" opacity="0.4"/>
+            <rect x="56" y="15" width="24" height="26" rx="2" fill="none" stroke="#63b3ed" stroke-width="0.8" opacity="0.4"/>
+            <rect x="24" y="48" width="26" height="24" rx="2" fill="none" stroke="#63b3ed" stroke-width="0.8" opacity="0.4"/>
+            <rect x="56" y="48" width="24" height="24" rx="2" fill="none" stroke="#63b3ed" stroke-width="0.8" opacity="0.4"/>
+            <circle cx="50" cy="44" r="3" fill="#fde68a" opacity="0.8"/>
+            <circle cx="50" cy="44" r="1.5" fill="#f59e0b"/>
+          </svg>
+        </div>
+      </div>
+      <div class="person-layer">
+        <svg width="160" height="150" viewBox="0 0 120 110" fill="none">
+          <circle cx="57" cy="46" r="5.5" fill="#f0f4ff"/>
+          <path d="M57 52 C57 52 53 60 52 68 L62 68 C61 60 57 52 57 52Z" fill="#f0f4ff"/>
+          <path d="M54 56 C50 54 44 52 40 53" stroke="#f0f4ff" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+          <path d="M60 57 C63 59 65 62 65 64" stroke="#f0f4ff" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+          <path d="M53 68 L50 78" stroke="#f0f4ff" stroke-width="2" stroke-linecap="round"/>
+          <path d="M61 68 L64 78" stroke="#f0f4ff" stroke-width="2" stroke-linecap="round"/>
+          <line x1="14" y1="78" x2="90" y2="78" stroke="#63b3ed" stroke-width="1.5" opacity="0.35"/>
+          <rect x="18" y="8" width="68" height="70" rx="3" fill="none" stroke="#63b3ed" stroke-width="1.5" opacity="0.3"/>
+        </svg>
+      </div>
+      <div class="light-spill"></div>
+    </div>
+  </div>
+
+  <div class="ls-wordmark">
+    <div class="ls-name">Restore</div>
+    <div class="ls-tag">Where Understanding Grows</div>
+  </div>
+
+  <div class="ls-dots">
+    <div class="ls-dot2"></div>
+    <div class="ls-dot2"></div>
+    <div class="ls-dot2"></div>
+  </div>
 </div>
 
-<!-- Silhouette door animation -->
-<canvas id="doorCanvas" style="position:fixed;inset:0;z-index:101;background:#05080f;"></canvas>
+<!-- Door canvas removed — using CSS animation above -->
 
 <!-- Sign in to save modal -->
 <div id="signInModal">
@@ -1523,255 +1617,19 @@ function stopListening(){
 }
 
 // ══════════════════════════════════════════════════════════════
-// SILHOUETTE DOOR ANIMATION
+// LOADING ANIMATION — fade out after CSS animation completes
 // ══════════════════════════════════════════════════════════════
 function initDoorAnimation(){
-  const canvas=document.getElementById('doorCanvas');
-  if(!canvas)return;
-  const ctx=canvas.getContext('2d');
-  canvas.width=window.innerWidth;
-  canvas.height=window.innerHeight;
-  const W=canvas.width,H=canvas.height;
-  const CX=W/2,CY=H/2;
-
-  // Stars for background
-  const stars=Array.from({length:180},()=>({
-    x:Math.random()*W,y:Math.random()*H,
-    r:Math.random()<.05?1.5:Math.random()<.2?1:.5,
-    a:.1+Math.random()*.8,
-  }));
-
-  let t=0; // animation time 0-1
-  let phase='intro'; // intro → opening → fading
-  let startTime=Date.now();
-
-  function drawStars(alpha){
-    stars.forEach(s=>{
-      ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
-      ctx.fillStyle=`rgba(200,220,255,${s.a*alpha})`;ctx.fill();
-    });
-  }
-
-  function drawDoor(openAmount){
-    // Door frame
-    const dw=Math.min(W*.38,220);
-    const dh=Math.min(H*.65,480);
-    const dx=CX-dw/2;
-    const dy=CY-dh*.65;
-
-    // Door glow
-    const dg=ctx.createRadialGradient(CX,CY,0,CX,CY,dw*1.5);
-    dg.addColorStop(0,`rgba(99,179,237,${.3*(1-openAmount)})`);
-    dg.addColorStop(1,'rgba(99,179,237,0)');
-    ctx.beginPath();ctx.arc(CX,CY,dw*1.5,0,Math.PI*2);
-    ctx.fillStyle=dg;ctx.fill();
-
-    // Door frame outline
-    ctx.strokeStyle=`rgba(99,179,237,${.7*(1-openAmount)})`;
-    ctx.lineWidth=2;
-    ctx.strokeRect(dx,dy,dw,dh);
-
-    // Left door panel opening
-    const leftOpen=openAmount*dw*.5;
-    ctx.fillStyle=`rgba(8,12,28,${1-openAmount*.8})`;
-    ctx.fillRect(dx,dy,dw/2-leftOpen,dh);
-    ctx.strokeStyle=`rgba(99,179,237,${.4*(1-openAmount)})`;
-    ctx.strokeRect(dx,dy,dw/2-leftOpen,dh);
-
-    // Right door panel opening
-    const rightOpen=openAmount*dw*.5;
-    ctx.fillStyle=`rgba(8,12,28,${1-openAmount*.8})`;
-    ctx.fillRect(CX+rightOpen,dy,dw/2-rightOpen,dh);
-    ctx.strokeStyle=`rgba(99,179,237,${.4*(1-openAmount)})`;
-    ctx.strokeRect(CX+rightOpen,dy,dw/2-rightOpen,dh);
-
-    // Galaxy visible through door as it opens
-    if(openAmount>0.1){
-      const gapW=(dw-leftOpen-dw/2+rightOpen);
-      const gapX=CX-dw/2+leftOpen;
-      // Galaxy glow through gap
-      const gg=ctx.createRadialGradient(CX,CY,0,CX,CY,dw);
-      gg.addColorStop(0,`rgba(56,189,248,${openAmount*.6})`);
-      gg.addColorStop(.4,`rgba(129,140,248,${openAmount*.3})`);
-      gg.addColorStop(1,'rgba(56,189,248,0)');
-      ctx.save();
-      ctx.beginPath();ctx.rect(gapX,dy,dw-leftOpen*2,dh);ctx.clip();
-      ctx.beginPath();ctx.arc(CX,CY,dw,0,Math.PI*2);
-      ctx.fillStyle=gg;ctx.fill();
-      ctx.restore();
-    }
-
-    // Door handle
-    const handleA=(1-openAmount);
-    if(handleA>0.1){
-      ctx.globalAlpha=handleA;
-      ctx.beginPath();ctx.arc(CX-8,CY+20,4,0,Math.PI*2);
-      ctx.fillStyle='rgba(99,179,237,0.8)';ctx.fill();
-      ctx.beginPath();ctx.arc(CX+8,CY+20,4,0,Math.PI*2);ctx.fill();
-      ctx.globalAlpha=1;
-    }
-  }
-
-  function drawSilhouette(openAmount){
-    // Person standing in front of door
-    // As door opens, silhouette walks through
-    const progress=Math.max(0,(openAmount-.2)/.8);
-    const personX=CX;
-    const groundY=CY+Math.min(H*.65,480)*.35; // door bottom area
-    const personScale=1-progress*.3; // shrink as they walk through
-    const personAlpha=1-progress*.9;
-
-    if(personAlpha<0.05)return;
-    ctx.globalAlpha=personAlpha;
-    ctx.fillStyle='rgba(15,25,50,0.95)';
-    ctx.strokeStyle='rgba(99,179,237,0.4)';
-
-    const ph=100*personScale; // person height
-    const py=groundY-ph;
-    const pw=28*personScale;
-
-    // Body silhouette
-    // Head
-    ctx.beginPath();ctx.arc(personX,py+ph*.12,ph*.1,0,Math.PI*2);ctx.fill();
-    // Body
-    ctx.beginPath();
-    ctx.moveTo(personX-pw*.4,py+ph*.22);
-    ctx.lineTo(personX+pw*.4,py+ph*.22);
-    ctx.lineTo(personX+pw*.3,py+ph*.58);
-    ctx.lineTo(personX-pw*.3,py+ph*.58);
-    ctx.closePath();ctx.fill();
-    // Left arm reaching for door
-    ctx.beginPath();
-    ctx.moveTo(personX-pw*.4,py+ph*.28);
-    ctx.quadraticCurveTo(personX-pw*.8,py+ph*.4,personX-pw*.5,py+ph*.52);
-    ctx.lineWidth=pw*.25;ctx.strokeStyle='#05080f';ctx.stroke();
-    // Right arm
-    ctx.beginPath();
-    ctx.moveTo(personX+pw*.4,py+ph*.28);
-    ctx.quadraticCurveTo(personX+pw*.8,py+ph*.38,personX+pw*.6,py+ph*.5);
-    ctx.lineWidth=pw*.25;ctx.stroke();
-    // Legs
-    ctx.beginPath();
-    ctx.moveTo(personX-pw*.15,py+ph*.58);
-    ctx.lineTo(personX-pw*.2,py+ph);
-    ctx.lineWidth=pw*.3;ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(personX+pw*.15,py+ph*.58);
-    ctx.lineTo(personX+pw*.2,py+ph);
-    ctx.stroke();
-
-    ctx.globalAlpha=1;
-  }
-
-  function drawText(alpha){
-    // Text BELOW the door
-    const doorBottom=CY+Math.min(H*.65,480)*.35+40;
-    ctx.textAlign='center';
-    // Sub text — bigger, brighter, below door
-    ctx.font='600 14px Inter, sans-serif';
-    ctx.fillStyle=`rgba(99,179,237,${alpha})`;
-    ctx.shadowColor='rgba(99,179,237,0.6)';ctx.shadowBlur=12;
-    ctx.fillText('WHERE UNDERSTANDING GROWS',CX,doorBottom);
-    ctx.shadowBlur=0;
-    // Line under sub
-    ctx.beginPath();
-    ctx.moveTo(CX-40,doorBottom+10);
-    ctx.lineTo(CX+40,doorBottom+10);
-    ctx.strokeStyle=`rgba(99,179,237,${alpha*.5})`;
-    ctx.lineWidth=1;ctx.stroke();
-    // RESTORE title above door
-    const doorTop=CY-Math.min(H*.65,480)*.65-24;
-    ctx.font='300 44px "Cormorant Garamond", Georgia, serif';
-    ctx.fillStyle=`rgba(240,244,255,${alpha})`;
-    ctx.shadowColor='rgba(99,179,237,0.5)';ctx.shadowBlur=24;
-    ctx.fillText('RESTORE',CX,doorTop);
-    ctx.shadowBlur=0;
-  }
-
-  // Comets
-  const comets=Array.from({length:4},(_,i)=>({
-    x:-100+i*50,y:50+i*80,
-    vx:8+i*3,vy:2+i*1.5,
-    len:80+i*40,alpha:0,
-    delay:0.3+i*0.4,
-  }));
-
-  function drawComets(elapsed,openAmount){
-    if(openAmount<0.2)return;
-    comets.forEach(c=>{
-      const t=Math.max(0,elapsed-c.delay);
-      if(t<=0)return;
-      c.x+=c.vx;c.y+=c.vy;
-      const a=Math.min(1,t/.3)*openAmount*.7;
-      if(a<=0)return;
-      const grad=ctx.createLinearGradient(c.x-c.len,c.y-c.len*.25,c.x,c.y);
-      grad.addColorStop(0,'rgba(56,189,248,0)');
-      grad.addColorStop(0.7,`rgba(129,140,248,${a*.5})`);
-      grad.addColorStop(1,`rgba(255,255,255,${a})`);
-      ctx.beginPath();ctx.moveTo(c.x-c.len,c.y-c.len*.25);ctx.lineTo(c.x,c.y);
-      ctx.strokeStyle=grad;ctx.lineWidth=2;ctx.stroke();
-      // Head glow
-      ctx.beginPath();ctx.arc(c.x,c.y,3,0,Math.PI*2);
-      ctx.fillStyle=`rgba(255,255,255,${a})`;
-      ctx.shadowColor='rgba(56,189,248,0.8)';ctx.shadowBlur=10;
-      ctx.fill();ctx.shadowBlur=0;
-    });
-  }
-
-  function animateFrame(){
-    const elapsed=(Date.now()-startTime)/1000;
-    ctx.clearRect(0,0,W,H);
-    ctx.fillStyle='#05080f';ctx.fillRect(0,0,W,H);
-
-    if(phase==='intro'){
-      // 0-1.8s: fade in title + door + silhouette
-      const a=Math.min(1,elapsed/.8);
-      drawStars(a);
-      drawDoor(0);
-      drawSilhouette(0);
-      drawText(a);
-      if(elapsed>1.8){phase='opening';startTime=Date.now();}
-
-    } else if(phase==='opening'){
-      // 0-2s: door opens slowly, comets fly through
-      const open=Math.min(1,elapsed/1.6);
-      const ease=open<.5?2*open*open:(1-Math.pow(-2*open+2,2)/2);
-      drawStars(1-open*.3);
-      drawDoor(ease);
-      drawComets(elapsed,ease);
-      drawSilhouette(ease);
-      drawText(Math.max(0,1-open*1.5));
-      if(elapsed>2.5){phase='hold';startTime=Date.now();}
-
-    } else if(phase==='hold'){
-      // 0-1.2s: hold doors open — galaxy visible, more comets
-      drawStars(.7);
-      drawDoor(1);
-      drawComets(elapsed+2,1);
-      if(elapsed>1.2){phase='fading';startTime=Date.now();}
-
-    } else if(phase==='fading'){
-      // fade out
-      const fade=Math.min(1,elapsed/.5);
-      ctx.globalAlpha=1-fade;
-      drawStars(.7);drawDoor(1);
-      ctx.globalAlpha=1;
-      if(elapsed>.5){
-        canvas.classList.add('hide');
-        setTimeout(()=>{
-          canvas.style.display='none';
-          document.getElementById('loadingScreen').classList.add('hide');
-          setTimeout(()=>document.getElementById('loadingScreen').style.display='none',800);
-        },800);
-        return;
-      }
-    }
-    requestAnimationFrame(animateFrame);
-  }
-  document.getElementById('loadingScreen').style.display='none';
-  requestAnimationFrame(animateFrame);
+  // CSS animations take ~5s total, then fade out
+  setTimeout(()=>{
+    const ls=document.getElementById('loadingScreen');
+    ls.style.opacity='0';
+    ls.style.transition='opacity 0.8s';
+    setTimeout(()=>ls.style.display='none',800);
+  },5200);
 }
 
+  // Stars for background
 // ══════════════════════════════════════════════════════════════
 // SIGN IN TO SAVE
 // ══════════════════════════════════════════════════════════════
