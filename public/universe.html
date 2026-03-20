@@ -1118,101 +1118,117 @@ function drawNode(n){
 
   if(n.id==='you'){
     const ec=EMOTION_HEX[appState.emotion]||EMOTION_HEX.curious;
-    const breath=.5+.5*Math.sin(T*.025);
-    // Outer glow
-    for(let i=4;i>0;i--){
-      const gr=ux.createRadialGradient(x,y,r*.5,x,y,r*(1+i*.45));
-      gr.addColorStop(0,'rgba(0,0,0,0)');
-      gr.addColorStop(.4,ec+Math.round(12/i).toString(16).padStart(2,'0'));
-      gr.addColorStop(1,'rgba(0,0,0,0)');
-      ux.beginPath();ux.arc(x,y,r*(1+i*.45),0,Math.PI*2);ux.fillStyle=gr;ux.fill();
-    }
-    ux.globalAlpha=dimA;
-    const darkCol=({curious:'#05111d',connecting:'#1c0800',mastering:'#041a0d',confused:'#200505',reflecting:'#130520'})[appState.emotion]||'#05111d';
-    const midCol=({curious:'#0e3a5c',connecting:'#7c3a00',mastering:'#14532d',confused:'#7f1d1d',reflecting:'#4c1d95'})[appState.emotion]||'#0e3a5c';
-    // Sphere
-    const body=ux.createRadialGradient(x-r*.2,y-r*.25,r*.05,x+r*.1,y+r*.1,r*1.05);
-    body.addColorStop(0,midCol);
-    body.addColorStop(.5,ec+'44');
-    body.addColorStop(.85,ec+'88');
-    body.addColorStop(1,ec+'bb');
-    ux.beginPath();ux.arc(x,y,r,0,Math.PI*2);ux.fillStyle=body;ux.fill();
-    // Wisps
-    for(let i=0;i<3;i++){
-      const wx=x+Math.sin(T*.007+i*2.1)*r*.3,wy=y+Math.cos(T*.006+i*1.8)*r*.25;
-      const wg=ux.createRadialGradient(wx,wy,0,wx,wy,r*.4);
-      wg.addColorStop(0,ec+'20');wg.addColorStop(1,'rgba(0,0,0,0)');
-      ux.beginPath();ux.arc(wx,wy,r*.4,0,Math.PI*2);ux.fillStyle=wg;ux.fill();
-    }
-    // Brain folds — no clipping, direct draw
-    const s=r/44;
-    ux.lineCap='round';ux.lineJoin='round';
-    const folds=[
-      [[x-30*s,y-65*s],[x-50*s,y-42*s],[x-58*s,y-10*s],[x-52*s,y+20*s]],
-      [[x-15*s,y-70*s],[x-32*s,y-50*s],[x-38*s,y-18*s],[x-34*s,y+12*s]],
-      [[x-52*s,y+20*s],[x-56*s,y+44*s],[x-46*s,y+62*s],[x-26*s,y+70*s]],
-      [[x-58*s,y-5*s],[x-64*s,y+22*s],[x-58*s,y+46*s],[x-40*s,y+62*s]],
-      [[x+30*s,y-65*s],[x+50*s,y-42*s],[x+58*s,y-10*s],[x+52*s,y+20*s]],
-      [[x+15*s,y-70*s],[x+32*s,y-50*s],[x+38*s,y-18*s],[x+34*s,y+12*s]],
-      [[x+52*s,y+20*s],[x+56*s,y+44*s],[x+46*s,y+62*s],[x+26*s,y+70*s]],
-      [[x+58*s,y-5*s],[x+64*s,y+22*s],[x+58*s,y+46*s],[x+40*s,y+62*s]],
+    const breath=.5+.5*Math.sin(T*.02);
+    const palB=({curious:'#7dd3fc',connecting:'#fde68a',mastering:'#86efac',confused:'#fca5a5',reflecting:'#e9d5ff'})[appState.emotion]||'#7dd3fc';
+    const palC=({curious:'#0369a1',connecting:'#b45309',mastering:'#15803d',confused:'#b91c1c',reflecting:'#7e22ce'})[appState.emotion]||'#0369a1';
+    const palD=({curious:'#082f49',connecting:'#1c0a00',mastering:'#052e16',confused:'#1f0505',reflecting:'#1a0535'})[appState.emotion]||'#082f49';
+
+    // ── ATOM YOU NODE ──────────────────────────────────────────
+    // 5 electron orbits
+    const atomOrbits=[
+      {rx:r*1.12,ry:r*.34,tilt:0.0,  speed:.018,phase:0.0,  eR:r*.048,trail:18},
+      {rx:r*1.02,ry:r*.30,tilt:0.62, speed:.023,phase:2.09, eR:r*.043,trail:16},
+      {rx:r*.94, ry:r*.27,tilt:1.26, speed:.028,phase:4.19, eR:r*.040,trail:14},
+      {rx:r*.86, ry:r*.24,tilt:1.88, speed:.015,phase:1.05, eR:r*.037,trail:12},
+      {rx:r*.78, ry:r*.22,tilt:2.51, speed:.032,phase:3.14, eR:r*.034,trail:10},
     ];
-    folds.forEach(pts=>{
-      // Dark groove
-      ux.globalAlpha=.9*dimA;ux.strokeStyle=darkCol;ux.lineWidth=3*s;
-      ux.beginPath();ux.moveTo(pts[0][0],pts[0][1]);
-      for(let i=1;i<pts.length-1;i++){const mx=(pts[i][0]+pts[i+1][0])/2,my=(pts[i][1]+pts[i+1][1])/2;ux.quadraticCurveTo(pts[i][0],pts[i][1],mx,my);}
-      ux.lineTo(pts[pts.length-1][0],pts[pts.length-1][1]);ux.stroke();
-      // Bright highlight on fold ridge
-      ux.globalAlpha=.45*dimA;ux.strokeStyle=ec;ux.lineWidth=1.2*s;ux.stroke();
-      ux.globalAlpha=dimA;
+
+    function atomEPos(o,t){
+      const a=t*o.speed+o.phase;
+      const cosT=Math.cos(o.tilt),sinT=Math.sin(o.tilt);
+      const ex=Math.cos(a)*o.rx,ey=Math.sin(a)*o.ry;
+      return{x:x+ex*cosT-ey*sinT*.3,y:y+ex*sinT+ey*cosT,z:ey,depth:(ey+o.ry)/(o.ry*2)};
+    }
+
+    // Outer ambient field
+    for(let i=3;i>0;i--){
+      const ag=ux.createRadialGradient(x,y,r*.4,x,y,r*1.5*i*.5);
+      ag.addColorStop(0,'rgba(0,0,0,0)');
+      ag.addColorStop(.5,ec+Math.round(8*dimA/i).toString(16).padStart(2,'00'));
+      ag.addColorStop(1,'rgba(0,0,0,0)');
+      ux.beginPath();ux.arc(x,y,r*1.5*i*.5,0,Math.PI*2);ux.fillStyle=ag;ux.fill();
+    }
+
+    // Orbit rings
+    ux.globalAlpha=dimA;
+    atomOrbits.forEach(o=>{
+      ux.save();ux.translate(x,y);ux.rotate(o.tilt);
+      ux.beginPath();ux.ellipse(0,0,o.rx,o.ry,0,0,Math.PI*2);
+      const og=ux.createLinearGradient(-o.rx,0,o.rx,0);
+      og.addColorStop(0,ec+'00');og.addColorStop(.25,ec+'28');og.addColorStop(.5,ec+'14');og.addColorStop(.75,ec+'28');og.addColorStop(1,ec+'00');
+      ux.strokeStyle=og;ux.lineWidth=.7;ux.stroke();
+      ux.restore();
     });
-    // Corpus callosum
-    ux.globalAlpha=.6*dimA;ux.strokeStyle=ec;ux.lineWidth=3*s;
-    ux.beginPath();ux.moveTo(x-10*s,y-20*s);ux.quadraticCurveTo(x,y-32*s,x+10*s,y-20*s);ux.stroke();
-    ux.lineWidth=1.5*s;ux.globalAlpha=.35*dimA;
-    ux.beginPath();ux.moveTo(x-8*s,y-10*s);ux.quadraticCurveTo(x,y-20*s,x+8*s,y-10*s);ux.stroke();
-    ux.globalAlpha=dimA;
-    // Fissure
-    ux.strokeStyle=darkCol;ux.lineWidth=1.5*s;ux.globalAlpha=.5*dimA;
-    ux.beginPath();ux.moveTo(x,y-r*.85);ux.lineTo(x,y+r*.85);ux.stroke();
-    ux.globalAlpha=dimA;
-    // Electrons
-    if(!n._electrons)n._electrons=[];
-    const spawnRate=appState.emotion==='connecting'?4:appState.emotion==='mastering'?5:7;
-    if(T%spawnRate===0&&n._electrons.length<20){
-      const ang=Math.random()*Math.PI*2;
-      n._electrons.push({x:x+Math.cos(ang)*r*.9,y:y+Math.sin(ang)*r*.9,vx:Math.cos(ang)*2.2,vy:Math.sin(ang)*2.2,life:0,maxLife:20+Math.random()*30,size:.7+Math.random()*1.2,jitter:.5+Math.random()*.8,trail:[]});
-    }
-    for(let i=n._electrons.length-1;i>=0;i--){
-      const e=n._electrons[i];
-      e.trail.push({x:e.x,y:e.y});if(e.trail.length>8)e.trail.shift();
-      e.vx+=(Math.random()-.5)*e.jitter*2;e.vy+=(Math.random()-.5)*e.jitter*2;
-      const sp=Math.hypot(e.vx,e.vy),ts=2+Math.random()*1.5;
-      e.vx=e.vx/sp*ts;e.vy=e.vy/sp*ts;e.x+=e.vx;e.y+=e.vy;e.life++;
-      const p=e.life/e.maxLife,a=p<.2?p/.2:1-(p-.2)/.8;
-      for(let j=1;j<e.trail.length;j++){
-        const tf=j/e.trail.length;
-        ux.beginPath();ux.moveTo(e.trail[j-1].x,e.trail[j-1].y);ux.lineTo(e.trail[j].x,e.trail[j].y);
-        ux.strokeStyle=ec+Math.round(a*tf*160).toString(16).padStart(2,'0');
-        ux.lineWidth=e.size*tf*a;ux.shadowColor=ec;ux.shadowBlur=4*tf*a;ux.stroke();ux.shadowBlur=0;
+
+    // Sort electrons by depth
+    const sorted=atomOrbits.map(o=>({o,pos:atomEPos(o,T)})).sort((a,b)=>a.pos.depth-b.pos.depth);
+
+    function drawAtomElectron(o,pos){
+      const al=(0.35+pos.depth*.65)*dimA;
+      const eR=o.eR*(0.65+pos.depth*.5);
+      // Trail
+      for(let i=o.trail;i>0;i--){
+        const tp=atomEPos(o,T-i*1.8);
+        const ta=al*(1-i/o.trail)*.65;
+        if(ta<.01)continue;
+        ux.beginPath();ux.arc(tp.x,tp.y,eR*(1-i/o.trail)*.8,0,Math.PI*2);
+        ux.fillStyle=ec+Math.round(ta*255).toString(16).padStart(2,'0');ux.fill();
       }
-      ux.beginPath();ux.arc(e.x,e.y,e.size*a*1.2,0,Math.PI*2);
-      ux.fillStyle='rgba(255,255,255,'+a*.85+')';ux.shadowColor=ec;ux.shadowBlur=6*a;ux.fill();ux.shadowBlur=0;
-      if(e.life>=e.maxLife)n._electrons.splice(i,1);
+      // Glow
+      const eg=ux.createRadialGradient(pos.x,pos.y,0,pos.x,pos.y,eR*4);
+      eg.addColorStop(0,palB+Math.round(al*.7*255).toString(16).padStart(2,'00'));
+      eg.addColorStop(.4,ec+Math.round(al*.25*255).toString(16).padStart(2,'00'));
+      eg.addColorStop(1,'rgba(0,0,0,0)');
+      ux.beginPath();ux.arc(pos.x,pos.y,eR*4,0,Math.PI*2);ux.fillStyle=eg;ux.fill();
+      // Core
+      const ec2=ux.createRadialGradient(pos.x-eR*.3,pos.y-eR*.3,0,pos.x,pos.y,eR);
+      ec2.addColorStop(0,'rgba(255,255,255,'+(al*.95)+')');
+      ec2.addColorStop(.4,palB+Math.round(al*255).toString(16).padStart(2,'00'));
+      ec2.addColorStop(1,ec+Math.round(al*.8*255).toString(16).padStart(2,'00'));
+      ux.beginPath();ux.arc(pos.x,pos.y,eR,0,Math.PI*2);ux.fillStyle=ec2;ux.fill();
+      ux.beginPath();ux.arc(pos.x,pos.y,eR*1.4,0,Math.PI*2);
+      ux.strokeStyle=palB+Math.round(al*.4*255).toString(16).padStart(2,'00');
+      ux.lineWidth=.5;ux.shadowColor=palB;ux.shadowBlur=6*al;ux.stroke();ux.shadowBlur=0;
     }
-    // Rim + pulse
-    ux.beginPath();ux.arc(x,y,r,0,Math.PI*2);ux.strokeStyle=ec+'88';ux.lineWidth=2;ux.shadowColor=ec;ux.shadowBlur=14;ux.stroke();ux.shadowBlur=0;
-    ux.beginPath();ux.arc(x,y,r+8+breath*7,0,Math.PI*2);ux.strokeStyle=ec+Math.round(50+breath*55).toString(16).padStart(2,'0');ux.lineWidth=1.5;ux.stroke();
-    ux.beginPath();ux.arc(x,y,r+18+breath*11,0,Math.PI*2);ux.strokeStyle=ec+Math.round(18+breath*22).toString(16).padStart(2,'0');ux.lineWidth=1;ux.stroke();
-    // Specular
-    const sp=ux.createRadialGradient(x-r*.3,y-r*.36,0,x-r*.3,y-r*.36,r*.4);
-    sp.addColorStop(0,'rgba(255,255,255,0.38)');sp.addColorStop(1,'rgba(255,255,255,0)');
-    ux.beginPath();ux.arc(x-r*.3,y-r*.36,r*.4,0,Math.PI*2);ux.fillStyle=sp;ux.fill();
+
+    // Back electrons
+    sorted.filter(e=>e.pos.depth<.5).forEach(e=>drawAtomElectron(e.o,e.pos));
+
+    // Nucleus
+    const nr=(r*.28+breath*r*.03);
+    for(let i=5;i>0;i--){
+      const ng=ux.createRadialGradient(x,y,nr*.4,x,y,nr*i*.85);
+      ng.addColorStop(0,ec+Math.round(20*dimA/i).toString(16).padStart(2,'00'));
+      ng.addColorStop(.5,palC+Math.round(8*dimA/i).toString(16).padStart(2,'00'));
+      ng.addColorStop(1,'rgba(0,0,0,0)');
+      ux.beginPath();ux.arc(x,y,nr*i*.85,0,Math.PI*2);ux.fillStyle=ng;ux.fill();
+    }
+    const shellG=ux.createRadialGradient(x-nr*.3,y-nr*.3,nr*.08,x+nr*.1,y+nr*.1,nr*1.1);
+    shellG.addColorStop(0,palB);shellG.addColorStop(.3,ec);shellG.addColorStop(.65,palC);shellG.addColorStop(1,palD);
+    ux.globalAlpha=dimA;ux.beginPath();ux.arc(x,y,nr,0,Math.PI*2);ux.fillStyle=shellG;ux.fill();
+    // Nucleons
+    const nucleons=[[-6,-5,5.2,'p'],[5,-6,4.8,'n'],[0,5,5.4,'p'],[-7,3,4.4,'n'],[6,4,4.6,'p'],[-1,-1,5.0,'n']];
+    nucleons.forEach(([ox,oy,nr2,type])=>{
+      const nx=x+ox*(nr/22),ny=y+oy*(nr/22),nrr=nr2*(nr/22);
+      const ng2=ux.createRadialGradient(nx-nrr*.3,ny-nrr*.3,0,nx,ny,nrr);
+      if(type==='p'){ng2.addColorStop(0,'rgba(255,255,255,.9)');ng2.addColorStop(.4,palB);ng2.addColorStop(1,ec);}
+      else{ng2.addColorStop(0,'rgba(180,200,255,.7)');ng2.addColorStop(.4,ec);ng2.addColorStop(1,palC);}
+      ux.beginPath();ux.arc(nx,ny,nrr,0,Math.PI*2);ux.fillStyle=ng2;ux.fill();
+    });
+    const sp1=ux.createRadialGradient(x-nr*.35,y-nr*.38,0,x-nr*.35,y-nr*.38,nr*.42);
+    sp1.addColorStop(0,'rgba(255,255,255,.52)');sp1.addColorStop(1,'rgba(255,255,255,0)');
+    ux.beginPath();ux.arc(x-nr*.35,y-nr*.38,nr*.42,0,Math.PI*2);ux.fillStyle=sp1;ux.fill();
+    ux.beginPath();ux.arc(x,y,nr,0,Math.PI*2);
+    ux.strokeStyle=palB+'50';ux.lineWidth=1.2;ux.shadowColor=palB;ux.shadowBlur=12;ux.stroke();ux.shadowBlur=0;
+
+    // Front electrons
+    sorted.filter(e=>e.pos.depth>=.5).forEach(e=>drawAtomElectron(e.o,e.pos));
+
     ux.globalAlpha=1;
-    // Label
-    ux.fillStyle='rgba(255,255,255,0.9)';ux.font='bold 12px Inter';ux.textAlign='center';ux.textBaseline='middle';
-    ux.shadowColor=ec;ux.shadowBlur=10;ux.fillText('YOU',x,y);ux.shadowBlur=0;
+    // YOU label
+    ux.fillStyle=`rgba(255,255,255,${.92*dimA})`;ux.font='700 12px Inter';
+    ux.textAlign='center';ux.textBaseline='middle';
+    ux.shadowColor=palB;ux.shadowBlur=10;ux.fillText('YOU',x,y);ux.shadowBlur=0;
 
   } else {
     // Other nodes
