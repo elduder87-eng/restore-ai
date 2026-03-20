@@ -322,27 +322,9 @@ body{position:fixed;inset:0;}
   cursor:pointer;font-family:'Inter',sans-serif;
 }
 
-/* ── DOOR OPENING ANIMATION ── */
-#doorLeft,#doorRight{
-  position:fixed;top:0;bottom:0;z-index:101;
-  background:linear-gradient(135deg,#070b18,#0a0f1e);
-  transition:transform 1.2s cubic-bezier(0.77,0,0.18,1);
-  display:flex;align-items:center;justify-content:center;
-}
-#doorLeft{left:0;right:50%;border-right:1px solid rgba(99,179,237,0.2);}
-#doorRight{left:50%;right:0;border-left:1px solid rgba(99,179,237,0.2);}
-#doorLeft.open{transform:translateX(-100%);}
-#doorRight.open{transform:translateX(100%);}
-.door-star{position:absolute;background:rgba(200,220,255,0.6);border-radius:50%;}
-#doorLogo{
-  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
-  z-index:102;text-align:center;
-  transition:opacity 0.5s;
-}
-#doorLogo.hide{opacity:0;}
-.dl-text{font-family:'Cormorant Garamond',serif;font-size:42px;font-weight:300;letter-spacing:8px;color:#f0f4ff;text-transform:uppercase;}
-.dl-sub{font-size:12px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-top:8px;}
-.dl-line{width:60px;height:1px;background:rgba(99,179,237,0.4);margin:12px auto 0;}
+/* ── DOOR CANVAS ── */
+#doorCanvas{transition:opacity 0.8s;}
+#doorCanvas.hide{opacity:0;pointer-events:none;}
 #loadingScreen{position:fixed;inset:0;z-index:100;background:#05080f;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity 0.8s;}
 #loadingScreen.hide{opacity:0;pointer-events:none;}
 .ls-logo{font-family:'Cormorant Garamond',serif;font-size:42px;font-weight:300;letter-spacing:8px;color:#f0f4ff;text-transform:uppercase;}
@@ -365,14 +347,8 @@ body{position:fixed;inset:0;}
   <div class="ls-dot"></div>
 </div>
 
-<!-- Door opening animation -->
-<div id="doorLeft"></div>
-<div id="doorRight"></div>
-<div id="doorLogo">
-  <div class="dl-text">Restore</div>
-  <div class="dl-sub">Where Understanding Grows</div>
-  <div class="dl-line"></div>
-</div>
+<!-- Silhouette door animation -->
+<canvas id="doorCanvas" style="position:fixed;inset:0;z-index:101;background:#05080f;"></canvas>
 
 <!-- Sign in to save modal -->
 <div id="signInModal">
@@ -1481,22 +1457,33 @@ function closeChat(){
 // TEXT TO SPEECH
 // ══════════════════════════════════════════════════════════════
 let ttsEnabled=false;
+let ttsVoice=null;
+
+// Load voices — Android requires waiting for voiceschanged event
+function loadVoices(){
+  const voices=window.speechSynthesis?.getVoices()||[];
+  ttsVoice=voices.find(v=>v.lang.startsWith('en')&&(v.name.includes('Google')||v.name.includes('Samantha')||v.name.includes('Daniel')))||voices.find(v=>v.lang.startsWith('en'))||null;
+}
+if(window.speechSynthesis){
+  loadVoices();
+  window.speechSynthesis.onvoiceschanged=loadVoices;
+}
 
 function toggleTTS(){
   ttsEnabled=!ttsEnabled;
   document.getElementById('ttsBtn').classList.toggle('active',ttsEnabled);
   if(!ttsEnabled)window.speechSynthesis?.cancel();
   showToast(ttsEnabled?'🔊 Voice On':'🔇 Voice Off',ttsEnabled?'AI will read responses':'Responses silent','#38bdf8',ttsEnabled?'🔊':'🔇');
+  // Speak a test phrase so Android unlocks audio
+  if(ttsEnabled)speakText('Voice on.');
 }
 
 function speakText(text){
   if(!ttsEnabled||!window.speechSynthesis)return;
   window.speechSynthesis.cancel();
   const utt=new SpeechSynthesisUtterance(text);
-  utt.rate=0.92;utt.pitch=1;utt.volume=0.9;
-  const voices=window.speechSynthesis.getVoices();
-  const preferred=voices.find(v=>v.name.includes('Google')||v.name.includes('Samantha')||v.name.includes('Daniel')||v.lang==='en-US');
-  if(preferred)utt.voice=preferred;
+  utt.rate=0.92;utt.pitch=1;utt.volume=1.0;
+  if(ttsVoice)utt.voice=ttsVoice;
   window.speechSynthesis.speak(utt);
 }
 
@@ -1532,30 +1519,211 @@ function stopListening(){
 }
 
 // ══════════════════════════════════════════════════════════════
-// DOOR OPENING ANIMATION
+// SILHOUETTE DOOR ANIMATION
 // ══════════════════════════════════════════════════════════════
 function initDoorAnimation(){
-  ['doorLeft','doorRight'].forEach(id=>{
-    const door=document.getElementById(id);
-    for(let i=0;i<25;i++){
-      const star=document.createElement('div');star.className='door-star';
-      const sz=Math.random()<.1?2:1;
-      star.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;opacity:${.2+Math.random()*.6};`;
-      door.appendChild(star);
+  const canvas=document.getElementById('doorCanvas');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  canvas.width=window.innerWidth;
+  canvas.height=window.innerHeight;
+  const W=canvas.width,H=canvas.height;
+  const CX=W/2,CY=H/2;
+
+  // Stars for background
+  const stars=Array.from({length:180},()=>({
+    x:Math.random()*W,y:Math.random()*H,
+    r:Math.random()<.05?1.5:Math.random()<.2?1:.5,
+    a:.1+Math.random()*.8,
+  }));
+
+  let t=0; // animation time 0-1
+  let phase='intro'; // intro → opening → fading
+  let startTime=Date.now();
+
+  function drawStars(alpha){
+    stars.forEach(s=>{
+      ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(200,220,255,${s.a*alpha})`;ctx.fill();
+    });
+  }
+
+  function drawDoor(openAmount){
+    // Door frame
+    const dw=Math.min(W*.38,220);
+    const dh=Math.min(H*.65,480);
+    const dx=CX-dw/2;
+    const dy=CY-dh*.65;
+
+    // Door glow
+    const dg=ctx.createRadialGradient(CX,CY,0,CX,CY,dw*1.5);
+    dg.addColorStop(0,`rgba(99,179,237,${.3*(1-openAmount)})`);
+    dg.addColorStop(1,'rgba(99,179,237,0)');
+    ctx.beginPath();ctx.arc(CX,CY,dw*1.5,0,Math.PI*2);
+    ctx.fillStyle=dg;ctx.fill();
+
+    // Door frame outline
+    ctx.strokeStyle=`rgba(99,179,237,${.7*(1-openAmount)})`;
+    ctx.lineWidth=2;
+    ctx.strokeRect(dx,dy,dw,dh);
+
+    // Left door panel opening
+    const leftOpen=openAmount*dw*.5;
+    ctx.fillStyle=`rgba(8,12,28,${1-openAmount*.8})`;
+    ctx.fillRect(dx,dy,dw/2-leftOpen,dh);
+    ctx.strokeStyle=`rgba(99,179,237,${.4*(1-openAmount)})`;
+    ctx.strokeRect(dx,dy,dw/2-leftOpen,dh);
+
+    // Right door panel opening
+    const rightOpen=openAmount*dw*.5;
+    ctx.fillStyle=`rgba(8,12,28,${1-openAmount*.8})`;
+    ctx.fillRect(CX+rightOpen,dy,dw/2-rightOpen,dh);
+    ctx.strokeStyle=`rgba(99,179,237,${.4*(1-openAmount)})`;
+    ctx.strokeRect(CX+rightOpen,dy,dw/2-rightOpen,dh);
+
+    // Galaxy visible through door as it opens
+    if(openAmount>0.1){
+      const gapW=(dw-leftOpen-dw/2+rightOpen);
+      const gapX=CX-dw/2+leftOpen;
+      // Galaxy glow through gap
+      const gg=ctx.createRadialGradient(CX,CY,0,CX,CY,dw);
+      gg.addColorStop(0,`rgba(56,189,248,${openAmount*.6})`);
+      gg.addColorStop(.4,`rgba(129,140,248,${openAmount*.3})`);
+      gg.addColorStop(1,'rgba(56,189,248,0)');
+      ctx.save();
+      ctx.beginPath();ctx.rect(gapX,dy,dw-leftOpen*2,dh);ctx.clip();
+      ctx.beginPath();ctx.arc(CX,CY,dw,0,Math.PI*2);
+      ctx.fillStyle=gg;ctx.fill();
+      ctx.restore();
     }
-  });
-  setTimeout(()=>{
-    document.getElementById('doorLeft').classList.add('open');
-    document.getElementById('doorRight').classList.add('open');
-    document.getElementById('doorLogo').classList.add('hide');
-  },1200);
-  setTimeout(()=>{
-    document.getElementById('doorLeft').style.display='none';
-    document.getElementById('doorRight').style.display='none';
-    document.getElementById('doorLogo').style.display='none';
-    document.getElementById('loadingScreen').classList.add('hide');
-    setTimeout(()=>document.getElementById('loadingScreen').style.display='none',800);
-  },2500);
+
+    // Door handle
+    const handleA=(1-openAmount);
+    if(handleA>0.1){
+      ctx.globalAlpha=handleA;
+      ctx.beginPath();ctx.arc(CX-8,CY+20,4,0,Math.PI*2);
+      ctx.fillStyle='rgba(99,179,237,0.8)';ctx.fill();
+      ctx.beginPath();ctx.arc(CX+8,CY+20,4,0,Math.PI*2);ctx.fill();
+      ctx.globalAlpha=1;
+    }
+  }
+
+  function drawSilhouette(openAmount){
+    // Person standing in front of door
+    // As door opens, silhouette walks through
+    const progress=Math.max(0,(openAmount-.2)/.8);
+    const personX=CX;
+    const groundY=CY+Math.min(H*.65,480)*.35; // door bottom area
+    const personScale=1-progress*.3; // shrink as they walk through
+    const personAlpha=1-progress*.9;
+
+    if(personAlpha<0.05)return;
+    ctx.globalAlpha=personAlpha;
+    ctx.fillStyle='#05080f';
+
+    const ph=100*personScale; // person height
+    const py=groundY-ph;
+    const pw=28*personScale;
+
+    // Body silhouette
+    // Head
+    ctx.beginPath();ctx.arc(personX,py+ph*.12,ph*.1,0,Math.PI*2);ctx.fill();
+    // Body
+    ctx.beginPath();
+    ctx.moveTo(personX-pw*.4,py+ph*.22);
+    ctx.lineTo(personX+pw*.4,py+ph*.22);
+    ctx.lineTo(personX+pw*.3,py+ph*.58);
+    ctx.lineTo(personX-pw*.3,py+ph*.58);
+    ctx.closePath();ctx.fill();
+    // Left arm reaching for door
+    ctx.beginPath();
+    ctx.moveTo(personX-pw*.4,py+ph*.28);
+    ctx.quadraticCurveTo(personX-pw*.8,py+ph*.4,personX-pw*.5,py+ph*.52);
+    ctx.lineWidth=pw*.25;ctx.strokeStyle='#05080f';ctx.stroke();
+    // Right arm
+    ctx.beginPath();
+    ctx.moveTo(personX+pw*.4,py+ph*.28);
+    ctx.quadraticCurveTo(personX+pw*.8,py+ph*.38,personX+pw*.6,py+ph*.5);
+    ctx.lineWidth=pw*.25;ctx.stroke();
+    // Legs
+    ctx.beginPath();
+    ctx.moveTo(personX-pw*.15,py+ph*.58);
+    ctx.lineTo(personX-pw*.2,py+ph);
+    ctx.lineWidth=pw*.3;ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(personX+pw*.15,py+ph*.58);
+    ctx.lineTo(personX+pw*.2,py+ph);
+    ctx.stroke();
+
+    ctx.globalAlpha=1;
+  }
+
+  function drawText(alpha){
+    ctx.textAlign='center';
+    // Title
+    ctx.font='300 38px "Cormorant Garamond", Georgia, serif';
+    ctx.fillStyle=`rgba(240,244,255,${alpha})`;
+    ctx.letterSpacing='8px';
+    ctx.shadowColor='rgba(99,179,237,0.4)';ctx.shadowBlur=20;
+    ctx.fillText('RESTORE',CX,CY-Math.min(H*.65,480)*.75);
+    ctx.shadowBlur=0;
+    // Sub
+    ctx.font='500 11px Inter, sans-serif';
+    ctx.fillStyle=`rgba(100,116,139,${alpha})`;
+    ctx.fillText('WHERE UNDERSTANDING GROWS',CX,CY-Math.min(H*.65,480)*.65);
+    // Line
+    ctx.beginPath();
+    ctx.moveTo(CX-30,CY-Math.min(H*.65,480)*.6);
+    ctx.lineTo(CX+30,CY-Math.min(H*.65,480)*.6);
+    ctx.strokeStyle=`rgba(99,179,237,${alpha*.4})`;
+    ctx.lineWidth=1;ctx.stroke();
+  }
+
+  function animateFrame(){
+    const elapsed=(Date.now()-startTime)/1000;
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#05080f';ctx.fillRect(0,0,W,H);
+
+    if(phase==='intro'){
+      // 0-1.5s: show title + door + silhouette
+      const a=Math.min(1,elapsed/.6);
+      drawStars(a);
+      drawDoor(0);
+      drawSilhouette(0);
+      drawText(a);
+      if(elapsed>1.5){phase='opening';startTime=Date.now();}
+
+    } else if(phase==='opening'){
+      // 0-1.5s: door opens, silhouette walks through
+      const open=Math.min(1,elapsed/1.2);
+      const ease=open<.5?2*open*open:(1-Math.pow(-2*open+2,2)/2);
+      drawStars(1-open*.5);
+      drawDoor(ease);
+      drawSilhouette(ease);
+      drawText(1-ease);
+      if(elapsed>1.5){phase='fading';startTime=Date.now();}
+
+    } else if(phase==='fading'){
+      // 0-0.8s: fade to black then reveal galaxy
+      const fade=Math.min(1,elapsed/.6);
+      ctx.globalAlpha=1-fade;
+      drawStars(1);drawDoor(1);
+      ctx.globalAlpha=1;
+      if(elapsed>.6){
+        canvas.classList.add('hide');
+        setTimeout(()=>{
+          canvas.style.display='none';
+          document.getElementById('loadingScreen').classList.add('hide');
+          setTimeout(()=>document.getElementById('loadingScreen').style.display='none',800);
+        },800);
+        return;
+      }
+    }
+    requestAnimationFrame(animateFrame);
+  }
+  // Hide the default loading screen immediately — door takes over
+  document.getElementById('loadingScreen').style.display='none';
+  requestAnimationFrame(animateFrame);
 }
 
 // ══════════════════════════════════════════════════════════════
