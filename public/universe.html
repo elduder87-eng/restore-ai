@@ -1938,11 +1938,32 @@ function updateUI(){
 // ══════════════════════════════════════════════════════════════
 // NAVIGATION
 // ══════════════════════════════════════════════════════════════
+function refreshConnections(){
+  const total=CONNS.filter(([a,b])=>!N.find(n=>n.id===a)?.hidden&&!N.find(n=>n.id===b)?.hidden).length;
+  document.getElementById('connTotal').textContent=total;
+  document.getElementById('connBreaks').textContent=appState.breakthroughs;
+  const list=document.getElementById('connList');
+  const activeConns=CONNS.filter(([a,b])=>!N.find(n=>n.id===a)?.hidden&&!N.find(n=>n.id===b)?.hidden).slice(0,8);
+  if(activeConns.length===0){
+    list.textContent='Keep exploring to build connections.';
+    return;
+  }
+  list.innerHTML=activeConns.map(([a,b])=>{
+    const na=N.find(n=>n.id===a),nb=N.find(n=>n.id===b);
+    return`<div style="display:flex;align-items:center;gap:8px;padding:8px;background:rgba(255,255,255,0.03);border-radius:10px;border:1px solid rgba(255,255,255,0.06);">
+      <span style="color:${na.col};font-weight:600;font-size:12px;">${na.label}</span>
+      <span style="color:#fbbf24;font-size:11px;">→</span>
+      <span style="color:${nb.col};font-weight:600;font-size:12px;">${nb.label}</span>
+    </div>`;
+  }).join('');
+}
+
 function setTab(el,tab){
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
+  if(tab==='connect')refreshConnections();
   if(tab!=='journey')openOverlay(tab);
-}
+  }
 function openOverlay(name){
   const el=document.getElementById('overlay'+name.charAt(0).toUpperCase()+name.slice(1));
   if(el)el.classList.add('open');
