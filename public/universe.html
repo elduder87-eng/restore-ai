@@ -1722,6 +1722,17 @@ function initFirstTimePrompt(){
       prompt.classList.remove('show');
       localStorage.setItem('restoreVisited','true');
       document.removeEventListener('pointerdown',dismiss);
+      const chatBtn=document.getElementById('chatBtn');
+      if(chatBtn){
+        chatBtn.style.animation='none';
+        chatBtn.style.boxShadow='0 0 40px rgba(56,189,248,0.9), 0 0 80px rgba(56,189,248,0.4)';
+        chatBtn.style.transform='scale(1.15)';
+        setTimeout(()=>{
+          chatBtn.style.boxShadow='';
+          chatBtn.style.transform='';
+          chatBtn.style.animation='';
+        },2500);
+      }
     }
     document.addEventListener('pointerdown',dismiss);
   },6000);
