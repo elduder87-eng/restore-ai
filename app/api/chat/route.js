@@ -113,9 +113,13 @@ ${depthNote}
 ${realizationNote}
 
 Format rules:
-- 2 sentences maximum
-- Each sentence on its own line  
-- Always end with a question
+- Answer the user's actual question directly and specifically first
+- If the question has a known answer, state it clearly before exploring further
+- If the question is genuinely debated, name the real debate and the positions
+- Then ask one follow-up question that builds on your answer
+- 3 sentences maximum
+- Never restate the question as an answer
+- Never make an observation and redirect without first engaging with what was actually asked
 - Start directly with the idea — no filler like "Great question!" or "Absolutely!"
 - Never use bullet points`
 
