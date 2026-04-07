@@ -616,6 +616,33 @@ body{position:fixed;inset:0;}
     </div>
   </div>
 </div>
+  <div class="overlay" id="overlayConnect">
+  <div class="ov-head">
+    <div class="ov-back" onclick="closeOverlay('connect')">←</div>
+    <div>
+      <div class="ov-title">Connections</div>
+      <div class="ov-sub">How your ideas link together</div>
+    </div>
+  </div>
+  <div class="ov-body">
+    <div class="stat-row">
+      <div class="stat-card">
+        <div class="stat-n" id="connTotal" style="color:var(--gold);">0</div>
+        <div class="stat-l">Total Links</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-n" id="connBreaks" style="color:var(--green);">0</div>
+        <div class="stat-l">Breakthroughs</div>
+      </div>
+    </div>
+    <div class="m-card">
+      <div class="m-card-title">Active Connections</div>
+      <div id="connList" style="display:flex;flex-direction:column;gap:8px;font-size:13px;color:var(--muted);">
+        Keep exploring to build connections between ideas.
+      </div>
+    </div>
+  </div>
+  </div>
 
 <div id="growToast">
   <div style="font-size:18px;" id="toastIcon">🌟</div>
