@@ -2102,6 +2102,7 @@ async function loadUser(){
     const res=await fetch('/api/user'),user=await res.json();
     if(user.firstName&&user.firstName!=='Explorer'){
       document.getElementById('mAvatar').textContent=user.firstName[0].toUpperCase();
+      document.getElementById('mAvatar').style.opacity='1';
       document.getElementById('meTitle').textContent=user.firstName+"'s Galaxy";
     }
     if(user.userId)window._userId=user.userId;
