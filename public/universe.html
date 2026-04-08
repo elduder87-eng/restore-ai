@@ -1825,7 +1825,7 @@ function initDoorAnimation(){
 // ══════════════════════════════════════════════════════════════
 // SIGN IN TO SAVE
 // ══════════════════════════════════════════════════════════════
-let signInShown=false;
+let signInShown=localStorage.getItem('restoreSignInShown')||false;
 function checkSignInPrompt(){
   if(signInShown)return;
   if(window._userId&&window._userId!=='demo-user')return;
