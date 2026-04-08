@@ -1830,8 +1830,7 @@ function checkSignInPrompt(){
   if(signInShown)return;
   if(window._userId&&window._userId!=='demo-user')return;
   const lit=N.filter(n=>!n.hidden).length;
-  if(lit>=3){signInShown=true;setTimeout(()=>document.getElementById('signInModal').classList.add('show'),1000);}
-}
+  let signInShown=localStorage.getItem('restoreSignInShown')||false;
 async function goSignIn(){
   document.getElementById('signInModal').classList.remove('show');
   try{
