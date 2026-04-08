@@ -1832,7 +1832,20 @@ function checkSignInPrompt(){
   const lit=N.filter(n=>!n.hidden).length;
   if(lit>=3){signInShown=true;setTimeout(()=>document.getElementById('signInModal').classList.add('show'),1000);}
 }
-function goSignIn(){document.getElementById('signInModal').classList.remove('show');window.location.href='/sign-in';}
+async function goSignIn(){
+  document.getElementById('signInModal').classList.remove('show');
+  try{
+    await fetch('/api/galaxy',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        nodes:N.map(n=>({id:n.id,hidden:n.hidden||false,mas:n.mas||0})),
+        state:{moments:appState.moments,breakthroughs:appState.breakthroughs,pulse:appState.pulse}
+      })
+    });
+  }catch(e){}
+  window.location.href='/sign-in';
+  }
 function dismissSignIn(){document.getElementById('signInModal').classList.remove('show');}
 
 function fixChatHeight(){
