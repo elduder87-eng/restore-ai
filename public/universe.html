@@ -1836,19 +1836,6 @@ function checkSignInPrompt(){
     setTimeout(()=>document.getElementById('signInModal').classList.add('show'),1000);
   }
 }
-  if(signInShown)return;
-  if(window._userId&&window._userId!=='demo-user')return;
-  const lit=N.filter(n=>!n.hidden).length;
-  if(lit>=3){
-    signInShown=true;
-    localStorage.setItem('restoreSignInShown','true');
-    setTimeout(()=>document.getElementById('signInModal').classList.add('show'),1000);
-  }
-}
-  if(signInShown)return;
-  if(window._userId&&window._userId!=='demo-user')return;
-  const lit=N.filter(n=>!n.hidden).length;
-  let signInShown=localStorage.getItem('restoreSignInShown')||false;
 async function goSignIn(){
   document.getElementById('signInModal').classList.remove('show');
   try{
@@ -1862,9 +1849,8 @@ async function goSignIn(){
     });
   }catch(e){}
   window.location.href='/sign-in';
-  }
+}
 function dismissSignIn(){document.getElementById('signInModal').classList.remove('show');}
-
 function fixChatHeight(){
   if(!chatOpen)return;
   const sc=document.getElementById('chatScreen');
