@@ -1798,10 +1798,11 @@ function initFirstTimePrompt(){
           chatBtn.style.animation='';
         },2500);
       }
+      setTimeout(()=>openChat(),600);
     }
     document.addEventListener('pointerdown',dismiss);
   },6000);
-}
+  }
 
 function initDoorAnimation(){
   setTimeout(()=>{
