@@ -18,6 +18,57 @@
   --blue:#38bdf8;--green:#4ade80;--purple:#c084fc;
   --gold:#fbbf24;--red:#f87171;--orange:#fb923c;
 }
+    /* ── TUTORIAL ── */
+#tutorial{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(5,8,20,0.92);
+  display:none;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:32px 24px;backdrop-filter:blur(12px);
+}
+#tutorial.show{display:flex;}
+.tut-step{
+  display:none;flex-direction:column;
+  align-items:center;gap:20px;text-align:center;
+}
+.tut-step.active{display:flex;}
+.tut-icon{font-size:52px;}
+.tut-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:28px;font-weight:300;
+  letter-spacing:2px;color:#f0f4ff;
+}
+.tut-body{
+  font-size:14px;color:#64748b;
+  line-height:1.7;max-width:280px;
+}
+.tut-next{
+  padding:14px 32px;border-radius:14px;
+  background:linear-gradient(135deg,#38bdf8,#818cf8);
+  border:none;color:#fff;font-size:14px;
+  font-weight:700;cursor:pointer;
+  font-family:'Inter',sans-serif;
+  letter-spacing:1px;
+}
+.tut-skip{
+  font-size:11px;color:#334155;
+  cursor:pointer;letter-spacing:1px;
+  background:none;border:none;
+  font-family:'Inter',sans-serif;
+  margin-top:8px;
+}
+.tut-dots{
+  display:flex;gap:8px;margin-top:8px;
+}
+.tut-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:rgba(255,255,255,0.15);
+  transition:all 0.3s;
+}
+.tut-dot.active{
+  background:#38bdf8;
+  box-shadow:0 0 6px #38bdf8;
+}
   /* ── FIRST TIME PROMPT ── */
 #firstTimePrompt{
   position:fixed;
