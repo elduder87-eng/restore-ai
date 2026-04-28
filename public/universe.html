@@ -2257,5 +2257,45 @@ setTimeout(loadFromKV,800);
   <div class="ftp-arrow">↓</div>
   <div class="ftp-dismiss">TAP ANYWHERE TO BEGIN</div>
   </div>
+<div id="tutorial">
+  <!-- Step 1 -->
+  <div class="tut-step active" id="tStep1">
+    <div class="tut-icon">🌌</div>
+    <div class="tut-title">Your Galaxy</div>
+    <div class="tut-body">You are at the center. Every question you ask grows your personal knowledge galaxy. No grades. No scores. Just curiosity.</div>
+    <button class="tut-next" onclick="tutNext(2)">Next →</button>
+    <button class="tut-skip" onclick="tutSkip()">Skip Tutorial</button>
+    <div class="tut-dots">
+      <div class="tut-dot active"></div>
+      <div class="tut-dot"></div>
+      <div class="tut-dot"></div>
+    </div>
+  </div>
+  <!-- Step 2 -->
+  <div class="tut-step" id="tStep2">
+    <div class="tut-icon">💬</div>
+    <div class="tut-title">Your AI Guide</div>
+    <div class="tut-body">Tap the glowing orb at the bottom right to open your Guide. Ask anything you're curious about — and watch what happens.</div>
+    <button class="tut-next" onclick="tutNext(3)">Next →</button>
+    <button class="tut-skip" onclick="tutSkip()">Skip Tutorial</button>
+    <div class="tut-dots">
+      <div class="tut-dot"></div>
+      <div class="tut-dot active"></div>
+      <div class="tut-dot"></div>
+    </div>
+  </div>
+  <!-- Step 3 -->
+  <div class="tut-step" id="tStep3">
+    <div class="tut-icon">⚡</div>
+    <div class="tut-title">Watch Ideas Connect</div>
+    <div class="tut-body">Every question unlocks a new world in your galaxy. Ideas connect across subjects in ways you never expected. That's your mind — made visible.</div>
+    <button class="tut-next" onclick="tutSkip()">Begin My Journey →</button>
+    <div class="tut-dots">
+      <div class="tut-dot"></div>
+      <div class="tut-dot"></div>
+      <div class="tut-dot active"></div>
+    </div>
+  </div>
+</div>
 </body>
 </html>
