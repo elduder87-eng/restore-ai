@@ -10,66 +10,59 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, interactive-widget=resizes-visual"/>
 <title>Restore — Your Learning Journey</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
-
-  <style>
+<style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
   --bg:#05080f;--text:#e2e8f0;--muted:#64748b;
   --blue:#38bdf8;--green:#4ade80;--purple:#c084fc;
   --gold:#fbbf24;--red:#f87171;--orange:#fb923c;
 }
-    /* ── TUTORIAL ── */
-#tutorial{
-  position:fixed;inset:0;z-index:200;
-  background:rgba(5,8,20,0.92);
-  display:none;flex-direction:column;
-  align-items:center;justify-content:center;
-  padding:32px 24px;backdrop-filter:blur(12px);
+  /* ── FIRST TIME PROMPT ── */
+#firstTimePrompt{
+  position:fixed;
+  z-index:15;
+  pointer-events:all;
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  gap:8px;
+  transform:translateX(-50%);
 }
-#tutorial.show{display:flex;}
-.tut-step{
-  display:none;flex-direction:column;
-  align-items:center;gap:20px;text-align:center;
-}
-.tut-step.active{display:flex;}
-.tut-icon{font-size:52px;}
-.tut-title{
+#firstTimePrompt.show{display:flex;}
+.ftp-text{
+  background:rgba(5,8,20,0.88);
+  border:1px solid rgba(56,189,248,0.25);
+  border-radius:20px;
+  padding:10px 20px;
   font-family:'Cormorant Garamond',serif;
-  font-size:28px;font-weight:300;
-  letter-spacing:2px;color:#f0f4ff;
+  font-size:16px;
+  font-weight:300;
+  letter-spacing:2px;
+  color:#f0f4ff;
+  white-space:nowrap;
+  backdrop-filter:blur(12px);
+  text-shadow:0 0 20px rgba(56,189,248,0.4);
+  box-shadow:0 0 20px rgba(56,189,248,0.1);
+  animation:ftpFloat 2s ease-in-out infinite;
 }
-.tut-body{
-  font-size:14px;color:#64748b;
-  line-height:1.7;max-width:280px;
+@keyframes ftpFloat{
+  0%,100%{transform:translateY(0);}
+  50%{transform:translateY(-4px);}
 }
-.tut-next{
-  padding:14px 32px;border-radius:14px;
-  background:linear-gradient(135deg,#38bdf8,#818cf8);
-  border:none;color:#fff;font-size:14px;
-  font-weight:700;cursor:pointer;
-  font-family:'Inter',sans-serif;
+.ftp-arrow{
+  font-size:18px;
+  opacity:0.6;
+  animation:ftpBounce 1.2s ease-in-out infinite;
+}
+@keyframes ftpBounce{
+  0%,100%{transform:translateY(0);}
+  50%{transform:translateY(4px);}
+}
+.ftp-dismiss{
+  font-size:10px;
+  color:#475569;
   letter-spacing:1px;
 }
-.tut-skip{
-  font-size:11px;color:#334155;
-  cursor:pointer;letter-spacing:1px;
-  background:none;border:none;
-  font-family:'Inter',sans-serif;
-  margin-top:8px;
-}
-.tut-dots{
-  display:flex;gap:8px;margin-top:8px;
-}
-.tut-dot{
-  width:6px;height:6px;border-radius:50%;
-  background:rgba(255,255,255,0.15);
-  transition:all 0.3s;
-}
-.tut-dot.active{
-  background:#38bdf8;
-  box-shadow:0 0 6px #38bdf8;
-}
-
 html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none;background:var(--bg);font-family:'Inter',sans-serif;color:var(--text);}
 body{position:fixed;inset:0;}
 
@@ -1780,7 +1773,11 @@ function stopListening(){
 // ══════════════════════════════════════════════════════════════
 // LOADING ANIMATION — fade out after CSS animation completes
 // ══════════════════════════════════════════════════════════════
-
+function initFirstTimePrompt(){
+  if(localStorage.getItem('restoreVisited'))return;
+  setTimeout(()=>{
+    const prompt=document.getElementById('firstTimePrompt');
+    if(!prompt)return;
     const cx=window.innerWidth/2;
     const cy=window.innerHeight/2-80;
     prompt.style.left=cx+'px';
@@ -1815,7 +1812,15 @@ function initDoorAnimation(){
     setTimeout(()=>ls.style.display='none',800);
   },5200);
 }
-  
+  function initDoorAnimation(){
+  // CSS animations take ~5s total, then fade out
+  setTimeout(()=>{
+    const ls=document.getElementById('loadingScreen');
+    ls.style.opacity='0';
+    ls.style.transition='opacity 0.8s';
+    setTimeout(()=>ls.style.display='none',800);
+  },5200);
+}
 
   // Stars for background
 // ══════════════════════════════════════════════════════════════
@@ -2134,23 +2139,6 @@ function closeOverlay(name){
   if(el)el.classList.remove('open');
   document.querySelectorAll('.nav-tab').forEach((t,i)=>t.classList.toggle('active',i===0));
 }
-  function tutNext(step){
-  document.querySelectorAll('.tut-step').forEach(s=>s.classList.remove('active'));
-  document.getElementById('tStep'+step).classList.add('active');
-}
-
-function tutSkip(){
-  document.getElementById('tutorial').classList.remove('show');
-  localStorage.setItem('restoreVisited','true');
-  setTimeout(()=>openChat(),600);
-}
-
-function initTutorial(){
-  if(localStorage.getItem('restoreVisited'))return;
-  setTimeout(()=>{
-    document.getElementById('tutorial').classList.add('show');
-  },5400);
-}
 
 // ══════════════════════════════════════════════════════════════
 // PERSISTENCE
@@ -2209,50 +2197,14 @@ async function loadUser(){
 loop();updateUI();
 // Door opening animation
 initDoorAnimation();
-initTutorial();
+initFirstTimePrompt();
 setTimeout(loadUser,500);
 setTimeout(loadFromKV,800);
 </script>
-
-<div id="tutorial">
-  <!-- Step 1 -->
-  <div class="tut-step active" id="tStep1">
-    <div class="tut-icon">🌌</div>
-    <div class="tut-title">Your Galaxy</div>
-    <div class="tut-body">You are at the center. Every question you ask grows your personal knowledge galaxy. No grades. No scores. Just curiosity.</div>
-    <button class="tut-next" onclick="tutNext(2)">Next →</button>
-    <button class="tut-skip" onclick="tutSkip()">Skip Tutorial</button>
-    <div class="tut-dots">
-      <div class="tut-dot active"></div>
-      <div class="tut-dot"></div>
-      <div class="tut-dot"></div>
-    </div>
+  <div id="firstTimePrompt">
+  <div class="ftp-text">Where would you like to start your journey?</div>
+  <div class="ftp-arrow">↓</div>
+  <div class="ftp-dismiss">TAP ANYWHERE TO BEGIN</div>
   </div>
-  <!-- Step 2 -->
-  <div class="tut-step" id="tStep2">
-    <div class="tut-icon">💬</div>
-    <div class="tut-title">Your AI Guide</div>
-    <div class="tut-body">Tap the glowing orb at the bottom right to open your Guide. Ask anything you're curious about — and watch what happens.</div>
-    <button class="tut-next" onclick="tutNext(3)">Next →</button>
-    <button class="tut-skip" onclick="tutSkip()">Skip Tutorial</button>
-    <div class="tut-dots">
-      <div class="tut-dot"></div>
-      <div class="tut-dot active"></div>
-      <div class="tut-dot"></div>
-    </div>
-  </div>
-  <!-- Step 3 -->
-  <div class="tut-step" id="tStep3">
-    <div class="tut-icon">⚡</div>
-    <div class="tut-title">Watch Ideas Connect</div>
-    <div class="tut-body">Every question unlocks a new world in your galaxy. Ideas connect across subjects in ways you never expected. That's your mind — made visible.</div>
-    <button class="tut-next" onclick="tutSkip()">Begin My Journey →</button>
-    <div class="tut-dots">
-      <div class="tut-dot"></div>
-      <div class="tut-dot"></div>
-      <div class="tut-dot active"></div>
-    </div>
-  </div>
-</div>
 </body>
 </html>
