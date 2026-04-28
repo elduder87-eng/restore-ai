@@ -2190,6 +2190,23 @@ function closeOverlay(name){
   if(el)el.classList.remove('open');
   document.querySelectorAll('.nav-tab').forEach((t,i)=>t.classList.toggle('active',i===0));
 }
+  function tutNext(step){
+  document.querySelectorAll('.tut-step').forEach(s=>s.classList.remove('active'));
+  document.getElementById('tStep'+step).classList.add('active');
+}
+
+function tutSkip(){
+  document.getElementById('tutorial').classList.remove('show');
+  localStorage.setItem('restoreVisited','true');
+  setTimeout(()=>openChat(),600);
+}
+
+function initTutorial(){
+  if(localStorage.getItem('restoreVisited'))return;
+  setTimeout(()=>{
+    document.getElementById('tutorial').classList.add('show');
+  },5400);
+}
 
 // ══════════════════════════════════════════════════════════════
 // PERSISTENCE
