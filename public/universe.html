@@ -1824,7 +1824,7 @@ function stopListening(){
 // ══════════════════════════════════════════════════════════════
 // LOADING ANIMATION — fade out after CSS animation completes
 // ══════════════════════════════════════════════════════════════
-function initFirstTimePrompt(){
+function initTutorial();
   if(localStorage.getItem('restoreVisited'))return;
   setTimeout(()=>{
     const prompt=document.getElementById('firstTimePrompt');
@@ -2265,7 +2265,7 @@ async function loadUser(){
 loop();updateUI();
 // Door opening animation
 initDoorAnimation();
-initFirstTimePrompt();
+initTutorial();
 setTimeout(loadUser,500);
 setTimeout(loadFromKV,800);
 </script>
