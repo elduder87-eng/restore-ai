@@ -1776,45 +1776,7 @@ function stopListening(){
 // ══════════════════════════════════════════════════════════════
 // LOADING ANIMATION — fade out after CSS animation completes
 // ══════════════════════════════════════════════════════════════
-
-    const prompt=document.getElementById('firstTimePrompt');
-    if(!prompt)return;
-    const cx=window.innerWidth/2;
-    const cy=window.innerHeight/2-80;
-    prompt.style.left=cx+'px';
-    prompt.style.top=(cy-90)+'px';
-    prompt.classList.add('show');
-    function dismiss(){
-      prompt.classList.remove('show');
-      localStorage.setItem('restoreVisited','true');
-      document.removeEventListener('pointerdown',dismiss);
-      const chatBtn=document.getElementById('chatBtn');
-      if(chatBtn){
-        chatBtn.style.animation='none';
-        chatBtn.style.boxShadow='0 0 40px rgba(56,189,248,0.9), 0 0 80px rgba(56,189,248,0.4)';
-        chatBtn.style.transform='scale(1.15)';
-        setTimeout(()=>{
-          chatBtn.style.boxShadow='';
-          chatBtn.style.transform='';
-          chatBtn.style.animation='';
-        },2500);
-      }
-      setTimeout(()=>openChat(),600);
-    }
-    document.addEventListener('pointerdown',dismiss);
-  },6000);
-  }
-
 function initDoorAnimation(){
-  setTimeout(()=>{
-    const ls=document.getElementById('loadingScreen');
-    ls.style.opacity='0';
-    ls.style.transition='opacity 0.8s';
-    setTimeout(()=>ls.style.display='none',800);
-  },5200);
-}
-  function initDoorAnimation(){
-  // CSS animations take ~5s total, then fade out
   setTimeout(()=>{
     const ls=document.getElementById('loadingScreen');
     ls.style.opacity='0';
