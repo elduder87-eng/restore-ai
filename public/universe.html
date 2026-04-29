@@ -17,9 +17,6 @@
   --blue:#38bdf8;--green:#4ade80;--purple:#c084fc;
   --gold:#fbbf24;--red:#f87171;--orange:#fb923c;
 }
-  /* ── TUTORIAL ── */
-#tutorial{
-  position:fixed;inset:0;z-index:200;
   /* ── FIRST TIME PROMPT ── */
 #firstTimePrompt{
   position:fixed;
@@ -1776,7 +1773,47 @@ function stopListening(){
 // ══════════════════════════════════════════════════════════════
 // LOADING ANIMATION — fade out after CSS animation completes
 // ══════════════════════════════════════════════════════════════
+function initFirstTimePrompt(){
+  if(localStorage.getItem('restoreVisited'))return;
+  setTimeout(()=>{
+    const prompt=document.getElementById('firstTimePrompt');
+    if(!prompt)return;
+    const cx=window.innerWidth/2;
+    const cy=window.innerHeight/2-80;
+    prompt.style.left=cx+'px';
+    prompt.style.top=(cy-90)+'px';
+    prompt.classList.add('show');
+    function dismiss(){
+      prompt.classList.remove('show');
+      localStorage.setItem('restoreVisited','true');
+      document.removeEventListener('pointerdown',dismiss);
+      const chatBtn=document.getElementById('chatBtn');
+      if(chatBtn){
+        chatBtn.style.animation='none';
+        chatBtn.style.boxShadow='0 0 40px rgba(56,189,248,0.9), 0 0 80px rgba(56,189,248,0.4)';
+        chatBtn.style.transform='scale(1.15)';
+        setTimeout(()=>{
+          chatBtn.style.boxShadow='';
+          chatBtn.style.transform='';
+          chatBtn.style.animation='';
+        },2500);
+      }
+      setTimeout(()=>openChat(),600);
+    }
+    document.addEventListener('pointerdown',dismiss);
+  },6000);
+  }
+
 function initDoorAnimation(){
+  setTimeout(()=>{
+    const ls=document.getElementById('loadingScreen');
+    ls.style.opacity='0';
+    ls.style.transition='opacity 0.8s';
+    setTimeout(()=>ls.style.display='none',800);
+  },5200);
+}
+  function initDoorAnimation(){
+  // CSS animations take ~5s total, then fade out
   setTimeout(()=>{
     const ls=document.getElementById('loadingScreen');
     ls.style.opacity='0';
@@ -2102,28 +2139,6 @@ function closeOverlay(name){
   if(el)el.classList.remove('open');
   document.querySelectorAll('.nav-tab').forEach((t,i)=>t.classList.toggle('active',i===0));
 }
-  function tutNext(step){
-  document.querySelectorAll('.tut-step').forEach(s=>s.classList.remove('active'));
-  document.getElementById('tStep'+step).classList.add('active');
-}
-
-function tutSkip(){
-  document.getElementById('tutorial').classList.remove('show');
-  localStorage.setItem('restoreVisited','true');
-  setTimeout(()=>{
-    const sheet=document.getElementById('mobileSheet');
-    if(sheet)sheet.classList.add('ms-expanded');
-  },600);
-}
-
-function initTutorial(){
-  if(localStorage.getItem('restoreVisited'))return;
-  setTimeout(()=>{
-    const tutorial=document.getElementById('tutorial');
-    if(!tutorial)return;
-    tutorial.classList.add('show');
-  },5400);
-}
 
 // ══════════════════════════════════════════════════════════════
 // PERSISTENCE
@@ -2182,47 +2197,14 @@ async function loadUser(){
 loop();updateUI();
 // Door opening animation
 initDoorAnimation();
-initTutorial();
+initFirstTimePrompt();
 setTimeout(loadUser,500);
 setTimeout(loadFromKV,800);
 </script>
-
-<div id="tutorial">
-  <div class="tut-step active" id="tStep1">
-    <div class="tut-icon">🌌</div>
-    <div class="tut-title">Your Galaxy</div>
-    <div class="tut-body">You are at the center. Every question you ask grows your personal knowledge galaxy. No grades. No scores. Just curiosity.</div>
-    <button class="tut-next" onclick="tutNext(2)">Next →</button>
-    <button class="tut-skip" onclick="tutSkip()">Skip Tutorial</button>
-    <div class="tut-dots">
-      <div class="tut-dot active"></div>
-      <div class="tut-dot"></div>
-      <div class="tut-dot"></div>
-    </div>
+  <div id="firstTimePrompt">
+  <div class="ftp-text">Where would you like to start your journey?</div>
+  <div class="ftp-arrow">↓</div>
+  <div class="ftp-dismiss">TAP ANYWHERE TO BEGIN</div>
   </div>
-  <div class="tut-step" id="tStep2">
-    <div class="tut-icon">💬</div>
-    <div class="tut-title">Your AI Guide</div>
-    <div class="tut-body">Tap the glowing orb to open your Guide. Ask anything you're curious about — and watch what happens.</div>
-    <button class="tut-next" onclick="tutNext(3)">Next →</button>
-    <button class="tut-skip" onclick="tutSkip()">Skip Tutorial</button>
-    <div class="tut-dots">
-      <div class="tut-dot"></div>
-      <div class="tut-dot active"></div>
-      <div class="tut-dot"></div>
-    </div>
-  </div>
-  <div class="tut-step" id="tStep3">
-    <div class="tut-icon">⚡</div>
-    <div class="tut-title">Watch Ideas Connect</div>
-    <div class="tut-body">Every question unlocks a new world in your galaxy. That's your mind — made visible.</div>
-    <button class="tut-next" onclick="tutSkip()">Begin My Journey →</button>
-    <div class="tut-dots">
-      <div class="tut-dot"></div>
-      <div class="tut-dot"></div>
-      <div class="tut-dot active"></div>
-    </div>
-  </div>
-</div>
 </body>
 </html>
