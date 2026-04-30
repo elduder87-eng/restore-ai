@@ -51,7 +51,17 @@ export async function POST(req) {
   infinity: ["math","eth"], pattern: ["math","psych"],
   sound: ["music","phys"], color: ["art","phys"],
   motion: ["phys"], force: ["phys","eng"],
-  power: ["phys","pol"], system: ["tech","bio","econ"],
+  power: ["phys","pol"], system: ["tech","bio","econ"],calorie: ["med","bio"],
+nutrition: ["med","bio"],
+nutrients: ["med","bio"],
+protein: ["med","bio"],
+vitamin: ["med"],
+diet: ["med","bio"],
+exercise: ["med","bio"],
+muscle: ["med","bio"],
+organ: ["med","bio"],
+digestion: ["med","bio"],
+metabolism: ["med","bio"],
     }
 
     let rawTopics = []
