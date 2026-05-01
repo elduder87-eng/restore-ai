@@ -2122,7 +2122,22 @@ function updateUI(){
 // ══════════════════════════════════════════════════════════════
 // NAVIGATION
 // ══════════════════════════════════════════════════════════════
-function refreshInsights(){
+function getConnectionBridge(a,b){
+  const bridges={
+    'phys-astro':'follow the same laws of gravity and energy',
+    'phys-math':'speak the same language — equations describe reality',
+    'bio-chem':'depend on molecular reactions to sustain life',
+    'hist-econ':'show how resources shape civilizations',
+    'psych-neuro':'study the same mind from different angles',
+    'ai-eth':'force us to ask what intelligence means',
+    'math-music':'share the same patterns — rhythm is mathematics you can hear',
+    'hist-lit':'tell the same human story through different lenses',
+    'tech-ai':'each accelerate the other in a feedback loop',
+  };
+  const key1=`${a}-${b}`,key2=`${b}-${a}`;
+  return bridges[key1]||bridges[key2]||'reveal patterns that connect across all of human knowledge';
+}
+  function refreshInsights(){
   const list=document.getElementById('insightsList');
   if(!list)return;
   const activeConns=CONNS.filter(([a,b])=>
