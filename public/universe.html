@@ -2169,8 +2169,9 @@ function setTab(el,tab){
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
   if(tab==='connect')refreshConnections();
+  if(tab==='insights')refreshInsights();
   if(tab!=='journey')openOverlay(tab);
-  }
+}
 function openOverlay(name){
   const el=document.getElementById('overlay'+name.charAt(0).toUpperCase()+name.slice(1));
   if(el)el.classList.add('open');
