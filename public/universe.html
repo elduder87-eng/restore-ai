@@ -2122,7 +2122,30 @@ function updateUI(){
 // ══════════════════════════════════════════════════════════════
 // NAVIGATION
 // ══════════════════════════════════════════════════════════════
-function refreshConnections(){
+function refreshInsights(){
+  const list=document.getElementById('insightsList');
+  if(!list)return;
+  const activeConns=CONNS.filter(([a,b])=>
+    !N.find(n=>n.id===a)?.hidden&&!N.find(n=>n.id===b)?.hidden
+  );
+  if(activeConns.length===0){
+    list.innerHTML='<div style="font-size:13px;color:var(--muted);">Keep exploring to build connections between ideas.</div>';
+    return;
+  }
+  list.innerHTML=activeConns.slice(0,8).map(([a,b])=>{
+    const na=N.find(n=>n.id===a),nb=N.find(n=>n.id===b);
+    const why=getConnectionBridge(a,b);
+    return`<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:12px 14px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+        <span style="color:${na.col};font-weight:600;font-size:12px;">${na.label}</span>
+        <span style="color:#fbbf24;font-size:11px;">→</span>
+        <span style="color:${nb.col};font-weight:600;font-size:12px;">${nb.label}</span>
+      </div>
+      <div style="font-size:11px;color:#64748b;line-height:1.5;">They ${why}</div>
+    </div>`;
+  }).join('');
+}
+  function refreshConnections(){
   const total=CONNS.filter(([a,b])=>!N.find(n=>n.id===a)?.hidden&&!N.find(n=>n.id===b)?.hidden).length;
   document.getElementById('connTotal').textContent=total;
   document.getElementById('connBreaks').textContent=appState.breakthroughs;
