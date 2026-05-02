@@ -2092,7 +2092,7 @@ function updateUI(){
   document.getElementById('expBreaks').textContent=appState.breakthroughs;
   document.getElementById('expFrontier').textContent=next.name;
   document.getElementById('expFrontierBar').style.width=pct+'%';
-  document.getElementById('expFrontierPct').textContent=pct+'% Ready';
+  document.getElementById('expFrontierPct').textContent=pct+'% toward unlocking '+next.name;
   document.getElementById('meNodes').textContent=lit;
   document.getElementById('meMoments').textContent=appState.moments;
   const ps=appState.pulse,total=Object.values(ps).reduce((a,b)=>a+b,0)||1;
