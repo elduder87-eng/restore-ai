@@ -1968,7 +1968,7 @@ async function sendChat(text){
   const typing=addMsg('...','ai');typing.style.opacity='.5';
   try{
     const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({message:text,userId:window._userId||'demo-user'})});
+      body:JSON.stringify({message:text,userId:window._userId||'demo-user',firstName:window._firstName||null})});
     const data=await res.json();
     typing.textContent=data.reply||'Ask me that again?';typing.style.opacity='1';
     // Speak the response if TTS enabled
