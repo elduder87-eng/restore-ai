@@ -6,10 +6,12 @@ const openai = new OpenAI({
 export async function POST(req) {
   try {
     const body = await req.json()
-    const userMessage = body.message
-    const emotion = body.emotion || "curious"
-    const topics = body.topics || []
-    const moments = body.moments || 0
+const userMessage = body.message
+const emotion = body.emotion || "curious"
+const topics = body.topics || []
+const moments = body.moments || 0
+const userId = body.userId || null
+const firstName = body.firstName || null
 
     if (!userMessage || !userMessage.trim()) {
       return Response.json({ reply: "What are you curious about?", topics: [], suggest: [], emotion: "curious" })
