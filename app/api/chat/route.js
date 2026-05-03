@@ -205,7 +205,9 @@ Format rules:
     }
 
     // ── SAVE MEMORY (fire and forget) ────────────────────────────
-    if (userId && detectedTopics.length > 0) {
+    console.log("MEMORY DEBUG:", { userId, topicsCount: detectedTopics.length, topics: detectedTopics })
+if (userId && detectedTopics.length > 0) {
+  console.log("MEMORY: attempting save for", userId)
   try {
     const existing = (await redis.get(`memory:${userId}`)) || { topics: [] }
     const updatedTopics = [...new Set([...detectedTopics, ...existing.topics])].slice(0, 5)
