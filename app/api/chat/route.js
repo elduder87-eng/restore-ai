@@ -1,7 +1,4 @@
 import OpenAI from "openai"
-import { Redis } from '@upstash/redis'
-
-const redis = Redis.fromEnv()
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
@@ -14,28 +11,6 @@ export async function POST(req) {
     const emotion = body.emotion || "curious"
     const topics = body.topics || []
     const moments = body.moments || 0
-    const userId = body.userId || null
-    const firstName = body.firstName || null
-
-    let memoryContext = ""
-    if (userId && userId !== 'demo-user') {
-      try {
-        const memory = await redis.get(`memory:${userId}`)
-        if (memory && memory.topics && memory.topics.length > 0) {
-          const topicNames = {
-            phys:"Physics", astro:"Astronomy", math:"Mathematics", bio:"Biology",
-            hist:"History", eth:"Philosophy", tech:"Technology", ai:"AI",
-            psych:"Psychology", econ:"Economics", lit:"Literature", music:"Music",
-            med:"Medicine", neuro:"Neuroscience", chem:"Chemistry"
-          }
-          const recent = memory.topics.slice(0, 2).map(t => topicNames[t] || t).join(" and ")
-          const name = memory.firstName || firstName
-          memoryContext = name 
-            ? `This is ${name} returning. Last time they were exploring ${recent}. Welcome them naturally if this seems like a fresh session.`
-            : `This is a returning user. Last time they were exploring ${recent}.`
-        }
-      } catch (e) {}
-    }
 
     if (!userMessage || !userMessage.trim()) {
       return Response.json({ reply: "What are you curious about?", topics: [], suggest: [], emotion: "curious" })
@@ -151,7 +126,6 @@ Never say "unlocked" or "great job". Make it feel like insight, not a game.`
 
     const systemPrompt = `You are Restore — a thinking guide that helps people understand how ideas connect.
 
-${memoryContext}
 ${stateGuide}
 
 ${depthNote}
@@ -225,21 +199,6 @@ Format rules:
         return nameMap[id] || id
       })
       connectionWhy = `${topicNames[0]} and ${topicNames[1]} both ${getConnectionBridge(detectedTopics[0], detectedTopics[1])}`
-    }
-
-    // ── SAVE MEMORY ──────────────────────────────────────────────
-    if (userId && detectedTopics.length > 0) {
-      try {
-        const existing = await redis.get(`memory:${userId}`) || { topics: [] }
-const updatedTopics = [...new Set([...detectedTopics, ...existing.topics])].slice(0, 5)
-await redis.set(`memory:${userId}`, {
-          firstName: firstName || existing.firstName || null,
-          topics: updatedTopics,
-          lastSeen: new Date().toISOString(),
-        })
-      } catch (e) {
-        // Silently fail
-      }
     }
 
     return Response.json({
