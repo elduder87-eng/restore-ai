@@ -1,3 +1,6 @@
+import OpenAI from "openai"
+import { kv } from '@vercel/kv'
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 })
@@ -5,31 +8,32 @@ const openai = new OpenAI({
 export async function POST(req) {
   try {
     const body = await req.json()
-const userMessage = body.message
-const emotion = body.emotion || "curious"
-const topics = body.topics || []
-const moments = body.moments || 0
-const userId = body.userId || null
-const firstName = body.firstName || null
+    const userMessage = body.message
+    const emotion = body.emotion || "curious"
+    const topics = body.topics || []
+    const moments = body.moments || 0
+    const userId = body.userId || null
+    const firstName = body.firstName || null
+
     let memoryContext = ""
-if (userId && userId !== 'demo-user') {
-  try {
-    const memory = await kv.get(`memory:${userId}`)
-    if (memory && memory.topics && memory.topics.length > 0) {
-      const topicNames = {
-        phys:"Physics", astro:"Astronomy", math:"Mathematics", bio:"Biology",
-        hist:"History", eth:"Philosophy", tech:"Technology", ai:"AI",
-        psych:"Psychology", econ:"Economics", lit:"Literature", music:"Music",
-        med:"Medicine", neuro:"Neuroscience", chem:"Chemistry"
-      }
-      const recent = memory.topics.slice(0, 2).map(t => topicNames[t] || t).join(" and ")
-      const name = memory.firstName || firstName
-      memoryContext = name 
-        ? `This is ${name} returning. Last time they were exploring ${recent}. Welcome them naturally if this seems like a fresh session.`
-        : `This is a returning user. Last time they were exploring ${recent}.`
+    if (userId && userId !== 'demo-user') {
+      try {
+        const memory = await kv.get(`memory:${userId}`)
+        if (memory && memory.topics && memory.topics.length > 0) {
+          const topicNames = {
+            phys:"Physics", astro:"Astronomy", math:"Mathematics", bio:"Biology",
+            hist:"History", eth:"Philosophy", tech:"Technology", ai:"AI",
+            psych:"Psychology", econ:"Economics", lit:"Literature", music:"Music",
+            med:"Medicine", neuro:"Neuroscience", chem:"Chemistry"
+          }
+          const recent = memory.topics.slice(0, 2).map(t => topicNames[t] || t).join(" and ")
+          const name = memory.firstName || firstName
+          memoryContext = name 
+            ? `This is ${name} returning. Last time they were exploring ${recent}. Welcome them naturally if this seems like a fresh session.`
+            : `This is a returning user. Last time they were exploring ${recent}.`
+        }
+      } catch (e) {}
     }
-  } catch (e) {}
-}
 
     if (!userMessage || !userMessage.trim()) {
       return Response.json({ reply: "What are you curious about?", topics: [], suggest: [], emotion: "curious" })
