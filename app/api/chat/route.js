@@ -209,13 +209,18 @@ Format rules:
 if (userId && detectedTopics.length > 0) {
   console.log("MEMORY: attempting save for", userId)
   try {
-    const existing = (await redis.get(`memory:${userId}`)) || { topics: [] }
-    const updatedTopics = [...new Set([...detectedTopics, ...existing.topics])].slice(0, 5)
-    await redis.set(`memory:${userId}`, {
+    const raw = await redis.get(`memory:${userId}`)
+    const existing = raw
+      ? (typeof raw === 'string' ? JSON.parse(raw) : raw)
+      : { topics: [] }
+    const updatedTopics = [...new Set([...detectedTopics, ...(existing.topics || [])])].slice(0, 5)
+    const payload = {
       firstName: firstName || existing.firstName || null,
       topics: updatedTopics,
       lastSeen: new Date().toISOString(),
-    })
+    }
+    const result = await redis.set(`memory:${userId}`, JSON.stringify(payload))
+    console.log("MEMORY SAVE OK:", userId, "result:", result)
   } catch (e) {
     console.error("MEMORY SAVE FAILED:", e.message)
   }
