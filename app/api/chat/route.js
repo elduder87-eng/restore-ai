@@ -1,7 +1,7 @@
 import OpenAI from "openai"
-import { kv } from '@vercel/kv'
+import { Redis } from '@upstash/redis'
 
-const openai = new OpenAI({
+const redis = Redis.fromEnv()
   apiKey: process.env.OPENAI_API_KEY
 })
 
@@ -18,7 +18,7 @@ export async function POST(req) {
     let memoryContext = ""
     if (userId && userId !== 'demo-user') {
       try {
-        const memory = await kv.get(`memory:${userId}`)
+        const memory = await redis.get(`memory:${userId}`)
         if (memory && memory.topics && memory.topics.length > 0) {
           const topicNames = {
             phys:"Physics", astro:"Astronomy", math:"Mathematics", bio:"Biology",
@@ -228,9 +228,9 @@ Format rules:
     // ── SAVE MEMORY ──────────────────────────────────────────────
     if (userId && detectedTopics.length > 0) {
       try {
-        const existing = await kv.get(`memory:${userId}`) || { topics: [] }
-        const updatedTopics = [...new Set([...detectedTopics, ...existing.topics])].slice(0, 5)
-        await kv.set(`memory:${userId}`, {
+        const existing = await redis.get(`memory:${userId}`) || { topics: [] }
+const updatedTopics = [...new Set([...detectedTopics, ...existing.topics])].slice(0, 5)
+await redis.set(`memory:${userId}`, {
           firstName: firstName || existing.firstName || null,
           topics: updatedTopics,
           lastSeen: new Date().toISOString(),
