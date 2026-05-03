@@ -2244,7 +2244,7 @@ async function loadUser(){
       document.getElementById('mAvatar').style.opacity='1';
       document.getElementById('meTitle').textContent=user.firstName+"'s Galaxy";
     }
-    if(user.userId)window._userId=user.userId;
+    if(user.firstName)window._firstName=user.firstName;
   }catch(e){}
 }
 
