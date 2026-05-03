@@ -205,7 +205,7 @@ Format rules:
     }
 
     // ── SAVE MEMORY (fire and forget) ────────────────────────────
-    if (userId && userId !== 'demo-user' && detectedTopics.length > 0) {
+    if (userId && detectedTopics.length > 0) {
   try {
     const existing = (await redis.get(`memory:${userId}`)) || { topics: [] }
     const updatedTopics = [...new Set([...detectedTopics, ...existing.topics])].slice(0, 5)
