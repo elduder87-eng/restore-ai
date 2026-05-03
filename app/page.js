@@ -1,5 +1,17 @@
-import { redirect } from 'next/navigation'
+'use client'
+
+import { useEffect } from 'react'
 
 export default function Home() {
-  redirect('/universe.html')
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if (localStorage.getItem('restoreVisited')) {
+        window.location.href = '/universe.html'
+      } else {
+        window.location.href = '/welcome'
+      }
+    }
+  }, [])
+
+  return null
 }
