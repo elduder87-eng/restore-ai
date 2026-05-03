@@ -201,6 +201,20 @@ Format rules:
       connectionWhy = `${topicNames[0]} and ${topicNames[1]} both ${getConnectionBridge(detectedTopics[0], detectedTopics[1])}`
     }
 
+    // ── SAVE MEMORY (fire and forget) ────────────────────────────
+    if (userId && userId !== 'demo-user' && detectedTopics.length > 0) {
+      try {
+        const existing = await kv.get(`memory:${userId}`) || { topics: [] }
+        const updatedTopics = [...new Set([...detectedTopics, ...existing.topics])].slice(0, 5)
+        await kv.set(`memory:${userId}`, {
+          firstName: firstName || existing.firstName || null,
+          topics: updatedTopics,
+          lastSeen: new Date().toISOString(),
+        })
+      } catch (e) {
+        // Silently fail — don't break chat
+      }
+    }
     return Response.json({
       reply,
       topics: detectedTopics,
