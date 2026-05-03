@@ -2,6 +2,8 @@ import OpenAI from "openai"
 import { Redis } from '@upstash/redis'
 
 const redis = Redis.fromEnv()
+
+const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 })
 
