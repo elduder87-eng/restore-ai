@@ -12,6 +12,9 @@ export async function POST(req) {
     const emotion = body.emotion || "curious"
     const topics = body.topics || []
     const moments = body.moments || 0
+    const moments = body.moments || 0
+const userId = body.userId || null
+const firstName = body.firstName || null
 
     if (!userMessage || !userMessage.trim()) {
       return Response.json({ reply: "What are you curious about?", topics: [], suggest: [], emotion: "curious" })
