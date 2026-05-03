@@ -1,5 +1,5 @@
 import OpenAI from "openai"
-import { kv } from '@vercel/kv'
+import { redis } from '@/lib/redis'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
