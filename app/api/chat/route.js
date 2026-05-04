@@ -18,6 +18,19 @@ export async function POST(req) {
     if (!userMessage || !userMessage.trim()) {
       return Response.json({ reply: "What are you curious about?", topics: [], suggest: [], emotion: "curious" })
     }
+    // ── LOAD MEMORY ──────────────────────────────────────────────
+let userMemory = null
+if (userId && userId !== 'demo-user') {
+  try {
+    const raw = await redis.get(`memory:${userId}`)
+    userMemory = raw
+      ? (typeof raw === 'string' ? JSON.parse(raw) : raw)
+      : null
+    console.log("MEMORY LOADED:", userId, userMemory ? "found" : "none yet")
+  } catch (e) {
+    console.error("MEMORY LOAD FAILED:", e.message)
+  }
+}
 
     const text = userMessage.toLowerCase()
 
