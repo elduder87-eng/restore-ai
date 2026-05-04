@@ -139,10 +139,35 @@ Ask something that makes them think harder than before.`,
     const realizationNote = `When acknowledging a new understanding, say things like:
 "You just formed a new understanding of..." or "You're starting to see how..."
 Never say "unlocked" or "great job". Make it feel like insight, not a game.`
+    // ── MEMORY CONTEXT for system prompt ─────────────────────────
+    let memoryContext = ""
+    if (userMemory) {
+      const name = userMemory.firstName
+      const pastTopics = userMemory.topics || []
+      if (name && name !== 'Explorer') {
+        memoryContext += `The user's name is ${name}. `
+      }
+      if (pastTopics.length > 0) {
+        const topicNames = pastTopics.map(t => {
+          const map = {
+            phys: "physics", astro: "astronomy", math: "mathematics", bio: "biology",
+            hist: "history", eth: "philosophy", tech: "technology", ai: "AI",
+            psych: "psychology", econ: "economics", lit: "literature", music: "music",
+            bh: "black holes", rel: "relativity", neuro: "neuroscience", env: "the environment",
+            chem: "chemistry", evol: "evolution", gen: "genetics", med: "medicine",
+            grav: "gravity", art: "art", cosmo: "cosmology",
+          }
+          return map[t] || t
+        })
+        memoryContext += `In past conversations, they've explored: ${topicNames.join(", ")}. Reference these naturally when relevant — don't list them mechanically. If a current topic connects to one they've explored before, point it out gently.`
+      }
+    }
 
     const systemPrompt = `You are Restore — a thinking guide that helps people understand how ideas connect.
 
-${stateGuide}
+${memoryContext}
+
+${stateGuide}}
 
 ${depthNote}
 
