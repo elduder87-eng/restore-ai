@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic";
 
-import { kv } from '@vercel/kv'
+import { redis } from '@/lib/redis'
 
 export async function GET() {
   try {
@@ -22,8 +22,12 @@ export async function GET() {
 
     let memory = null
     try {
-      memory = await kv.get(`memory:${user.id}`)
+      const raw = await redis.get(`memory:${user.id}`)
+      memory = raw
+        ? (typeof raw === 'string' ? JSON.parse(raw) : raw)
+        : null
     } catch (e) {
+      console.error("USER MEMORY LOAD FAILED:", e.message)
       memory = null
     }
 
