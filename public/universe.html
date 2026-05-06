@@ -1862,9 +1862,10 @@ async function goSignIn(){
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
-        nodes:N.map(n=>({id:n.id,hidden:n.hidden||false,mas:n.mas||0})),
-        state:{moments:appState.moments,breakthroughs:appState.breakthroughs,pulse:appState.pulse}
-      })
+  userId:window._userId,
+  nodes:N.map(n=>({id:n.id,hidden:n.hidden||false,mas:n.mas||0})),
+  state:{moments:appState.moments,breakthroughs:appState.breakthroughs,pulse:appState.pulse}
+})
     });
   }catch(e){}
   window.location.href='/sign-in';
