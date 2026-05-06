@@ -2215,7 +2215,7 @@ function scheduleSave(){
 async function loadFromKV(){
   if(hasInteracted)return;
   try{
-    const res=await fetch('/api/galaxy');if(!res.ok||hasInteracted)return;
+    const res=await fetch('/api/galaxy?userId='+encodeURIComponent(window._userId||''));if(!res.ok||hasInteracted)return;
     const{galaxy}=await res.json();if(!galaxy?.nodes||hasInteracted)return;
     galaxy.nodes.forEach(s=>{const n=N.find(n=>n.id===s.id);if(n){n.hidden=s.hidden;n.mas=s.mas||0;}});
     if(galaxy.state){
