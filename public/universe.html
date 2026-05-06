@@ -2237,15 +2237,35 @@ function resetGalaxy(){
 }
 
 async function loadUser(){
-  try{
-    const res=await fetch('/api/user'),user=await res.json();
-    if(user.firstName&&user.firstName!=='Explorer'){
-      document.getElementById('mAvatar').textContent=user.firstName[0].toUpperCase();
-      document.getElementById('mAvatar').style.opacity='1';
-      document.getElementById('meTitle').textContent=user.firstName+"'s Galaxy";
+  // Restore ID: every user gets one on first arrival
+  let restoreId = null;
+  try {
+    restoreId = window.localStorage.getItem('restore_id');
+    if (!restoreId) {
+      const timestamp = Date.now().toString(36);
+      const random = Math.random().toString(36).substring(2, 9);
+      restoreId = 'r_' + timestamp + random;
+      window.localStorage.setItem('restore_id', restoreId);
+      console.log('NEW RESTORE ID:', restoreId);
+    } else {
+      console.log('RETURNING USER:', restoreId);
     }
-    if(user.firstName)window._firstName=user.firstName;
-  }catch(e){}
+    window._userId = restoreId;
+  } catch(e) {
+    console.error('RESTORE ID FAILED:', e.message);
+  }
+
+  // Then fetch Clerk user info if available (for display only)
+  try {
+    const res = await fetch('/api/user');
+    const user = await res.json();
+    if (user.firstName && user.firstName !== 'Explorer') {
+      document.getElementById('mAvatar').textContent = user.firstName[0].toUpperCase();
+      document.getElementById('mAvatar').style.opacity = '1';
+      document.getElementById('meTitle').textContent = user.firstName + "'s Galaxy";
+    }
+    if (user.firstName) window._firstName = user.firstName;
+  } catch(e) {}
 }
 
 // ══════════════════════════════════════════════════════════════
