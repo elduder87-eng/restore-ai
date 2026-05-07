@@ -2269,6 +2269,10 @@ async function loadUser(){
       document.getElementById('meTitle').textContent = user.firstName + "'s Galaxy";
     }
     if (user.firstName) window._firstName = user.firstName;
+    if (user.userId) {
+      window._userId = user.userId;
+      console.log('SIGNED IN USER:', user.userId);
+    }
   } catch(e) {}
 }
 
