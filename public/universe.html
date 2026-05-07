@@ -2251,7 +2251,10 @@ async function loadUser(){
     } else {
       console.log('RETURNING USER:', restoreId);
     }
-    window._userId = restoreId;
+    if (user.userId) {
+  window._userId = user.userId;
+  console.log('SIGNED IN USER:', user.userId);
+    }
   } catch(e) {
     console.error('RESTORE ID FAILED:', e.message);
   }
