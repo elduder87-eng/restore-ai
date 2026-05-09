@@ -5,12 +5,20 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 })
 
+// Valid topic IDs the AI can classify questions into.
+// Must match node IDs in universe.html exactly.
+const VALID_TOPICS = [
+  "phys","grav","newt","rel","chem","eng","astro","bh","st","cosmo","geo",
+  "math","calc","func","lim","bio","evol","eco","gen","med","neuro","env",
+  "psych","crim","hist","ren","rev","ind","anth","eth","know","soc","pol",
+  "law","ling","tech","ai","econ","biz","lit","music","art","film","arch","cul"
+]
+
 export async function POST(req) {
   try {
     const body = await req.json()
     const userMessage = body.message
     const emotion = body.emotion || "curious"
-    const topics = body.topics || []
     const moments = body.moments || 0
     const userId = body.userId || null
     const firstName = body.firstName || null
@@ -18,88 +26,20 @@ export async function POST(req) {
     if (!userMessage || !userMessage.trim()) {
       return Response.json({ reply: "What are you curious about?", topics: [], suggest: [], emotion: "curious" })
     }
+
     // ── LOAD MEMORY ──────────────────────────────────────────────
-let userMemory = null
-if (userId && userId !== 'demo-user') {
-  try {
-    const raw = await redis.get(`memory:${userId}`)
-    userMemory = raw
-      ? (typeof raw === 'string' ? JSON.parse(raw) : raw)
-      : null
-    console.log("MEMORY LOADED:", userId, userMemory ? "found" : "none yet")
-  } catch (e) {
-    console.error("MEMORY LOAD FAILED:", e.message)
-  }
-}
-
-    const text = userMessage.toLowerCase()
-
-    // ── TOPIC DETECTION ──────────────────────────────────────────
-    const topicKeywords = {
-  gravity: ["grav","phys"], "black hole": ["bh","astro"], "black holes": ["bh","astro"],
-  astronomy: ["astro"], astrophysics: ["astro"], physics: ["phys"], quantum: ["phys"],
-  relativity: ["rel","phys"], einstein: ["rel"], chemistry: ["chem"], atoms: ["chem"],
-  math: ["math"], mathematics: ["math"], calculus: ["calc"],
-  biology: ["bio"], cells: ["bio"], evolution: ["evol","bio"], darwin: ["evol"],
-  genetics: ["gen","bio"], dna: ["gen"], medicine: ["med"], health: ["med"],
-  neuroscience: ["neuro"], brain: ["neuro"], environment: ["env"], climate: ["env"],
-  psychology: ["psych"], behavior: ["psych"], criminology: ["crim"], crime: ["crim"],
-  history: ["hist"], civilization: ["hist"], renaissance: ["ren"], revolution: ["rev"],
-  industrial: ["ind"], anthropology: ["anth"], culture: ["anth"],
-  philosophy: ["eth"], ethics: ["eth"], moral: ["eth"], knowledge: ["know"],
-  sociology: ["soc"], society: ["soc"], politics: ["pol"], government: ["pol"],
-  law: ["law"], linguistics: ["ling"], language: ["ling"],
-  technology: ["tech"], innovation: ["tech"],
-  ai: ["ai","tech"], "artificial intelligence": ["ai"], "machine learning": ["ai"],
-  economics: ["econ"], economy: ["econ"], markets: ["econ"], money: ["econ"],
-  business: ["biz"], literature: ["lit"], writing: ["lit"],
-  music: ["music"], art: ["art"], film: ["film"], movies: ["film"], cinema: ["film"],
-  architecture: ["arch"], cooking: ["cul"], culinary: ["cul"], food: ["cul"],
-  engineering: ["eng"], geology: ["geo"], cosmology: ["cosmo"],
-  "big bang": ["cosmo"], universe: ["cosmo"], "space-time": ["st"], spacetime: ["st"],
-  energy: ["phys"], light: ["phys","astro"], darkness: ["phys"],
-  zero: ["math"], number: ["math"], counting: ["math"],
-  temperature: ["phys","chem"], heat: ["phys","chem"],
-  particles: ["phys","chem"], transformation: ["phys"],
-  absence: ["eth","math"], space: ["astro","phys"],
-  time: ["phys","hist"], consciousness: ["neuro","psych","eth"],
-  memory: ["neuro","psych"], dream: ["psych","neuro"],
-  infinity: ["math","eth"], pattern: ["math","psych"],
-  sound: ["music","phys"], color: ["art","phys"],
-  motion: ["phys"], force: ["phys","eng"],
-  power: ["phys","pol"], system: ["tech","bio","econ"],calorie: ["med","bio"],
-nutrition: ["med","bio"],
-nutrients: ["med","bio"],
-protein: ["med","bio"],
-vitamin: ["med"],
-diet: ["med","bio"],
-exercise: ["med","bio"],
-muscle: ["med","bio"],
-organ: ["med","bio"],
-digestion: ["med","bio"],
-metabolism: ["med","bio"],
+    let userMemory = null
+    if (userId && userId !== 'demo-user') {
+      try {
+        const raw = await redis.get(`memory:${userId}`)
+        userMemory = raw
+          ? (typeof raw === 'string' ? JSON.parse(raw) : raw)
+          : null
+        console.log("MEMORY LOADED:", userId, userMemory ? "found" : "none yet")
+      } catch (e) {
+        console.error("MEMORY LOAD FAILED:", e.message)
+      }
     }
-
-    let rawTopics = []
-    for (const [keyword, tags] of Object.entries(topicKeywords)) {
-      if (text.includes(keyword)) rawTopics.push(...tags)
-    }
-    const detectedTopics = [...new Set(rawTopics)]
-
-    const suggestionMap = {
-      phys: ["rel","astro","math"], astro: ["bh","cosmo","phys"],
-      math: ["calc","phys","ai"], bio: ["gen","evol","med"],
-      hist: ["ren","econ","lit"], eth: ["know","lit","ai"],
-      tech: ["ai","econ","math"], psych: ["neuro","eth","lit"],
-      econ: ["hist","math","pol"], art: ["hist","music","psych"],
-      cul: ["chem","hist","anth"], crim: ["psych","law","soc"],
-    }
-
-    let suggest = []
-    for (const topic of detectedTopics) {
-      if (suggestionMap[topic]) suggest.push(...suggestionMap[topic])
-    }
-    suggest = [...new Set(suggest)].filter(s => !detectedTopics.includes(s)).slice(0, 3)
 
     // ── ADAPTIVE SYSTEM PROMPT based on emotional state ──────────
     const stateInstructions = {
@@ -139,6 +79,7 @@ Ask something that makes them think harder than before.`,
     const realizationNote = `When acknowledging a new understanding, say things like:
 "You just formed a new understanding of..." or "You're starting to see how..."
 Never say "unlocked" or "great job". Make it feel like insight, not a game.`
+
     // ── MEMORY CONTEXT for system prompt ─────────────────────────
     let memoryContext = ""
     if (userMemory) {
@@ -163,11 +104,12 @@ Never say "unlocked" or "great job". Make it feel like insight, not a game.`
       }
     }
 
+    // ── SYSTEM PROMPT with structured output instruction ─────────
     const systemPrompt = `You are Restore — a thinking guide that helps people understand how ideas connect.
 
 ${memoryContext}
 
-${stateGuide}}
+${stateGuide}
 
 ${depthNote}
 
@@ -182,7 +124,24 @@ Format rules:
 - Never restate the question as an answer
 - Never make an observation and redirect without first engaging with what was actually asked
 - Start directly with the idea — no filler like "Great question!" or "Absolutely!"
-- Never use bullet points`
+- Never use bullet points
+
+You must respond with valid JSON in this exact format:
+{
+  "reply": "your response to the user (following all rules above)",
+  "topics": ["1-3 topic IDs from the list below that this question relates to"]
+}
+
+Valid topic IDs (use ONLY these, never invent new ones):
+${VALID_TOPICS.join(", ")}
+
+Topic selection rules:
+- Pick 1-3 topics. Prefer fewer. Only include topics that are CENTRALLY relevant.
+- A question about pimples → ["med", "bio"]. Not chem unless they ask about bacteria specifically.
+- A question about black holes → ["bh", "astro"]. Not phys unless they ask about underlying physics.
+- A question about Shakespeare → ["lit", "hist"]. Not psych unless they ask about character psychology.
+- If a question doesn't clearly fit any topic, return an empty array: []
+- Never include topics that are only tangentially related.`
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
@@ -191,12 +150,44 @@ Format rules:
         { role: "user", content: userMessage }
       ],
       temperature: 0.75,
-      max_tokens: 130,
+      max_tokens: 250,
+      response_format: { type: "json_object" }
     })
 
-    const reply = completion.choices?.[0]?.message?.content?.trim() || "Ask me that again?"
+    const rawResponse = completion.choices?.[0]?.message?.content?.trim() || '{}'
 
-    // ── EMOTION DETECTION (enhanced) ─────────────────────────────
+    // ── PARSE AI RESPONSE ────────────────────────────────────────
+    let reply = "Ask me that again?"
+    let detectedTopics = []
+    try {
+      const parsed = JSON.parse(rawResponse)
+      reply = parsed.reply || reply
+      const aiTopics = Array.isArray(parsed.topics) ? parsed.topics : []
+      // Filter to only valid topic IDs (defensive)
+      detectedTopics = aiTopics.filter(t => VALID_TOPICS.includes(t)).slice(0, 3)
+      console.log("AI TOPICS:", detectedTopics)
+    } catch (e) {
+      console.error("JSON PARSE FAILED:", e.message, "raw:", rawResponse)
+      reply = rawResponse // fall back to raw response if JSON fails
+    }
+
+    // ── SUGGESTION MAP for related topics ────────────────────────
+    const suggestionMap = {
+      phys: ["rel","astro","math"], astro: ["bh","cosmo","phys"],
+      math: ["calc","phys","ai"], bio: ["gen","evol","med"],
+      hist: ["ren","econ","lit"], eth: ["know","lit","ai"],
+      tech: ["ai","econ","math"], psych: ["neuro","eth","lit"],
+      econ: ["hist","math","pol"], art: ["hist","music","psych"],
+      cul: ["chem","hist","anth"], crim: ["psych","law","soc"],
+    }
+
+    let suggest = []
+    for (const topic of detectedTopics) {
+      if (suggestionMap[topic]) suggest.push(...suggestionMap[topic])
+    }
+    suggest = [...new Set(suggest)].filter(s => !detectedTopics.includes(s)).slice(0, 3)
+
+    // ── EMOTION DETECTION ────────────────────────────────────────
     const u = userMessage.toLowerCase()
     const r = reply.toLowerCase()
     let detectedEmotion = "curious"
@@ -214,7 +205,6 @@ Format rules:
     }
 
     // ── CONNECTION EXPLANATION for breakthroughs ─────────────────
-    // If multiple topics detected across domains, generate a "why" explanation
     let connectionWhy = null
     const scienceDomains = ["phys","chem","bio","math","geo","env","neuro","eng"]
     const spaceDomains = ["astro","bh","st","cosmo","rel","grav"]
@@ -227,8 +217,6 @@ Format rules:
     const hitClusters = allClusters.filter(cluster => detectedTopics.some(t => cluster.includes(t)))
 
     if (hitClusters.length >= 2 && detectedTopics.length >= 2) {
-      // Generate a brief "why they connect" explanation
-      // We'll pass it back and let the frontend show it in the connection card
       const topicNames = detectedTopics.slice(0, 2).map(id => {
         const nameMap = {
           phys:"Physics", astro:"Astronomy", math:"Mathematics", bio:"Biology",
@@ -244,25 +232,26 @@ Format rules:
 
     // ── SAVE MEMORY (fire and forget) ────────────────────────────
     console.log("MEMORY DEBUG:", { userId, topicsCount: detectedTopics.length, topics: detectedTopics })
-if (userId && detectedTopics.length > 0) {
-  console.log("MEMORY: attempting save for", userId)
-  try {
-    const raw = await redis.get(`memory:${userId}`)
-    const existing = raw
-      ? (typeof raw === 'string' ? JSON.parse(raw) : raw)
-      : { topics: [] }
-    const updatedTopics = [...new Set([...detectedTopics, ...(existing.topics || [])])].slice(0, 5)
-    const payload = {
-      firstName: firstName || existing.firstName || null,
-      topics: updatedTopics,
-      lastSeen: new Date().toISOString(),
+    if (userId && detectedTopics.length > 0) {
+      console.log("MEMORY: attempting save for", userId)
+      try {
+        const raw = await redis.get(`memory:${userId}`)
+        const existing = raw
+          ? (typeof raw === 'string' ? JSON.parse(raw) : raw)
+          : { topics: [] }
+        const updatedTopics = [...new Set([...detectedTopics, ...(existing.topics || [])])].slice(0, 5)
+        const payload = {
+          firstName: firstName || existing.firstName || null,
+          topics: updatedTopics,
+          lastSeen: new Date().toISOString(),
+        }
+        const result = await redis.set(`memory:${userId}`, JSON.stringify(payload))
+        console.log("MEMORY SAVE OK:", userId, "result:", result)
+      } catch (e) {
+        console.error("MEMORY SAVE FAILED:", e.message)
+      }
     }
-    const result = await redis.set(`memory:${userId}`, JSON.stringify(payload))
-    console.log("MEMORY SAVE OK:", userId, "result:", result)
-  } catch (e) {
-    console.error("MEMORY SAVE FAILED:", e.message)
-  }
-    }
+
     return Response.json({
       reply,
       topics: detectedTopics,
