@@ -28,21 +28,21 @@
   gap:8px;
   transform:translateX(-50%);
 }
+#firstTimePrompt.show{display:flex;}
 .ftp-text{
-  background:#ff0000 !important;
-  color:#ffffff !important;
-  border:5px solid #ffff00 !important;
-  font-size:24px !important;
-  z-index:9999 !important;
-  border-radius:24px;
-  padding:12px 24px;
-  font-family:'Inter',sans-serif;
-  font-weight:500;
-  letter-spacing:1px;
+  background:rgba(5,8,20,0.88);
+  border:1px solid rgba(56,189,248,0.25);
+  border-radius:20px;
+  padding:10px 20px;
+  font-family:'Cormorant Garamond',serif;
+  font-size:16px;
+  font-weight:300;
+  letter-spacing:2px;
+  color:#f0f4ff;
   white-space:nowrap;
   backdrop-filter:blur(12px);
-  text-shadow:0 0 12px rgba(56,189,248,0.6);
-  box-shadow:0 0 24px rgba(56,189,248,0.2),0 4px 16px rgba(0,0,0,0.4);
+  text-shadow:0 0 20px rgba(56,189,248,0.4);
+  box-shadow:0 0 20px rgba(56,189,248,0.1);
   animation:ftpFloat 2s ease-in-out infinite;
 }
 @keyframes ftpFloat{
@@ -776,12 +776,6 @@ body{position:fixed;inset:0;}
 <div id="growToast">
   <div style="font-size:18px;" id="toastIcon">🌟</div>
   <div><div class="gt-text" id="toastText">New node unlocked!</div><div class="gt-sub" id="toastSub">Your galaxy grew</div></div>
-</div>
-
-<div id="firstTimePrompt">
-  <div class="ftp-text">Spark your galaxy to life</div>
-  <div class="ftp-arrow">↓</div>
-  <div class="ftp-dismiss">TAP ANYWHERE TO BEGIN</div>
 </div>
 
 <script>
@@ -2286,20 +2280,13 @@ loop();updateUI();
 // Door opening animation
 initDoorAnimation();
 initFirstTimePrompt();
-  setTimeout(()=>{
-  const p = document.getElementById('firstTimePrompt');
-  if(p){
-    p.style.left = (window.innerWidth/2) + 'px';
-    p.style.top = '50%';
-    p.classList.add('show');
-    console.log('FORCED PROMPT SHOWN');
-  } else {
-    alert('FTP element NOT FOUND in DOM');
-  }
-}, 7000);
 setTimeout(loadUser,500);
 setTimeout(loadFromKV,800);
 </script>
-  
+  <div id="firstTimePrompt">
+  <div class="ftp-text">Where would you like to start your journey?</div>
+  <div class="ftp-arrow">↓</div>
+  <div class="ftp-dismiss">TAP ANYWHERE TO BEGIN</div>
+  </div>
 </body>
-</html>
+  </html>
