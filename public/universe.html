@@ -1796,14 +1796,11 @@ function initFirstTimePrompt(){
   setTimeout(()=>{
     const prompt=document.getElementById('firstTimePrompt');
     if(!prompt)return;
-    const chatBtn=document.getElementById('chatBtn');
-const rect=chatBtn.getBoundingClientRect();
-const cy=rect.top;
-// Anchor right edge of prompt to right edge of screen (with small margin)
-prompt.style.left='auto';
-prompt.style.right='12px';
-prompt.style.top=(cy-80)+'px';
-prompt.style.transform='none';
+    const cx=window.innerWidth/2;
+    const cy=window.innerHeight/2-80;
+    prompt.style.left=cx+'px';
+    prompt.style.top=(cy-90)+'px';
+    prompt.classList.add('show');
     function dismiss(){
       prompt.classList.remove('show');
       localStorage.setItem('restoreVisited','true');
@@ -2300,10 +2297,10 @@ initFirstTimePrompt();
 setTimeout(loadUser,500);
 setTimeout(loadFromKV,800);
 </script>
-<div id="firstTimePrompt">
-  <div class="ftp-text">Ask me anything — I'll show you how your ideas connect</div>
+  <div id="firstTimePrompt">
+  <div class="ftp-text">Where would you like to start your journey?</div>
   <div class="ftp-arrow">↓</div>
   <div class="ftp-dismiss">TAP ANYWHERE TO BEGIN</div>
-</div>
+  </div>
 </body>
   </html>
