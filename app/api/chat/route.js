@@ -160,8 +160,9 @@ Emotion selection rules:
   * "Reflecting" = user turns inward, applies the idea to LIFE, MEANING, or PERSONAL EXPERIENCE. Signals: "this makes me think about," "I wonder what this means for," "hmm, that's interesting," personal application.
 - "Confused" requires real signals: "I don't understand," "what do you mean," "huh?", "lost."
 - Casual factual questions are "curious" or null, not connecting.
-- When in doubt between mastering vs connecting: if the user is still on the SAME topic, it's mastering. If they jumped to ANOTHER topic, it's connecting.
-- When in doubt between connecting vs reflecting: if the link is to OTHER KNOWLEDGE, it's connecting. If the link is to LIFE/MEANING/SELF, it's reflecting.
+- When in doubt between mastering vs connecting: if the user is still on the SAME topic, it's mastering. If they jumped to ANOTHER topic, it's connecting.- When in doubt between connecting vs reflecting: if the link is to OTHER KNOWLEDGE, it's connecting. If the link is to LIFE/MEANING/SELF, it's reflecting.`
+
+    const completion = await openai.chat.completions.create({
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
