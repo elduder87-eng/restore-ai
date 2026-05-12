@@ -172,20 +172,26 @@ Emotion selection rules:
 
     const rawResponse = completion.choices?.[0]?.message?.content?.trim() || '{}'
 
-    // ── PARSE AI RESPONSE ────────────────────────────────────────
-    let reply = "Ask me that again?"
-    let detectedTopics = []
-    try {
-      const parsed = JSON.parse(rawResponse)
-      reply = parsed.reply || reply
-      const aiTopics = Array.isArray(parsed.topics) ? parsed.topics : []
-      // Filter to only valid topic IDs (defensive)
-      detectedTopics = aiTopics.filter(t => VALID_TOPICS.includes(t)).slice(0, 3)
-      console.log("AI TOPICS:", detectedTopics)
-    } catch (e) {
-      console.error("JSON PARSE FAILED:", e.message, "raw:", rawResponse)
-      reply = rawResponse // fall back to raw response if JSON fails
-    }
+// ── PARSE AI RESPONSE ────────────────────────────────────────
+let reply = "Ask me that again?"
+let detectedTopics = []
+let aiEmotion = null
+const VALID_EMOTIONS = ['curious','confused','reflecting','connecting','mastering']
+try {
+  const parsed = JSON.parse(rawResponse)
+  reply = parsed.reply || reply
+  const aiTopics = Array.isArray(parsed.topics) ? parsed.topics : []
+  // Filter to only valid topic IDs (defensive)
+  detectedTopics = aiTopics.filter(t => VALID_TOPICS.includes(t)).slice(0, 3)
+  // Validate emotion (only accept valid options, otherwise null)
+  if (parsed.emotion && VALID_EMOTIONS.includes(parsed.emotion)) {
+    aiEmotion = parsed.emotion
+  }
+  console.log("AI TOPICS:", detectedTopics, "EMOTION:", aiEmotion || 'unchanged')
+} catch (e) {
+  console.error("JSON PARSE FAILED:", e.message, "raw:", rawResponse)
+  reply = rawResponse // fall back to raw response if JSON fails
+}
 
     // ── SUGGESTION MAP for related topics ────────────────────────
     const suggestionMap = {
