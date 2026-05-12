@@ -2065,11 +2065,11 @@ function shareGalaxy(){
 // ══════════════════════════════════════════════════════════════
 function flashThink(emotion){
   const map={curious:0,confused:1,reflecting:2,connecting:3,mastering:4};
-  const cols={curious:'#38bdf8',confused:'#f87171',reflecting:'#4ade80',connecting:'#fbbf24',mastering:'#e2e8f0'};
+  // Remove .active from all, add to the matching one
+  document.querySelectorAll('.thk-item').forEach(el=>el.classList.remove('active'));
   const el=document.getElementById('thk'+map[emotion]);
   if(!el)return;
-  el.style.transform='scale(1.4)';el.style.boxShadow=`0 0 16px ${cols[emotion]}`;
-  setTimeout(()=>{el.style.transform='';el.style.boxShadow='';},2000);
+  el.classList.add('active');
 }
 
 function showToast(text,sub,col,icon){
