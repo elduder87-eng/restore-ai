@@ -1913,6 +1913,10 @@ function addMsg(text,role){
   const msgs=document.getElementById('chatMsgs');
   const d=document.createElement('div');d.className='msg '+role;
   const b=document.createElement('div');b.className='bubble';
+  // Color AI responses by current emotional state
+  if(role==='ai'){
+    b.classList.add('emotion-'+(appState.emotion||'curious'));
+  }
   b.textContent=text;d.appendChild(b);msgs.appendChild(d);
   msgs.scrollTop=msgs.scrollHeight;return b;
 }
