@@ -1982,7 +1982,11 @@ async function sendChat(text){
     typing.textContent=data.reply||'Ask me that again?';typing.style.opacity='1';
     // Speak the response if TTS enabled
     speakText(data.reply||'');
-    appState.emotion=data.emotion||'curious';
+    // Update emotion state (null means no change — keep previous)
+if(data.emotion)appState.emotion=data.emotion;
+// Re-color the AI bubble with the correct emotion class
+typing.classList.remove('emotion-curious','emotion-confused','emotion-reflecting','emotion-connecting','emotion-mastering');
+typing.classList.add('emotion-'+appState.emotion);
     appState.topics=data.topics||[];
     appState.moments++;
     if(appState.pulse[appState.emotion]!==undefined)appState.pulse[appState.emotion]++;
