@@ -209,23 +209,10 @@ try {
     }
     suggest = [...new Set(suggest)].filter(s => !detectedTopics.includes(s)).slice(0, 3)
 
-    // ── EMOTION DETECTION ────────────────────────────────────────
-    const u = userMessage.toLowerCase()
-    const r = reply.toLowerCase()
-    let detectedEmotion = "curious"
-
-    if (u.includes("confused") || u.includes("don't understand") || u.includes("lost") || u.includes("what do you mean")) {
-      detectedEmotion = "confused"
-    } else if (u.includes("i get it") || u.includes("i understand") || u.includes("makes sense") || u.includes("i see")) {
-      detectedEmotion = "mastering"
-    } else if (u.includes("hmm") || u.includes("interesting") || u.includes("never thought") || r.includes("reflect")) {
-      detectedEmotion = "reflecting"
-    } else if (r.includes("connect") || r.includes("link") || r.includes("both") || u.includes("connection") || u.includes("related")) {
-      detectedEmotion = "connecting"
-    } else if (u.includes("how") || u.includes("why") || u.includes("what") || u.includes("tell me")) {
-      detectedEmotion = "curious"
-    }
-
+// ── EMOTION DETECTION ────────────────────────────────────────
+// AI classifies emotion in the JSON response. Null means "no change" — keep previous state.
+// The frontend should preserve emotion across turns when this is null.
+const detectedEmotion = aiEmotion || emotion || "curious"
     // ── CONNECTION EXPLANATION for breakthroughs ─────────────────
     let connectionWhy = null
     const scienceDomains = ["phys","chem","bio","math","geo","env","neuro","eng"]
