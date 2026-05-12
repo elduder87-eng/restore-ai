@@ -129,7 +129,8 @@ Format rules:
 You must respond with valid JSON in this exact format:
 {
   "reply": "your response to the user (following all rules above)",
-  "topics": ["1-3 topic IDs from the list below that this question relates to"]
+  "topics": ["1-3 topic IDs from the list below that this question relates to"],
+  "emotion": "the user's current emotional state, or null if unchanged"
 }
 
 Valid topic IDs (use ONLY these, never invent new ones):
@@ -141,8 +142,23 @@ Topic selection rules:
 - A question about black holes → ["bh", "astro"]. Not phys unless they ask about underlying physics.
 - A question about Shakespeare → ["lit", "hist"]. Not psych unless they ask about character psychology.
 - If a question doesn't clearly fit any topic, return an empty array: []
-- Never include topics that are only tangentially related.`
+- Never include topics that are only tangentially related.
 
+Emotional state options (pick ONE or return null):
+- "curious" — user is open, exploring, asking new questions
+- "confused" — user is struggling, asking for clarification, expressing not-understanding
+- "reflecting" — user is processing, sitting with an idea, articulating their thinking
+- "connecting" — user is making links between ideas, noticing relationships, having insights
+- "mastering" — user demonstrates understanding, paraphrases correctly, applies concepts
+
+Emotion selection rules:
+- Read ONLY the user's message, not your own response, to determine emotional state.
+- Return null if the user's emotional state seems unchanged from a default exploratory mode.
+- Prefer null over forcing a classification. Stickiness matters more than precision.
+- "Confused" requires real signals: "I don't understand," "what do you mean," "huh?", "lost," etc.
+- "Mastering" requires real signals: "oh I see," "so basically," correct paraphrase, application to a new case.
+- "Connecting" requires the user noticing a link, not you mentioning one.
+- Casual questions default to null, not "curious."`
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
