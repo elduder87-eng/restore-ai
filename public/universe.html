@@ -2299,6 +2299,86 @@ async function loadUser(){
   }
 }
 
+  // ══════════════════════════════════════════════════════════════
+// BACK BUTTON HANDLING
+// ══════════════════════════════════════════════════════════════
+// Progressive close: each back press unwinds one layer of state.
+// Only exits the app when nothing is open AND user confirms with a second press.
+
+let lastBackPress = 0;
+
+function handleBackPress() {
+  // Priority 1: Sign-in modal
+  const signInModal = document.getElementById('signInModal');
+  if (signInModal && signInModal.classList.contains('show')) {
+    signInModal.classList.remove('show');
+    pushBackState();
+    return true;
+  }
+
+  // Priority 2: Applied Knowledge panel
+  const appliedPanel = document.getElementById('appliedPanel');
+  if (appliedPanel && appliedPanel.classList.contains('open')) {
+    hideAppliedPanel();
+    pushBackState();
+    return true;
+  }
+
+  // Priority 3: Bloom (node detail view)
+  if (bloomNode) {
+    bloomClose();
+    pushBackState();
+    return true;
+  }
+
+  // Priority 4: Chat screen
+  if (chatOpen) {
+    closeChat();
+    pushBackState();
+    return true;
+  }
+
+  // Priority 5: Any overlay
+  const overlays = ['overlayExplore', 'overlayInsights', 'overlayMe', 'overlayConnect', 'overlayHelp'];
+  for (const id of overlays) {
+    const el = document.getElementById(id);
+    if (el && el.classList.contains('open')) {
+      el.classList.remove('open');
+      // Reset nav to Journey tab
+      document.querySelectorAll('.nav-tab').forEach((t, i) => t.classList.toggle('active', i === 0));
+      pushBackState();
+      return true;
+    }
+  }
+
+  // Nothing open — show exit confirmation toast
+  const now = Date.now();
+  if (now - lastBackPress < 2000) {
+    // Second press within 2 seconds — actually exit
+    return false;
+  }
+  lastBackPress = now;
+  showToast('Press back again to exit', 'Restore', '#fbbf24', '🚪');
+  pushBackState();
+  return true;
+}
+
+function pushBackState() {
+  // Add a history entry so the next back press fires popstate again
+  history.pushState({ inApp: true }, '', window.location.href);
+}
+
+// Listen for back button presses (popstate fires when user presses phone back)
+window.addEventListener('popstate', (e) => {
+  const handled = handleBackPress();
+  if (!handled) {
+    // Let the browser actually navigate away (exit the app)
+    history.back();
+  }
+});
+
+// Push an initial history state so the FIRST back press has something to pop
+history.pushState({ inApp: true }, '', window.location.href);
 // ══════════════════════════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════════════════════════
