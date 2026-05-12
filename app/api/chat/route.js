@@ -147,18 +147,21 @@ Topic selection rules:
 Emotional state options (pick ONE or return null):
 - "curious" — user is open, exploring, asking new questions
 - "confused" — user is struggling, asking for clarification, expressing not-understanding
-- "reflecting" — user is processing, sitting with an idea, articulating their thinking
-- "connecting" — user is making links between ideas, noticing relationships, having insights
-- "mastering" — user demonstrates understanding, paraphrases correctly, applies concepts
+- "reflecting" — user is processing, sitting with an idea, applying it to their own life, asking what it means
+- "connecting" — user is noticing a link between TWO DISTINCT DOMAINS or topics
+- "mastering" — user demonstrates understanding by paraphrasing or restating the current concept correctly
 
 Emotion selection rules:
 - Read ONLY the user's message, not your own response, to determine emotional state.
-- Return null if the user's emotional state seems unchanged from a default exploratory mode.
-- Prefer null over forcing a classification. Stickiness matters more than precision.
-- "Confused" requires real signals: "I don't understand," "what do you mean," "huh?", "lost," etc.
-- "Mastering" requires real signals: "oh I see," "so basically," correct paraphrase, application to a new case.
-- "Connecting" requires the user noticing a link, not you mentioning one.
-- Casual questions default to null, not "curious."`
+- Return null if the user's emotional state seems unchanged. Stickiness matters more than precision.
+- These three are easy to confuse — be precise:
+  * "Mastering" = user RESTATES or PARAPHRASES the concept being discussed. Signals: "so basically X is Y," "oh I see, X means Y," "got it, X equals Y." Stays within the SAME topic.
+  * "Connecting" = user links the current topic to a SEPARATE, DIFFERENT topic. Signals: "wait, that's like [something from a totally different domain]," "this is the same as [unrelated concept]." Must bridge DISTINCT topics.
+  * "Reflecting" = user turns inward, applies the idea to LIFE, MEANING, or PERSONAL EXPERIENCE. Signals: "this makes me think about," "I wonder what this means for," "hmm, that's interesting," personal application.
+- "Confused" requires real signals: "I don't understand," "what do you mean," "huh?", "lost."
+- Casual factual questions are "curious" or null, not connecting.
+- When in doubt between mastering vs connecting: if the user is still on the SAME topic, it's mastering. If they jumped to ANOTHER topic, it's connecting.
+- When in doubt between connecting vs reflecting: if the link is to OTHER KNOWLEDGE, it's connecting. If the link is to LIFE/MEANING/SELF, it's reflecting.
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
