@@ -2299,9 +2299,31 @@ async function loadUser(){
       document.getElementById('meTitle').textContent = user.firstName + "'s Galaxy";
     }
     if (user.firstName) window._firstName = user.firstName;
+
+    // Populate the auth button in the Profile header
+    renderProfileAuthBtn(!!user.firstName && user.firstName !== 'Explorer');
   } catch(e) {
     console.error('USER FETCH FAILED:', e.message);
   }
+}
+
+function renderProfileAuthBtn(isSignedIn){
+  const el = document.getElementById('profileAuthBtn');
+  if(!el) return;
+  if(isSignedIn){
+    el.innerHTML = `<button onclick="signOut()" style="padding:7px 14px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:rgba(255,255,255,0.6);font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;">Sign Out</button>`;
+  } else {
+    el.innerHTML = `<button onclick="goSignIn()" style="padding:9px 16px;background:linear-gradient(135deg,#38bdf8,#818cf8);border:none;border-radius:12px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;">✨ Sign In to Save</button>`;
+  }
+}
+
+async function signOut(){
+  try {
+    // Clear local Restore ID so the next session starts fresh
+    window.localStorage.removeItem('restore_id');
+    window.localStorage.removeItem('restoreSignInShown');
+  } catch(e) {}
+  window.location.href = '/sign-out';
 }
 
   // ══════════════════════════════════════════════════════════════
