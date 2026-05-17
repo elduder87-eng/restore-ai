@@ -40,12 +40,10 @@ export async function POST(req) {
         console.error("MEMORY LOAD FAILED:", e.message)
       }
     }
-
-    // ── ADAPTIVE SYSTEM PROMPT based on emotional state ──────────
-    const stateInstructions = {
-      curious: `The user is in a curious state — open and exploring.
-Ask a question that pulls them deeper into the idea.
-Make them feel like they just opened a door.`,
+const stateInstructions = {
+      curious: `The user is curious — open, exploring, following a thread.
+Your voice: present and interested. You sound like you're thinking alongside them, not delivering an answer from above. Mid-length sentences. Slightly conversational. You can use natural hedges ("actually," "huh") when they earn their place — sparingly, never as filler.
+Approach: answer their question directly, then open a door. The question you ask back should be one you genuinely want them to think about, not a stock prompt. Make them feel like the idea got bigger, not smaller, in their hands.`,
 
       confused: `The user is confused or struggling.
 Simplify immediately. Use an analogy. One clear idea only.
@@ -63,7 +61,7 @@ Make them feel like a detective who just found a clue.`,
       mastering: `The user is mastering this topic.
 Challenge them. Go deeper. Introduce a paradox or edge case.
 Ask something that makes them think harder than before.`,
-    }
+}
 
     const stateGuide = stateInstructions[emotion] || stateInstructions.curious
 
