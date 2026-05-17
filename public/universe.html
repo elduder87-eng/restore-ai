@@ -637,8 +637,13 @@ body{position:fixed;inset:0;}
   </div>
 
 <div class="overlay" id="overlayMe">
-  <div class="ov-head"><div class="ov-back" onclick="closeOverlay('me')">←</div><div><div class="ov-title" id="meTitle">Your Galaxy</div><div class="ov-sub">Your journey · Your understanding</div></div></div>
-  <div class="ov-body">
+  <div class="ov-head" style="justify-content:space-between;">
+    <div style="display:flex;align-items:center;gap:14px;">
+      <div class="ov-back" onclick="closeOverlay('me')">←</div>
+      <div><div class="ov-title" id="meTitle">Your Galaxy</div><div class="ov-sub">Your journey · Your understanding</div></div>
+    </div>
+    <div id="profileAuthBtn"></div>
+  </div>  <div class="ov-body">
     <div class="stat-row">
       <div class="stat-card"><div class="stat-n" id="meNodes" style="color:var(--blue);">1</div><div class="stat-l">Nodes Lit</div></div>
       <div class="stat-card"><div class="stat-n" id="meMoments" style="color:var(--green);">0</div><div class="stat-l">Moments</div></div>
