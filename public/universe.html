@@ -781,6 +781,16 @@ body{position:fixed;inset:0;}
     </div>
   </div>
   </div>
+  <div id="resetConfirmModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:1000;align-items:center;justify-content:center;padding:24px;">
+  <div style="background:#0a0a14;border:1px solid rgba(255,255,255,0.12);border-radius:16px;padding:28px;max-width:400px;width:100%;">
+    <div style="font-size:18px;font-weight:700;color:#fff;margin-bottom:12px;">Reset your galaxy?</div>
+    <div style="font-size:14px;color:rgba(255,255,255,0.7);line-height:1.5;margin-bottom:24px;">This will permanently delete every node you've explored. Your conversations, your connections, your progress — all of it. This cannot be undone.</div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button onclick="cancelReset()" style="padding:10px 18px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:rgba(255,255,255,0.8);font-size:13px;cursor:pointer;font-family:'Inter',sans-serif;">Keep my galaxy</button>
+      <button onclick="resetGalaxyConfirmed()" style="padding:10px 18px;background:#dc2626;border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;">Yes, reset</button>
+    </div>
+  </div>
+  </div>
 
 <div id="growToast">
   <div style="font-size:18px;" id="toastIcon">🌟</div>
