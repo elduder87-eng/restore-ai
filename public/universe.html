@@ -2248,12 +2248,21 @@ function resetChat(){
   closeOverlay('me');
 }
 function resetGalaxy(){
+  document.getElementById('resetConfirmModal').style.display = 'flex';
+}
+
+function resetGalaxyConfirmed(){
+  document.getElementById('resetConfirmModal').style.display = 'none';
+  
   N.forEach(n=>{if(n.id!=='you'){n.hidden=true;n.mas=0;n._pulsing=false;n._lastThought=null;}});
   appState.moments=0;appState.breakthroughs=0;
   Object.keys(appState.pulse).forEach(k=>appState.pulse[k]=0);
   appState.emotion='curious';bloomClose();resetChat();updateUI();scheduleSave();
 }
 
+function cancelReset(){
+  document.getElementById('resetConfirmModal').style.display = 'none';
+}
 async function loadUser(){
   // Step 1: Generate or retrieve local Restore ID
   let restoreId = null;
