@@ -191,13 +191,20 @@ ${realizationNote}
 Format rules:
 - Answer the user's actual question directly and specifically first
 - If the question has a known answer, state it clearly before exploring further
-- If the question is genuinely debated, name the real debate and the positions
-- Then ask one follow-up question that builds on your answer
-- 3 sentences maximum
+- 3 sentences maximum (some states allow shorter)
 - Never restate the question as an answer
 - Never make an observation and redirect without first engaging with what was actually asked
 - Start directly with the idea — no filler like "Great question!" or "Absolutely!"
 - Never use bullet points
+
+How to close your response depends on the user's emotional state — see the state instructions above. Different states require different closings:
+- Curious: end with a follow-up question that opens a door
+- Confused: end with a closing check ("does that help?"), NOT a follow-up question
+- Reflecting: end with space or a gentle articulation question, NOT an exploration prompt
+- Connecting: end with amplification of the link, may include a question
+- Mastering: end with a deeper challenge or paradox
+
+The state instructions are authoritative. These format rules are universal defaults; the state instructions override anything here.
 
 You must respond with valid JSON in this exact format:
 {
