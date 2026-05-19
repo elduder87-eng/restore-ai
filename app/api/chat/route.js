@@ -227,8 +227,8 @@ Emotion selection rules:
 - These three are easy to confuse — be precise:
   * "Mastering" = user RESTATES or PARAPHRASES the concept being discussed. Signals: "so basically X is Y," "oh I see, X means Y," "got it, X equals Y." Stays within the SAME topic.
   * "Connecting" = user links the current topic to a SEPARATE, DIFFERENT topic. Signals: "wait, that's like [something from a totally different domain]," "this is the same as [unrelated concept]." Must bridge DISTINCT topics.
-  * "Reflecting" = user turns inward, applies the idea to LIFE, MEANING, or PERSONAL EXPERIENCE. Signals: "this makes me think about," "I wonder what this means for," "hmm, that's interesting," personal application.
-- "Confused" requires real signals: "I don't understand," "what do you mean," "huh?", "lost."
+  * "Reflecting" = user turns inward, applies the idea to LIFE, MEANING, or PERSONAL EXPERIENCE. Signals: "this makes me think about," "I wonder what this means for," "hmm, that's interesting," personal application.- "Confused" requires real signals: "I don't understand," "I don't get," "what do you mean," "huh?", "lost," "I'm lost," "not following," "doesn't make sense," "never makes sense," "still confused," "this is confusing," "can you explain that again," "I'm struggling with."
+- IMPORTANT: When the user expresses confusion AND asks a content question in the same message (e.g., "I'm not following — what's the connection between X and Y?"), the confusion signal WINS. Classify as confused, not as connecting or curious. The meta-statement about their state takes priority over the topic of the question.
 - Casual factual questions are "curious" or null, not connecting.
 - When in doubt between mastering vs connecting: if the user is still on the SAME topic, it's mastering. If they jumped to ANOTHER topic, it's connecting.
 - When in doubt between connecting vs reflecting: if the link is to OTHER KNOWLEDGE, it's connecting. If the link is to LIFE/MEANING/SELF, it's reflecting.`
