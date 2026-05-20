@@ -2074,7 +2074,7 @@ function unlockNodes(topics,question){
 // ══════════════════════════════════════════════════════════════
 function shareGalaxy(){
   const lit=N.filter(n=>!n.hidden).length;
-  const text=`🌌 I've lit ${lit} ideas in my Restore galaxy.\n\nVisualize your curiosity.\nmappedknowledge.ai`;
+const text=`🌌 I've lit ${lit} idea${lit===1?'':'s'} in my Restore galaxy.\n\nVisualize your curiosity.\nmappedknowledge.ai`;
   if(navigator.share){
     navigator.share({title:'My Restore Galaxy',text,url:'https://mappedknowledge.ai'}).catch(()=>{});
   } else {
