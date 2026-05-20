@@ -1955,11 +1955,11 @@ function addConnectionCard(nodeA, nodeB, isBreakthrough){
   const colB=nb.col||'#fbbf24';
 
   const d=document.createElement('div');d.className='msg connection';
-  d.innerHTML=`
+d.innerHTML=`
     <div class="connection-card ${isBreakthrough?'breakthrough':''}" onclick="closeChat()">
       <div class="conn-card-header">
         <div class="conn-card-icon">${isBreakthrough?'⚡':'🔗'}</div>
-        <div class="conn-card-title">${isBreakthrough?'Cross-Domain Breakthrough!':'Connection Made'}</div>
+        <div class="conn-card-title">${isBreakthrough?'Crossed domains':'New territory'}</div>
         ${isBreakthrough?'<div class="conn-card-badge">Rare</div>':''}
       </div>
       <div class="conn-anim-wrap">
