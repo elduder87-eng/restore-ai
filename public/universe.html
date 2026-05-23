@@ -2258,7 +2258,10 @@ async function loadFromKV(){
 }
 
 function resetChat(){
-  conversationHistory=[];
+  try{
+    fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({userId:window._userId,resetHistory:true})});
+  }catch(e){}
   document.getElementById('chatMsgs').innerHTML='<div class="msg ai"><div class="bubble">Hey! What are you curious about today? 🌌</div></div>';
   closeOverlay('me');
 }
