@@ -315,6 +315,7 @@ Emotion selection rules:
       model: "gpt-4o-mini",
       messages: [
         { role: "system", content: systemPrompt },
+        ...history,
         { role: "user", content: userMessage }
       ],
       temperature: 0.75,
