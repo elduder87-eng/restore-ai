@@ -38,6 +38,21 @@ export async function POST(req) {
         console.error("HISTORY LOAD FAILED:", e.message)
       }
     }
+// ── HISTORY RESET SIGNAL ─────────────────────────────────────
+    if (body.resetHistory && userId && userId !== 'demo-user') {
+      try {
+        await redis.del(`chat:${userId}`)
+        console.log("HISTORY RESET:", userId)
+      } catch (e) {
+        console.error("HISTORY RESET FAILED:", e.message)
+      }
+      return Response.json({ ok: true })
+    }
+
+    if (!userMessage || !userMessage.trim()) {
+      return Response.json({ reply: "What are you curious about?", topics: [], suggest: [], emotion: "curious" })
+    }
+    
     if (!userMessage || !userMessage.trim()) {
       return Response.json({ reply: "What are you curious about?", topics: [], suggest: [], emotion: "curious" })
     }
