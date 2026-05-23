@@ -22,9 +22,22 @@ export async function POST(req) {
     const moments = body.moments || 0
     const userId = body.userId || null
     const firstName = body.firstName || null
-    const history = Array.isArray(body.history)
-      ? body.history.filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string').slice(-24)
-      : []
+    // ── LOAD CONVERSATION HISTORY ────────────────────────────────
+    let history = []
+    if (userId && userId !== 'demo-user') {
+      try {
+        const rawHist = await redis.get(`chat:${userId}`)
+        const parsed = rawHist
+          ? (typeof rawHist === 'string' ? JSON.parse(rawHist) : rawHist)
+          : []
+        history = Array.isArray(parsed)
+          ? parsed.filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string').slice(-24)
+          : []
+        console.log("HISTORY LOADED:", userId, history.length, "messages")
+      } catch (e) {
+        console.error("HISTORY LOAD FAILED:", e.message)
+      }
+    }
     if (!userMessage || !userMessage.trim()) {
       return Response.json({ reply: "What are you curious about?", topics: [], suggest: [], emotion: "curious" })
     }
