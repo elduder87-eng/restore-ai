@@ -22,7 +22,9 @@ export async function POST(req) {
     const moments = body.moments || 0
     const userId = body.userId || null
     const firstName = body.firstName || null
-
+    const history = Array.isArray(body.history)
+      ? body.history.filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string').slice(-24)
+      : []
     if (!userMessage || !userMessage.trim()) {
       return Response.json({ reply: "What are you curious about?", topics: [], suggest: [], emotion: "curious" })
     }
