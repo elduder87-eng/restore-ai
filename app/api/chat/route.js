@@ -405,6 +405,21 @@ const detectedEmotion = aiEmotion || emotion || "curious"
       connectionWhy = `${topicNames[0]} and ${topicNames[1]} both ${getConnectionBridge(detectedTopics[0], detectedTopics[1])}`
     }
 
+    // ── SAVE CONVERSATION HISTORY ────────────────────────────────
+    if (userId && userId !== 'demo-user' && reply) {
+      try {
+        const updatedHistory = [
+          ...history,
+          { role: 'user', content: userMessage },
+          { role: 'assistant', content: reply }
+        ].slice(-24)
+        await redis.set(`chat:${userId}`, JSON.stringify(updatedHistory))
+        console.log("HISTORY SAVED:", userId, updatedHistory.length, "messages")
+      } catch (e) {
+        console.error("HISTORY SAVE FAILED:", e.message)
+      }
+    }
+
     // ── SAVE MEMORY (fire and forget) ────────────────────────────
     console.log("MEMORY DEBUG:", { userId, topicsCount: detectedTopics.length, topics: detectedTopics })
     if (userId && detectedTopics.length > 0) {
