@@ -2260,6 +2260,7 @@ async function loadFromKV(){
 }
 
 function resetChat(){
+  conversationHistory=[];
   document.getElementById('chatMsgs').innerHTML='<div class="msg ai"><div class="bubble">Hey! What are you curious about today? 🌌</div></div>';
   closeOverlay('me');
 }
