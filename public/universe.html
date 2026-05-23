@@ -1998,6 +1998,9 @@ async function sendChat(text){
       body:JSON.stringify({message:text,userId:window._userId||'demo-user',firstName:window._firstName||null,history:conversationHistory})});
     const data=await res.json();
     typing.textContent=data.reply||'Ask me that again?';typing.style.opacity='1';
+    conversationHistory.push({role:'user',content:text});
+    conversationHistory.push({role:'assistant',content:data.reply||''});
+    if(conversationHistory.length>24)conversationHistory=conversationHistory.slice(-24);
     // Speak the response if TTS enabled
     speakText(data.reply||'');
     // Update emotion state (null means no change — keep previous)
