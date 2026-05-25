@@ -349,7 +349,7 @@ Emotional state options (pick ONE or return null):
 - "confused" — user is struggling, asking for clarification, expressing not-understanding
 - "reflecting" — user is processing, sitting with an idea, applying it to their own life, asking what it means
 - "connecting" — user is noticing a link between TWO DISTINCT DOMAINS or topics
-* "Mastering" = user APPLIES the concept to something NEW — a fresh case, an implication, or an edge case the conversation hasn't covered. Signals: "so does that mean [new scenario]?", "then what happens if [case not yet discussed]?", "so [correct new implication that follows]." Merely restating or paraphrasing what was just explained is NOT mastering on its own — that is comprehension in progress (curious or null). Stays within the SAME topic, but goes BEYOND what was said.
+- "mastering" — user demonstrates understanding by APPLYING the concept to a new case, implication, or edge case not yet discussed — not by merely restating it, and never by merely sounding confident
 
 Emotion selection rules:
 - Read ONLY the user's message, not your own response, to determine emotional state.
