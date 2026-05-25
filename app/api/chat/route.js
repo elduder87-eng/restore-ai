@@ -432,7 +432,8 @@ const detectedEmotion = aiEmotion || emotion || "curious"
     const hitClusters = allClusters.filter(cluster => detectedTopics.some(t => cluster.includes(t)))
 
     if (hitClusters.length >= 2 && detectedTopics.length >= 2) {
-      const topicNames = detectedTopics.slice(0, 2).map(id => {
+      const bridge = getConnectionBridge(detectedTopics[0], detectedTopics[1])
+      if (bridge) {
         const nameMap = {
           phys:"Physics", astro:"Astronomy", math:"Mathematics", bio:"Biology",
           hist:"History", eth:"Philosophy", tech:"Technology", ai:"AI",
@@ -440,9 +441,9 @@ const detectedEmotion = aiEmotion || emotion || "curious"
           bh:"Black Holes", rel:"Relativity", neuro:"Neuroscience", env:"Environment",
           chem:"Chemistry", evol:"Evolution", gen:"Genetics", med:"Medicine",
         }
-        return nameMap[id] || id
-      })
-      connectionWhy = `${topicNames[0]} and ${topicNames[1]} both ${getConnectionBridge(detectedTopics[0], detectedTopics[1])}`
+        const topicNames = detectedTopics.slice(0, 2).map(id => nameMap[id] || id)
+        connectionWhy = `${topicNames[0]} and ${topicNames[1]} both ${bridge}`
+      }
     }
 
     // ── SAVE CONVERSATION HISTORY ────────────────────────────────
