@@ -2027,16 +2027,19 @@ typing.classList.add('emotion-'+appState.emotion);
       const clusters={science:['phys','chem','bio','math','geo','env','neuro','eng'],space:['astro','bh','st','cosmo','rel','grav'],humanities:['hist','lit','art','music','film','ren','rev','anth','arch','cul'],social:['psych','soc','pol','law','eth','know','ling','crim'],tech:['tech','ai'],econ:['econ','biz','ind']};
       const hit=new Set();
       appState.topics.forEach(t=>{for(const[c,ids]of Object.entries(clusters)){if(ids.includes(t))hit.add(c);}});
-      if(hit.size>=2){
+      // Only a REAL breakthrough if the two topics have a curated, meaningful bridge.
+      const breakthroughPair = newNodes.length>=2 ? [newNodes[0].id, newNodes[1].id]
+        : (appState.topics.length>=2 ? [appState.topics[0], appState.topics[1]] : null);
+      const hasRealBridge = breakthroughPair && getConnectionBridge(breakthroughPair[0], breakthroughPair[1]) !== null;
+
+      if(hit.size>=2 && hasRealBridge){
         appState.breakthroughs++;
         soundBreakthrough();
-        // Chain flash
         if(newNodes.length>=2){
           setTimeout(()=>fireLightning(newNodes[0],newNodes[1]),300);
           const crossPairs=[];
           newNodes.forEach((na,i)=>newNodes.forEach((nb,j)=>{if(i<j)crossPairs.push([na.id,nb.id]);}));
           setTimeout(()=>triggerConnectionFlash(crossPairs,120),500);
-          // Show breakthrough card
           setTimeout(()=>addConnectionCard(newNodes[0].id,newNodes[1].id,true),1200);
         } else if(newNodes.length===1){
           setTimeout(()=>fireLightning(newNodes[0],N[0]),300);
