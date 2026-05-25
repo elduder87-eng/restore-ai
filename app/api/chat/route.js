@@ -361,7 +361,7 @@ Emotion selection rules:
 - IMPORTANT: When the user expresses confusion AND asks a content question in the same message (e.g., "I'm not following — what's the connection between X and Y?"), the confusion signal WINS. Classify as confused, not as connecting or curious. The meta-statement about their state takes priority over the topic of the question.
 - Casual factual questions are "curious" or null, not connecting.
 - Confidence is NOT mastery. A user expressing certainty about a claim they have NOT demonstrated understanding of ("I'm sure," "I'm confident," "I've always believed this," "every teacher told me") is NOT mastering — no matter how certain they sound. If the user is confident about something that is wrong or unconfirmed, never classify it as mastering. Applying a concept INCORRECTLY to a new case is also not mastering — it is the doorway to deeper confusion (classify as confused or curious, never mastering).
-- When in doubt between mastering vs connecting: if the user is still on the SAME topic, it's mastering. If they jumped to ANOTHER topic, it's connecting.
+- When in doubt between mastering vs connecting: mastering applies the SAME topic to a new case or implication; connecting bridges to a DIFFERENT topic. Staying on the same topic is not enough for mastering on its own — there must be genuine application to something new.
 - When in doubt between connecting vs reflecting: if the link is to OTHER KNOWLEDGE, it's connecting. If the link is to LIFE/MEANING/SELF, it's reflecting.`
 
     const completion = await openai.chat.completions.create({
