@@ -519,5 +519,5 @@ function getConnectionBridge(a, b) {
   }
   const key1 = `${a}-${b}`
   const key2 = `${b}-${a}`
-  return bridges[key1] || bridges[key2] || "reveal patterns that appear across all of human knowledge"
+  return bridges[key1] || bridges[key2] || null
 }
