@@ -2181,7 +2181,7 @@ function getConnectionBridge(a,b){
   }
   list.innerHTML=activeConns.slice(0,8).map(([a,b])=>{
     const na=N.find(n=>n.id===a),nb=N.find(n=>n.id===b);
-    const why=getConnectionBridge(a,b);
+    const why=getConnectionBridge(a,b)||'connect in your growing galaxy';
     return`<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:12px 14px;">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
         <span style="color:${na.col};font-weight:600;font-size:12px;">${na.label}</span>
