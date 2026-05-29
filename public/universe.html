@@ -1034,7 +1034,7 @@ function drawBg(){
 }
 
 function nodePos(n,gravPull){
-  const cx=uC.width/2,cy=uC.height/2-80;
+  const cx=CW/2,cy=CH/2-80;
   let orb=n.orb;
   // Gravity pull toward bloomed node
   if(gravPull&&bloomNode&&n.id!==bloomNode.id&&n.id!=='you'){
