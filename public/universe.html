@@ -991,21 +991,22 @@ const SPARKS=Array.from({length:55},()=>({
   col:['#fbbf24','#fb923c','#4ade80','#38bdf8','#c084fc','#f472b6','#2dd4bf'][Math.floor(Math.random()*7)]
 }));
 
+let CW, CH;
 function resize(){
-  const w=window.innerWidth,h=window.innerHeight;
-  const dpr=window.devicePixelRatio||1;
-  [bgC,uC,blC,ltC,hitC].forEach(c=>{
-    c.width=w*dpr;
-    c.height=h*dpr;
-    c.style.width=w+'px';
-    c.style.height=h+'px';
-    c.getContext('2d').setTransform(dpr,0,0,dpr,0,0);
+  CW = window.innerWidth;
+  CH = window.innerHeight;
+  const dpr = window.devicePixelRatio || 1;
+  [bgC,uC,blC,ltC,hitC].forEach(c => {
+    c.width = CW * dpr;
+    c.height = CH * dpr;
+    c.style.width = CW + 'px';
+    c.style.height = CH + 'px';
+    c.getContext('2d').setTransform(dpr, 0, 0, dpr, 0, 0);
   });
   drawBg();
 }
 resize();
-window.addEventListener('resize',resize);
-
+window.addEventListener('resize', resize);
 
 // ── BACKGROUND ────────────────────────────────────────────────
 function drawBg(){
