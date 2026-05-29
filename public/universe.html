@@ -1686,7 +1686,7 @@ function bloomClose(){
 // HIT DETECTION
 // ══════════════════════════════════════════════════════════════
 function getNodeAt(mx,my){
-  const cx=hitC.width/2,cy=hitC.height/2-80;
+  const cx=CW/2,cy=CH/2-80;
   let best=null,bestDist=Infinity;
   N.forEach(n=>{
     if(n.hidden&&n.id!=='you')return;
