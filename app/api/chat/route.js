@@ -330,12 +330,6 @@ When to NOT acknowledge:
 
 The acknowledgment is brief — one sentence, woven into the start of your response. It marks the shift, hands choice back to the user, then continues the work.
 
-You must respond with valid JSON in this exact format:
-{
-  "reply": "your response to the user (following all rules above)",
-  "topics": ["1-3 topic IDs from the list below that this question relates to"],
-  "emotion": "the user's current emotional state, or null if unchanged"
-}
 
 Valid topic IDs (use ONLY these, never invent new ones):
 ${VALID_TOPICS.join(", ")}
@@ -368,19 +362,44 @@ Emotion selection rules:
 - When in doubt between mastering vs connecting: mastering applies the SAME topic to a new case or implication; connecting bridges to a DIFFERENT topic. Staying on the same topic is not enough for mastering on its own — there must be genuine application to something new.
 - When in doubt between connecting vs reflecting: if the link is to OTHER KNOWLEDGE, it's connecting. If the link is to LIFE/MEANING/SELF, it's reflecting.`
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+   const completion = await anthropic.messages.create({
+      model: "claude-sonnet-4-6",
+      system: systemPrompt,
       messages: [
-        { role: "system", content: systemPrompt },
         ...history,
         { role: "user", content: userMessage }
       ],
       temperature: 0.75,
-      max_tokens: 250,
-      response_format: { type: "json_object" }
+      max_tokens: 400,
+      tools: [{
+        name: "respond_to_user",
+        description: "Generate a reply, classify the topics, and detect the user's emotional state.",
+        input_schema: {
+          type: "object",
+          properties: {
+            reply: {
+              type: "string",
+              description: "Your response to the user, following all rules in the system prompt."
+            },
+            topics: {
+              type: "array",
+              items: { type: "string" },
+              description: "1-3 topic IDs from the valid list, or empty array if none apply."
+            },
+            emotion: {
+              type: "string",
+              enum: ["", "curious", "confused", "reflecting", "connecting", "mastering"],
+              description: "User's current emotional state, or empty string if unchanged."
+            }
+          },
+          required: ["reply", "topics", "emotion"]
+        }
+      }],
+      tool_choice: { type: "tool", name: "respond_to_user" }
     })
 
-    const rawResponse = completion.choices?.[0]?.message?.content?.trim() || '{}'
+    const toolUse = completion.content.find(block => block.type === "tool_use")
+    const rawResponse = toolUse ? JSON.stringify(toolUse.input) : '{}' 
 
 // ── PARSE AI RESPONSE ────────────────────────────────────────
 let reply = "Ask me that again?"
