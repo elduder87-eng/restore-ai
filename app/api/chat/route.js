@@ -1,9 +1,13 @@
 import OpenAI from "openai"
+import Anthropic from "@anthropic-ai/sdk"
 import { redis } from '@/lib/redis'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 })
+const anthropic = new Anthropic({
+apiKey: process.env.ANTHROPIC_API_KEY
+   })
 
 // Valid topic IDs the AI can classify questions into.
 // Must match node IDs in universe.html exactly.
