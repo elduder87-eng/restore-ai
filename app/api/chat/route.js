@@ -1,6 +1,7 @@
 import OpenAI from "openai"
 import Anthropic from "@anthropic-ai/sdk"
 import { redis } from '@/lib/redis'
+import { recordEngagement, recordCrossTopic, recordMastering, recordPostMasteryEngagement } from '@/lib/edges'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
@@ -466,6 +467,34 @@ const detectedEmotion = aiEmotion || emotion || "curious"
         }
         const topicNames = detectedTopics.slice(0, 2).map(id => nameMap[id] || id)
         connectionWhy = `${topicNames[0]} and ${topicNames[1]} both ${bridge}`
+      }
+    }
+
+
+    // ── RECORD EDGE EVENTS ────────────────────────────────
+    if (userId && userId !== 'demo-user' && detectedTopics.length > 0 && detectedEmotion !== 'confused') {
+      try {
+        const isMultiTopic = detectedTopics.length >= 2
+
+        if (detectedEmotion === 'mastering') {
+          const edgeId = isMultiTopic
+            ? [detectedTopics[0], detectedTopics[1]].sort().join('::')
+            : detectedTopics[0]
+          await recordMastering(userId, edgeId)
+        } else if (isMultiTopic) {
+          await recordCrossTopic(userId, detectedTopics, detectedEmotion)
+        } else {
+          const topic = detectedTopics[0]
+          const hasMastered = await redis.hget(`edge:${userId}:${topic}`, 'has_mastered')
+          if (hasMastered === '1' || hasMastered === 1) {
+            await recordPostMasteryEngagement(userId, topic, detectedEmotion)
+          } else {
+            await recordEngagement(userId, topic, detectedEmotion)
+          }
+        }
+        console.log("EDGE EVENT RECORDED:", { userId, topics: detectedTopics, emotion: detectedEmotion })
+      } catch (e) {
+        console.error("EDGE RECORD FAILED:", e.message)
       }
     }
 
