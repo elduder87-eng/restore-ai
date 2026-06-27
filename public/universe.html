@@ -1429,6 +1429,14 @@ function drawNode(n){
     ux.beginPath();ux.arc(x,y,r,0,Math.PI*2);ux.clip();
     ux.drawImage(_getNC(n),x-r,y-r,r*2,r*2);
     ux.restore();ux.globalAlpha=1;
+    // Mastery ring: gold ring around nodes the user has demonstrated mastery on
+    if(window._edges?.[n.id]?.has_mastered){
+      ux.globalAlpha=dimA;
+      ux.beginPath();ux.arc(x,y,r+4,0,Math.PI*2);
+      ux.strokeStyle='#fbbf24';ux.lineWidth=1.5;
+      ux.shadowColor='#fbbf24';ux.shadowBlur=8;
+      ux.stroke();ux.shadowBlur=0;ux.globalAlpha=1;
+    }
     ux.globalAlpha=dimA;
     ux.fillStyle=bloomed?'#fff':'rgba(226,232,240,.92)';
     ux.font=`${bloomed||n._pulsing?'600 ':''}11px Inter`;
@@ -1597,6 +1605,23 @@ const pendingNodes=new Set();
 // ══════════════════════════════════════════════════════════════
 // ── APPLIED KNOWLEDGE ────────────────────────────────────────
 const _appliedCache = {}; // cache per node
+
+async function fetchEdges() {
+  if (!window._userId) return
+  try {
+    const res = await fetch('/api/galaxy/edges?userId=' + encodeURIComponent(window._userId))
+    if (!res.ok) return
+    const data = await res.json()
+    if (!data.edges || !Array.isArray(data.edges)) return
+    window._edges = {}
+    for (const edge of data.edges) {
+      window._edges[edge.edgeId] = edge
+    }
+    console.log('EDGES LOADED:', data.edges.length)
+  } catch (e) {
+    console.error('EDGES FETCH FAILED:', e.message)
+  }
+}
 
 async function fetchAppliedKnowledge(node) {
   if (_appliedCache[node.id]) {
@@ -2340,6 +2365,7 @@ async function loadUser(){
 
     // Populate the auth button in the Profile header
     renderProfileAuthBtn(!!user.firstName && user.firstName !== 'Explorer');
+    fetchEdges();
   } catch(e) {
     console.error('USER FETCH FAILED:', e.message);
   }
