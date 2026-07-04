@@ -2,6 +2,7 @@ import OpenAI from "openai"
 import Anthropic from "@anthropic-ai/sdk"
 import { redis } from '@/lib/redis'
 import { recordEngagement, recordCrossTopic, recordMastering, recordPostMasteryEngagement } from '@/lib/edges'
+import { allClusters } from '@/lib/domains'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
@@ -445,14 +446,6 @@ try {
 const detectedEmotion = aiEmotion || emotion || "curious"
     // ── CONNECTION EXPLANATION for breakthroughs ─────────────────
     let connectionWhy = null
-    const scienceDomains = ["phys","chem","bio","math","geo","env","neuro","eng"]
-    const spaceDomains = ["astro","bh","st","cosmo","rel","grav"]
-    const humanDomains = ["hist","lit","art","music","film","ren","rev","anth","arch","cul"]
-    const socialDomains = ["psych","soc","pol","law","eth","know","ling","crim"]
-    const techDomains = ["tech","ai"]
-    const econDomains = ["econ","biz","ind"]
-
-    const allClusters = [scienceDomains, spaceDomains, humanDomains, socialDomains, techDomains, econDomains]
     const hitClusters = allClusters.filter(cluster => detectedTopics.some(t => cluster.includes(t)))
 
     if (hitClusters.length >= 2 && detectedTopics.length >= 2) {
