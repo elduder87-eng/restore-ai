@@ -1,7 +1,7 @@
 import OpenAI from "openai"
 import Anthropic from "@anthropic-ai/sdk"
 import { redis } from '@/lib/redis'
-import { recordEngagement, recordCrossTopic, recordMastering, recordPostMasteryEngagement } from '@/lib/edges'
+import { recordEngagement, recordCrossTopic, recordMastering, recordPostMasteryEngagement, invalidateEdgesCache } from '@/lib/edges'
 import { allClusters } from '@/lib/domains'
 
 const openai = new OpenAI({
@@ -485,6 +485,7 @@ const detectedEmotion = aiEmotion || emotion || "curious"
             await recordEngagement(userId, topic, detectedEmotion)
           }
         }
+        invalidateEdgesCache(userId)
         console.log("EDGE EVENT RECORDED:", { userId, topics: detectedTopics, emotion: detectedEmotion })
       } catch (e) {
         console.error("EDGE RECORD FAILED:", e.message)

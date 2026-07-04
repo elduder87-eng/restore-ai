@@ -2,7 +2,8 @@ import {
   recordEngagement,
   recordMastering,
   recordCrossTopic,
-  getFoundations
+  getFoundations,
+  invalidateEdgesCache
 } from '../lib/edges.js'
 import { redis } from '../lib/redis.js'
 
@@ -18,6 +19,7 @@ async function cleanupAll() {
       await redis.del(key)
     }
   } while (cursor !== 0 && cursor !== '0')
+  invalidateEdgesCache(u)
 }
 
 async function caseEmptyUser() {
