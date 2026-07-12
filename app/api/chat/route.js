@@ -362,7 +362,23 @@ Emotion selection rules:
 - Casual factual questions are "curious" or null, not connecting.
 - Confidence is NOT mastery. A user expressing certainty about a claim they have NOT demonstrated understanding of ("I'm sure," "I'm confident," "I've always believed this," "every teacher told me") is NOT mastering — no matter how certain they sound. If the user is confident about something that is wrong or unconfirmed, never classify it as mastering. Applying a concept INCORRECTLY to a new case is also not mastering — it is the doorway to deeper confusion (classify as confused or curious, never mastering).
 - When in doubt between mastering vs connecting: mastering applies the SAME topic to a new case or implication; connecting bridges to a DIFFERENT topic. Staying on the same topic is not enough for mastering on its own — there must be genuine application to something new.
-- When in doubt between connecting vs reflecting: if the link is to OTHER KNOWLEDGE, it's connecting. If the link is to LIFE/MEANING/SELF, it's reflecting.`
+- When in doubt between connecting vs reflecting: if the link is to OTHER KNOWLEDGE, it's connecting. If the link is to LIFE/MEANING/SELF, it's reflecting.
+
+Bridge generation rules:
+- Fill \"bridge\" ONLY when emotion is \"connecting\" or \"mastering\" AND topics contains at least 2 topics from DIFFERENT domain clusters (a science topic paired with a humanities topic, a math topic paired with an arts topic, etc). If the two topics are in the same cluster (e.g. phys + math both science), leave bridge as empty string.
+- Otherwise, always return bridge as empty string \"\".
+- FORMAT: One sentence in the form \"[Topic A full name] and [Topic B full name] both [shared verb phrase describing what the two ideas have in common]\" — or a slight variant like \"[Topic A] and [Topic B] [shared verb phrase]\" when it reads more naturally. Use the topics' full display names (Physics, Astronomy, Music, Neuroscience), not the code IDs.
+- LENGTH: 8-15 words, one clause. Present tense. No preamble. No period at the end.
+- VOICE: Gestural, literary, calm. Reference what the two ideas SHARE — a mechanism, a pattern, a question they both raise, an underlying structure. Avoid generic phrases like \"are related\" or \"connect somehow.\" Prefer specific verbs: trace, share, follow, describe, mirror, ask, reveal, encode.
+- EXAMPLES of good bridges:
+  * \"Rhythm and geology both trace how energy shapes matter over time\"
+  * \"Neuroscience and Psychology study the same mind from different angles\"
+  * \"Music and Physics share the same patterns — rhythm is mathematics you can hear\"
+  * \"Black Holes and Relativity are the same prediction from Einstein's equations\"
+- EXAMPLES of BAD bridges (do not emit):
+  * \"Music and Physics are related to each other\" (too generic)
+  * \"These two topics connect in interesting ways.\" (says nothing)
+  * \"Music and Physics both involve waves. Waves are important in both.\" (two sentences)`
 
    const completion = await anthropic.messages.create({
       model: "claude-sonnet-4-6",
@@ -392,9 +408,13 @@ Emotion selection rules:
               type: "string",
               enum: ["", "curious", "confused", "reflecting", "connecting", "mastering"],
               description: "User's current emotional state, or empty string if unchanged."
+            },
+            bridge: {
+              type: "string",
+              description: "A one-sentence bridge explaining WHY two topics connect. FORMAT: '[Topic A] and [Topic B] both [shared verb phrase]' or '[Topic A] and [Topic B] [shared verb phrase]'. Present tense, one clause, 8-15 words, no preamble, no period at the end optional. Only fill when emotion is 'connecting' or 'mastering' AND topics contains 2+ topics. Otherwise return empty string."
             }
           },
-          required: ["reply", "topics", "emotion"]
+          required: ["reply", "topics", "emotion", "bridge"]
         }
       }],
       tool_choice: { type: "tool", name: "respond_to_user" }
@@ -407,6 +427,7 @@ Emotion selection rules:
 let reply = "Ask me that again?"
 let detectedTopics = []
 let aiEmotion = null
+let aiBridge = null
 const VALID_EMOTIONS = ['curious','confused','reflecting','connecting','mastering']
 try {
   const parsed = JSON.parse(rawResponse)
@@ -418,7 +439,11 @@ try {
   if (parsed.emotion && VALID_EMOTIONS.includes(parsed.emotion)) {
     aiEmotion = parsed.emotion
   }
-  console.log("AI TOPICS:", detectedTopics, "EMOTION:", aiEmotion || 'unchanged')
+  // Extract bridge sentence. Model returns empty string for non-connecting turns; treat that as null.
+  if (typeof parsed.bridge === 'string' && parsed.bridge.trim().length > 0) {
+    aiBridge = parsed.bridge.trim()
+  }
+  console.log("AI TOPICS:", detectedTopics, "EMOTION:", aiEmotion || 'unchanged', "BRIDGE:", aiBridge ? '(set)' : '(none)')
 } catch (e) {
   console.error("JSON PARSE FAILED:", e.message, "raw:", rawResponse)
   reply = rawResponse // fall back to raw response if JSON fails
@@ -473,9 +498,9 @@ const detectedEmotion = aiEmotion || emotion || "curious"
           const edgeId = isMultiTopic
             ? [detectedTopics[0], detectedTopics[1]].sort().join('::')
             : detectedTopics[0]
-          await recordMastering(userId, edgeId)
+          await recordMastering(userId, edgeId, aiBridge)
         } else if (isMultiTopic) {
-          await recordCrossTopic(userId, detectedTopics, detectedEmotion)
+          await recordCrossTopic(userId, detectedTopics, detectedEmotion, aiBridge)
         } else {
           const topic = detectedTopics[0]
           const hasMastered = await redis.hget(`edge:${userId}:${topic}`, 'has_mastered')
