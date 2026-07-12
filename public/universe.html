@@ -479,6 +479,104 @@ body{position:fixed;inset:0;}
 
 /* Empty states */
 .insights-empty{font-size:14px;color:#64748b;line-height:1.6;font-style:italic;padding:8px 0 4px 0;}
+
+/* ── CROSSROAD DETAIL SHEET ────────────────────────────── */
+.cr-sheet-backdrop{
+  position:fixed;top:0;left:0;right:0;bottom:0;
+  background:rgba(0,0,0,0.55);backdrop-filter:blur(3px);
+  z-index:100;opacity:0;pointer-events:none;
+  transition:opacity 0.2s ease;
+}
+.cr-sheet-backdrop.open{opacity:1;pointer-events:all;}
+.cr-sheet{
+  position:fixed;left:0;right:0;bottom:0;
+  background:#0b1220;
+  border-top:1px solid rgba(255,255,255,0.06);
+  border-radius:24px 24px 0 0;
+  padding:20px 20px 28px 20px;
+  z-index:101;
+  transform:translateY(100%);
+  transition:transform 0.28s cubic-bezier(0.32,0.72,0.24,0.98);
+  max-height:80vh;overflow-y:auto;
+  box-shadow:0 -10px 40px rgba(0,0,0,0.5);
+  max-width:520px;margin:0 auto;
+}
+.cr-sheet.open{transform:translateY(0);}
+.cr-sheet-handle{
+  display:flex;justify-content:center;margin-bottom:20px;
+}
+.cr-sheet-handle > div{
+  width:36px;height:4px;background:rgba(255,255,255,0.15);border-radius:2px;
+}
+.cr-sheet-label{
+  font-size:10px;letter-spacing:0.12em;color:#c084fc;font-weight:500;
+  margin-bottom:16px;text-align:center;
+}
+.cr-sheet-header{
+  display:flex;align-items:center;justify-content:center;gap:0;margin-bottom:28px;
+}
+.cr-sheet-header .crossroad-left{
+  flex:1;text-align:right;padding-right:16px;
+}
+.cr-sheet-header .crossroad-right{
+  flex:1;padding-left:16px;
+}
+.cr-sheet.mastered .cr-sheet-header .crossroad-left{border-right:1px solid rgba(192,132,252,0.4);}
+.cr-sheet.mastered .cr-sheet-header .crossroad-right{border-left:1px solid rgba(192,132,252,0.4);}
+.cr-sheet.developing .cr-sheet-header .crossroad-left{border-right:1px dashed rgba(192,132,252,0.3);}
+.cr-sheet.developing .cr-sheet-header .crossroad-right{border-left:1px dashed rgba(192,132,252,0.3);}
+.cr-sheet-node{
+  width:14px;height:14px;background:#c084fc;border-radius:50%;margin:0 -7px;
+}
+.cr-sheet.mastered .cr-sheet-node{box-shadow:0 0 0 5px rgba(192,132,252,0.2);}
+.cr-sheet.developing .cr-sheet-node{width:10px;height:10px;opacity:0.7;margin:0 -5px;}
+.cr-sheet-topic{
+  font-weight:500;font-size:20px;
+}
+.cr-sheet-bridge{
+  text-align:center;margin-bottom:32px;padding:0 8px;
+}
+.cr-sheet-bridge > div{
+  font-family:'Cormorant Garamond',serif;font-weight:400;font-size:22px;
+  color:#e2e8f0;line-height:1.4;font-style:italic;
+}
+.cr-sheet-bridge-empty{
+  text-align:center;margin-bottom:32px;padding:0 24px;
+  font-size:14px;color:#64748b;line-height:1.5;font-style:italic;
+}
+.cr-sheet-meta{
+  display:flex;flex-direction:column;gap:14px;
+  padding-top:20px;border-top:1px solid rgba(255,255,255,0.06);
+}
+.cr-sheet-meta-row{
+  display:flex;align-items:center;justify-content:space-between;
+}
+.cr-sheet-meta-label{
+  font-size:12px;color:#64748b;letter-spacing:0.04em;
+}
+.cr-sheet-meta-val{
+  font-size:13px;color:#cbd5e1;
+}
+.cr-sheet-meta-val.status-mastered{
+  color:#c084fc;font-weight:500;display:flex;align-items:center;gap:6px;
+}
+.cr-sheet-meta-val.status-mastered > span:first-child{font-size:10px;}
+.cr-sheet-meta-val.status-developing{
+  color:#cbd5e1;
+}
+.cr-sheet-goto-row{
+  display:flex;gap:10px;margin-top:28px;
+}
+.cr-sheet-goto{
+  flex:1;padding:14px;border-radius:12px;text-align:center;cursor:pointer;
+  border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);
+}
+.cr-sheet-goto-caption{
+  font-size:10px;letter-spacing:0.08em;color:#64748b;margin-bottom:4px;
+}
+.cr-sheet-goto-label{
+  font-size:14px;font-weight:500;
+}
 </style>
 
   <div class="badge-ring">
@@ -2431,6 +2529,7 @@ function getConnectionBridge(a,b){
 
     const mastered = crossroads.mastered || [];
     const developing = crossroads.developing || [];
+    window._crossroadsData = { mastered, developing };
     const count = mastered.length + developing.length;
 
     if(count === 0){
@@ -2450,7 +2549,7 @@ function getConnectionBridge(a,b){
       const ca = insightsColorFor(a), cb = insightsColorFor(b);
       const la = insightsLabelFor(a), lb = insightsLabelFor(b);
       const badge = kind === 'mastered' ? '<div class="crossroad-badge">' + String.fromCharCode(9670) + '</div>' : '';
-      return '<div class="crossroad-card ' + kind + '">' +
+      return '<div class="crossroad-card ' + kind + '" data-edge-id="' + edge.edgeId + '" data-kind="' + kind + '" style="cursor:pointer;">' +
         badge +
         '<div class="crossroad-inner">' +
           '<div class="crossroad-left"><div class="crossroad-label" style="color:' + ca + ';">' + la + '</div></div>' +
@@ -2493,8 +2592,92 @@ function getConnectionBridge(a,b){
     });
   }
 
+  /* ── CROSSROAD DETAIL SHEET ────────────────────────────── */
+
+  function findCrossroadEdge(edgeId){
+    const data = window._crossroadsData;
+    if(!data) return null;
+    return (data.mastered || []).find(e => e.edgeId === edgeId)
+        || (data.developing || []).find(e => e.edgeId === edgeId)
+        || null;
+  }
+
+  function openCrossroadSheet(edgeId, kind){
+    const edge = findCrossroadEdge(edgeId);
+    if(!edge) return;
+    const [a, b] = edge.edgeId.split('::');
+    const ca = insightsColorFor(a), cb = insightsColorFor(b);
+    const la = insightsLabelFor(a), lb = insightsLabelFor(b);
+
+    const sheet = document.getElementById('crSheet');
+    const backdrop = document.getElementById('crSheetBackdrop');
+    if(!sheet || !backdrop) return;
+
+    sheet.classList.remove('mastered', 'developing');
+    sheet.classList.add(kind);
+
+    document.getElementById('crSheetHeader').innerHTML =
+      '<div class="crossroad-left"><span class="cr-sheet-topic" style="color:' + ca + ';">' + la + '</span></div>' +
+      '<div class="cr-sheet-node"></div>' +
+      '<div class="crossroad-right"><span class="cr-sheet-topic" style="color:' + cb + ';">' + lb + '</span></div>';
+
+    const bridgeEl = document.getElementById('crSheetBridge');
+    if(edge.last_bridge_text){
+      bridgeEl.className = 'cr-sheet-bridge';
+      bridgeEl.innerHTML = '<div>' + edge.last_bridge_text + '</div>';
+    } else {
+      bridgeEl.className = 'cr-sheet-bridge-empty';
+      bridgeEl.innerHTML = 'A bridge will appear here the next time you connect these two ideas in conversation.';
+    }
+
+    const statusHtml = kind === 'mastered'
+      ? '<span class="cr-sheet-meta-val status-mastered"><span>' + String.fromCharCode(9670) + '</span>Mastered</span>'
+      : '<span class="cr-sheet-meta-val status-developing">Developing</span>';
+    const firstConnected = edge.created_at ? timeAgo(edge.created_at) : '—';
+    const lastTouched = edge.last_event_at ? timeAgo(edge.last_event_at) : '—';
+
+    document.getElementById('crSheetMeta').innerHTML =
+      '<div class="cr-sheet-meta-row"><span class="cr-sheet-meta-label">Status</span>' + statusHtml + '</div>' +
+      '<div class="cr-sheet-meta-row"><span class="cr-sheet-meta-label">First connected</span><span class="cr-sheet-meta-val">' + firstConnected + '</span></div>' +
+      '<div class="cr-sheet-meta-row"><span class="cr-sheet-meta-label">Last touched</span><span class="cr-sheet-meta-val">' + lastTouched + '</span></div>';
+
+    document.getElementById('crSheetGoto').innerHTML =
+      '<div class="cr-sheet-goto" style="background:' + ca + '14;border-color:' + ca + '33;">' +
+        '<div class="cr-sheet-goto-caption">GO TO</div>' +
+        '<div class="cr-sheet-goto-label" style="color:' + ca + ';">' + la + '</div>' +
+      '</div>' +
+      '<div class="cr-sheet-goto" style="background:' + cb + '14;border-color:' + cb + '33;">' +
+        '<div class="cr-sheet-goto-caption">GO TO</div>' +
+        '<div class="cr-sheet-goto-label" style="color:' + cb + ';">' + lb + '</div>' +
+      '</div>';
+
+    backdrop.classList.add('open');
+    sheet.classList.add('open');
+  }
+
+  function closeCrossroadSheet(){
+    const sheet = document.getElementById('crSheet');
+    const backdrop = document.getElementById('crSheetBackdrop');
+    if(sheet) sheet.classList.remove('open');
+    if(backdrop) backdrop.classList.remove('open');
+  }
+
+  function wireCrossroadCards(){
+    const body = document.getElementById('crossroadsBody');
+    if(!body || body._wired) return;
+    body._wired = true;
+    body.addEventListener('click', (ev) => {
+      const card = ev.target.closest('.crossroad-card');
+      if(!card) return;
+      const edgeId = card.dataset.edgeId;
+      const kind = card.dataset.kind;
+      if(edgeId && kind) openCrossroadSheet(edgeId, kind);
+    });
+  }
+
   async function refreshInsights(){
     wireThreadsSort();
+    wireCrossroadCards();
     const data = await fetchInsights();
     if(!data){
       // Fetch failed — leave the containers empty rather than showing stale data.
@@ -2760,6 +2943,16 @@ setTimeout(loadFromKV,800);
   <div class="ftp-text">Ask me anything — I'll show you how your ideas connect</div>
   <div class="ftp-arrow">↓</div>
   <div class="ftp-dismiss">TAP ANYWHERE TO BEGIN</div>
+</div>
+
+<div class="cr-sheet-backdrop" id="crSheetBackdrop" onclick="closeCrossroadSheet()"></div>
+<div class="cr-sheet" id="crSheet">
+  <div class="cr-sheet-handle"><div></div></div>
+  <div class="cr-sheet-label">A CROSSING</div>
+  <div class="cr-sheet-header" id="crSheetHeader"></div>
+  <div id="crSheetBridge"></div>
+  <div class="cr-sheet-meta" id="crSheetMeta"></div>
+  <div class="cr-sheet-goto-row" id="crSheetGoto"></div>
 </div>
 </body>
   </html>
